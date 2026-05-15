@@ -1,13 +1,16 @@
 import {
   gitBranches,
+  gitCleanMerged,
   gitCommit,
   gitCreateBranch,
   gitLog,
+  gitPr,
   gitPull,
   gitPush,
   gitStatus,
   gitSwitch,
   gitSync,
+  gitSyncMain,
 } from '../actions';
 import type { Command } from './types';
 
@@ -76,6 +79,33 @@ export const gitCommands: Command[] = [
     scope: [...WORKSPACE_SCOPE],
     category: 'git',
     action: gitSync,
+  },
+  {
+    id: 'git.sync-main',
+    label: '⬆  Sync with main',
+    icon: '⬆',
+    description: 'Подтянуть свежий origin/main в текущую feat-ветку (rebase)',
+    scope: [...WORKSPACE_SCOPE],
+    category: 'git',
+    action: gitSyncMain,
+  },
+  {
+    id: 'git.pr',
+    label: '🚀 Open PR',
+    icon: '🚀',
+    description: 'Запушить ветку и открыть Create-PR на GitHub (или gh pr create)',
+    scope: [...WORKSPACE_SCOPE],
+    category: 'git',
+    action: gitPr,
+  },
+  {
+    id: 'git.clean-merged',
+    label: '🧹 Clean merged',
+    icon: '🧹',
+    description: 'Удалить локальные ветки, уже смерженные в main',
+    scope: [...WORKSPACE_SCOPE],
+    category: 'git',
+    action: gitCleanMerged,
   },
   {
     id: 'git.commit',

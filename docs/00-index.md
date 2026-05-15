@@ -48,6 +48,7 @@ type: index
 - [[vite-plugins|🛠️ Vite-плагины]]
 - [[auto-import|📦 Auto-import + .capsule/registry]]
 - [[cli|💻 CLI]]
+- [[git|🌿 Git workflow — GitHub Flow + Conventional Commits]]
 - [[releases|🚀 Releases — Nx Release, registries, env]]
 
 ## 📦 Пакеты

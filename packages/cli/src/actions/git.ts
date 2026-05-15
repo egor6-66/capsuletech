@@ -365,3 +365,152 @@ export const gitLog: CommandAction = async (ctx) => {
   if (!ctx.root) return;
   await gitInherit(ctx.root, ['log', '--oneline', '--graph', '--decorate', '--all', '-n', '20']);
 };
+
+/**
+ * Подтянуть свежий main в текущую feat-ветку через rebase.
+ * Если на main → просто `pull --ff-only`.
+ */
+export const gitSyncMain: CommandAction = async (ctx) => {
+  if (!ctx.root) return;
+  const root = ctx.root;
+  const branch = await currentBranch(root);
+
+  const dirty = (await git(root, ['status', '--porcelain'])).trim();
+  if (dirty) {
+    kit.log.warn('Рабочее дерево грязное — сначала commit/stash, потом sync.');
+    return;
+  }
+
+  await kit.task('git fetch origin --prune', async () =>
+    git(root, ['fetch', 'origin', '--prune']),
+  );
+
+  if (branch === 'main') {
+    kit.log.info('Текущая ветка — main. Делаю pull --ff-only.');
+    await gitInherit(root, ['pull', '--ff-only']);
+    return;
+  }
+
+  kit.note(
+    `Сейчас на «${branch}». Rebase поверх свежего origin/main.\n` +
+      `Если будут конфликты — git добавит маркеры в файлы, исправь и git rebase --continue.\n` +
+      `Если запутаешься — git rebase --abort вернёт всё как было.`,
+    '🔄 Sync с main',
+  );
+  const ok = await kit.confirm(`git rebase origin/main на ветке «${branch}»?`);
+  if (!ok) return;
+
+  await gitInherit(root, ['rebase', 'origin/main']);
+};
+
+/**
+ * Удалить локальные ветки, уже смерженные в main (защищены main + текущая).
+ */
+export const gitCleanMerged: CommandAction = async (ctx) => {
+  if (!ctx.root) return;
+  const root = ctx.root;
+  const branch = await currentBranch(root);
+
+  await kit.task('git fetch origin --prune', async () =>
+    git(root, ['fetch', 'origin', '--prune']),
+  );
+
+  const merged = (await git(root, ['branch', '--merged', 'main']))
+    .split('\n')
+    .map((s) => s.replace(/^\*?\s+/, '').trim())
+    .filter((b) => b && b !== 'main' && b !== branch);
+
+  if (merged.length === 0) {
+    kit.log.info('Нет локальных веток, смерженных в main.');
+    return;
+  }
+
+  kit.note(merged.join('\n'), `🧹 К удалению (${merged.length})`);
+  const ok = await kit.confirm('Удалить эти локальные ветки?');
+  if (!ok) return;
+
+  for (const b of merged) {
+    try {
+      await git(root, ['branch', '-d', b]);
+      kit.log.info(`  ✓ deleted ${b}`);
+    } catch (e) {
+      kit.log.warn(`  ✗ skip ${b} (${(e as Error).message?.split('\n')[0] ?? 'error'})`);
+    }
+  }
+};
+
+const parseOriginRepo = (url: string): { owner: string; repo: string } | null => {
+  // https://github.com/owner/repo.git | git@github.com:owner/repo.git
+  const m = url.match(/github\.com[:/]([^/]+)\/([^/.]+)(?:\.git)?$/);
+  if (!m) return null;
+  return { owner: m[1], repo: m[2] };
+};
+
+/**
+ * Открыть GitHub Create-PR в браузере для текущей ветки.
+ * Если установлен `gh` — предлагает использовать его (создаёт PR прямо из CLI).
+ */
+export const gitPr: CommandAction = async (ctx) => {
+  if (!ctx.root) return;
+  const root = ctx.root;
+  const branch = await currentBranch(root);
+
+  if (branch === 'main') {
+    kit.log.warn('Ты на main. PR делается с feature-ветки, не с main.');
+    return;
+  }
+
+  if (!(await hasUpstream(root, branch))) {
+    const push = await kit.confirm(
+      `У ветки «${branch}» нет upstream — без push GitHub её не видит. Запушить сейчас?`,
+    );
+    if (!push) return;
+    await gitInherit(root, ['push', '--set-upstream', 'origin', branch]);
+  } else {
+    // Подтянем свежак, чтобы PR-URL открылся с актуальным diff.
+    const ahead = parseTrack(
+      (
+        await git(root, [
+          'for-each-ref',
+          '--format=%(upstream:track)',
+          `refs/heads/${branch}`,
+        ])
+      ).trim(),
+    ).ahead;
+    if (ahead > 0) {
+      const push = await kit.confirm(`Локальных коммитов впереди: ${ahead}. Запушить перед PR?`);
+      if (push) await gitInherit(root, ['push']);
+    }
+  }
+
+  const originUrl = (await git(root, ['remote', 'get-url', 'origin'])).trim();
+  const repo = parseOriginRepo(originUrl);
+  if (!repo) {
+    kit.log.error(`Не разобрал origin URL: ${originUrl}`);
+    return;
+  }
+
+  // Попробовать gh CLI — если есть, лучше создать PR через него.
+  try {
+    await execa('gh', ['--version'], { cwd: root });
+    const useGh = await kit.confirm('Создать PR через gh CLI (без браузера)?');
+    if (useGh) {
+      await execa('gh', ['pr', 'create', '--fill', '--web'], { cwd: root, stdio: 'inherit' });
+      return;
+    }
+  } catch {
+    // gh не установлен — fallback на URL.
+  }
+
+  const url = `https://github.com/${repo.owner}/${repo.repo}/compare/main...${encodeURIComponent(branch)}?expand=1`;
+  kit.note(url, '🔗 Open PR');
+
+  // Кросс-платформенный «открой в браузере».
+  const opener =
+    process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+  try {
+    await execa(opener, [url], { cwd: root, shell: process.platform === 'win32' });
+  } catch {
+    kit.log.info('Не удалось открыть браузер автоматом — скопируй URL выше.');
+  }
+};
