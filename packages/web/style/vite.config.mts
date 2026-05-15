@@ -1,4 +1,4 @@
-import { copyFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { libConfig } from '@capsule/shared-vite';
 
@@ -13,6 +13,15 @@ export default libConfig({
       name: 'copy-css',
       closeBundle() {
         copyFileSync(resolve('src/index.css'), resolve('dist/index.css'));
+
+        const themesSrc = resolve('src/themes');
+        const themesDst = resolve('dist/themes');
+        mkdirSync(themesDst, { recursive: true });
+        for (const file of readdirSync(themesSrc)) {
+          if (file.endsWith('.css')) {
+            copyFileSync(resolve(themesSrc, file), resolve(themesDst, file));
+          }
+        }
       },
     },
   ],

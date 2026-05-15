@@ -1,7 +1,10 @@
+import chalk from 'chalk';
 import { execa } from 'execa';
 import type { CommandAction } from '../commands/types';
 import { type CliContext, listWorkspaceChildren } from '../context';
 import { kit } from '../kit';
+
+const padLabel = (s: string, w = 8): string => s + ' '.repeat(Math.max(0, w - s.length));
 
 const BRANCH_TYPES: Array<{ value: string; label: string; hint: string }> = [
   { value: 'feat', label: 'feat', hint: 'новая фича' },
@@ -15,18 +18,26 @@ const BRANCH_TYPES: Array<{ value: string; label: string; hint: string }> = [
 
 /** Conventional Commits types — порядок по частоте использования. */
 const COMMIT_TYPES: Array<{ value: string; label: string; hint: string }> = [
-  { value: 'feat', label: '✨ feat', hint: 'новая функциональность' },
-  { value: 'fix', label: '🐛 fix', hint: 'исправление бага' },
-  { value: 'refactor', label: '♻  refactor', hint: 'рефакторинг без изменения поведения' },
-  { value: 'perf', label: '⚡ perf', hint: 'оптимизация производительности' },
-  { value: 'docs', label: '📚 docs', hint: 'только документация' },
-  { value: 'style', label: '🎨 style', hint: 'форматирование, пробелы, без логики' },
-  { value: 'test', label: '🧪 test', hint: 'добавление/правка тестов' },
-  { value: 'build', label: '📦 build', hint: 'сборка, зависимости (pnpm, vite, nx)' },
-  { value: 'ci', label: '🤖 ci', hint: 'CI/CD (GitHub Actions и т.п.)' },
-  { value: 'chore', label: '🧹 chore', hint: 'рутина, не трогающая исходники' },
-  { value: 'revert', label: '⏪ revert', hint: 'отмена предыдущего коммита' },
-  { value: 'wip', label: '🚧 wip', hint: 'work in progress (временный)' },
+  { value: 'feat', label: chalk.green(padLabel('feat')), hint: 'новая функциональность' },
+  { value: 'fix', label: chalk.yellow(padLabel('fix')), hint: 'исправление бага' },
+  {
+    value: 'refactor',
+    label: chalk.cyan(padLabel('refactor')),
+    hint: 'рефакторинг без изменения поведения',
+  },
+  { value: 'perf', label: chalk.magenta(padLabel('perf')), hint: 'оптимизация производительности' },
+  { value: 'docs', label: chalk.blue(padLabel('docs')), hint: 'только документация' },
+  { value: 'style', label: chalk.gray(padLabel('style')), hint: 'форматирование, без логики' },
+  { value: 'test', label: chalk.greenBright(padLabel('test')), hint: 'добавление/правка тестов' },
+  {
+    value: 'build',
+    label: chalk.blueBright(padLabel('build')),
+    hint: 'сборка, зависимости (pnpm, vite, nx)',
+  },
+  { value: 'ci', label: chalk.cyanBright(padLabel('ci')), hint: 'CI/CD (GitHub Actions и т.п.)' },
+  { value: 'chore', label: chalk.dim(padLabel('chore')), hint: 'рутина, не трогающая исходники' },
+  { value: 'revert', label: chalk.red(padLabel('revert')), hint: 'отмена предыдущего коммита' },
+  { value: 'wip', label: chalk.yellow.dim(padLabel('wip')), hint: 'work in progress (временный)' },
 ];
 
 interface BranchInfo {

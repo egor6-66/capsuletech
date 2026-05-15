@@ -9,61 +9,96 @@
 /* Сканируем приложения */
 @source "../../../../apps/*/src/**/*.{ts,tsx}";
 
-@theme {
-  /* Цвета в стиле shadcn (Slate/Zinc) */
-  --color-status: var(--current-status);
+@custom-variant dark (&:is(.dark *));
 
+/* Маппинг Tailwind-утилит на CSS-переменные.
+   Сами значения переменных приходят из активной темы (themes/<name>.css),
+   поэтому здесь — только алиасы, ни одного hardcoded цвета. */
+@theme inline {
+  /* Цвета темы */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  /*--color-primary: var(--primary);*/
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
+  /* Семейство шрифтов — задаётся в теме */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
 
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
+  /* Радиусы — масштабируются от темового --radius */
   --radius-sm: calc(var(--radius) - 4px);
-  /* Глобальный фактор отступа */
-  --spacing-base: 1rem;
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 
-  /* РЕГИСТРАЦИЯ ОТСТУПОВ ДЛЯ ТЕЙЛВИНДА */
-  /* Теперь можно использовать классы: gap-container, p-layout, py-component и т.д. */
-  --spacing-layout: var(--spacing-base); /* 16px */
+  /* Тени — задаются в теме */
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+
+  /* Структурные токены — не зависят от темы */
+  --color-status: var(--current-status);
+
+  --spacing-base: 1rem;
+  --spacing-layout: var(--spacing-base);
   --spacing-component: calc(var(--spacing-base) / 2);
   --spacing-container: calc(var(--spacing-base) / 1.5);
-  /* Твой основной градиент кита */
-  --gradient-primary: linear-gradient(to right, oklch(0.7 0.2 340), oklch(0.5 0.2 250));
 
-  /* Можно добавить еще для декора */
+  --gradient-primary: linear-gradient(to right, oklch(0.7 0.2 340), oklch(0.5 0.2 250));
   --gradient-accent: linear-gradient(to bottom right, var(--primary), var(--accent));
 
-  /* Базовый размер текста */
   --text-base-size: 1rem;
-
-  /* Масштабируемые размеры */
   --font-size-h1: calc(var(--text-base-size) * 2.5);
   --font-size-h2: calc(var(--text-base-size) * 2);
   --font-size-p: var(--text-base-size);
 
-  /* Цвета текста из твоих переменных */
   --color-text-main: var(--foreground);
   --color-text-muted: var(--muted-foreground);
 
   --animate-pulse-subtle: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Статусные цвета и служебные значения — не часть пользовательской темы. */
+:root {
+  --status-success: oklch(0.627 0.194 149.214);
+  --status-error: oklch(0.577 0.245 27.325);
+  --status-warning: oklch(0.769 0.188 70.08);
+  --current-status: inherit;
+  --transition-ui: all 0.3s;
 }
 
 @keyframes pulse-subtle {
@@ -76,60 +111,6 @@
   }
 }
 
-@layer base {
-  :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.961 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.961 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.961 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --radius: 0.5rem;
-
-    --status-success: oklch(0.627 0.194 149.214);
-    --status-error: oklch(0.577 0.245 27.325); /* или var(--destructive) */
-    --status-warning: oklch(0.769 0.188 70.08);
-    --current-status: inherit;
-    --transition-ui: all .3s;
-  }
-
-  /* Темная тема через селектор .dark или [data-theme='dark'] */
-  .dark,
-  [data-theme="dark"] {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
-  }
-}
 @layer base {
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
@@ -163,13 +144,16 @@
     @apply bg-background text-foreground;
     margin: 0;
     line-height: inherit;
+    letter-spacing: var(--tracking-normal, 0em);
   }
+
   button,
   input,
   a {
     transition: var(--transition-ui) !important;
   }
 }
+
 @layer components {
   .has-status {
     background-color: var(--current-status) !important;
@@ -178,6 +162,7 @@
     transition: var(--transition-ui) !important;
   }
 }
+
 .has-status:hover {
   filter: brightness(0.6);
 }
