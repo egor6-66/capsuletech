@@ -55,6 +55,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build workspace packages (CLI deps need their dist/)
+        run: pnpm -r --filter "...@capsuletech/cli" --filter "...@capsuletech/shared-vite" build
+
       - name: Build app frontend
         working-directory: apps/${{ inputs.app }}
         run: node ../../packages/cli/bin/capsule.mjs build
