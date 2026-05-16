@@ -8,14 +8,15 @@
  *   → publish. Push в remote — отдельным шагом руками или из CI.
  *
  * USAGE
- *   pnpm release:prod:cli -- --registry=https://registry.npmjs.org
- *   pnpm release:prod:web -- --registry=https://nexus.company.com/repo/npm/
- *   pnpm release:prod:cli -- minor --registry=https://registry.npmjs.org
- *   node scripts/release.mjs --group=cli --registry=<url>
+ *   pnpm release:prod:cli                          # default: npm
+ *   pnpm release:prod:cli -- --registry=nexus      # internal nexus (нужен NEXUS_REGISTRY env)
+ *   pnpm release:prod:cli -- --registry=https://my.repo/npm/
+ *   pnpm release:prod:cli -- minor                 # явный specifier
+ *   node scripts/release.mjs --group=cli
  *
  * FLAGS
  *   --group=<name>       group из nx.json release.groups (cli|web_base) — обязательный
- *   --registry=<url>     внешний registry — обязательный
+ *   --registry=<key|url> npm (default) | nexus | <full-url>
  *   --first-release      первый релиз группы (нет предыдущего git tag)
  *   --dry-run            прокинуть в nx release без реальных изменений
  *
@@ -23,9 +24,16 @@
  *   patch | minor | major | prerelease | <semver> — specifier для bump'а.
  *   Если не указан — bump по conventional-commits с последнего тега группы.
  *
- * ENV
- *   NPM_AUTH_TOKEN — bearer-token для --registry. Пишется во временный
- *     .npmrc на время publish, очищается в finally + on SIGINT.
+ * REGISTRY KEYS
+ *   npm        → NPM_REGISTRY_NPM env (default https://registry.npmjs.org)
+ *   nexus      → NEXUS_REGISTRY env (обязательно)
+ *   <url>      → используется как есть
+ *
+ * AUTH ENV
+ *   NPM_TOKEN                          → bearer-token для npm
+ *   NEXUS_TOKEN                        → bearer-token для nexus (приоритетно)
+ *   NEXUS_USERNAME + NEXUS_PASSWORD    → basic-auth fallback для nexus
+ *   Записывается во временный .npmrc на время publish, очищается в finally + on SIGINT.
  *
  * WHAT IT DOES
  *   1. pnpm -r build (две фазы, shared-vite сначала).
@@ -59,13 +67,18 @@ if (!groupArg || groupArg === true) {
   console.error('[release] требуется --group=<name>. См. nx.json release.groups');
   process.exit(1);
 }
-if (!registryArg || registryArg === true) {
-  console.error('[release] требуется --registry=<url>');
-  console.error('  Пример: --registry=https://registry.npmjs.org');
+
+const REGISTRIES = {
+  npm: process.env.NPM_REGISTRY_NPM || 'https://registry.npmjs.org',
+  nexus: process.env.NEXUS_REGISTRY,
+};
+const registryKey = !registryArg || registryArg === true ? 'npm' : String(registryArg);
+const registry = REGISTRIES[registryKey] ?? registryKey; // если не известный ключ — трактуем как URL
+if (registryKey === 'nexus' && !registry) {
+  console.error('[release] --registry=nexus, но NEXUS_REGISTRY env не задана');
   process.exit(1);
 }
 
-const registry = String(registryArg);
 const groupFlag = ['--group', String(groupArg)];
 const firstRelease = args.has('first-release') ? ['--first-release'] : [];
 const dryRun = args.has('dry-run') ? ['--dry-run'] : [];
@@ -76,16 +89,37 @@ const run = (cmd) => {
   return r.status ?? 1;
 };
 
-// Auth setup: NPM_AUTH_TOKEN → временный .npmrc, чистится по exit/SIGINT.
+// Auth setup: пишем во временный .npmrc, чистится по exit/SIGINT.
+//   nexus: NEXUS_TOKEN (предпочтительно) или NEXUS_USERNAME+PASSWORD
+//   npm:   NPM_TOKEN
+//   url:   нет auth (явный URL — пользователь сам конфигурит .npmrc)
 const setupAuth = () => {
-  const token = process.env.NPM_AUTH_TOKEN;
-  if (!token) return { cleanup: () => {} };
+  let token, username, password;
+  if (registryKey === 'nexus') {
+    token = process.env.NEXUS_TOKEN;
+    username = process.env.NEXUS_USERNAME;
+    password = process.env.NEXUS_PASSWORD;
+  } else if (registryKey === 'npm') {
+    token = process.env.NPM_TOKEN;
+  }
+
+  if (!token && !(username && password)) return { cleanup: () => {} };
 
   const url = new URL(registry);
   const base = `//${url.host}${url.pathname.replace(/\/?$/, '/')}`;
+  const lines = token
+    ? [`${base}:_authToken=${token}`]
+    : [
+        `${base}:_auth=${Buffer.from(`${username}:${password}`).toString('base64')}`,
+        `${base}:always-auth=true`,
+      ];
+
   const npmrcPath = resolve('.npmrc');
   const backup = existsSync(npmrcPath) ? readFileSync(npmrcPath, 'utf8') : null;
-  writeFileSync(npmrcPath, `${backup ?? ''}\n# release temp auth\n${base}:_authToken=${token}\n`);
+  writeFileSync(
+    npmrcPath,
+    `${backup ?? ''}\n# release temp auth (registry=${registryKey})\n${lines.join('\n')}\n`,
+  );
   console.log(`\x1b[36m[release]\x1b[0m auth для ${url.host} → .npmrc`);
 
   const cleanup = () => {

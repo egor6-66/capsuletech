@@ -1,0 +1,155 @@
+#!/usr/bin/env node
+/* ============================================================================
+ * scripts/release-local.mjs
+ * ---------------------------------------------------------------------------
+ * PURPOSE
+ *   Локальный (dev) релиз группы пакетов в локальный Verdaccio.
+ *   ZERO следов в git/worktree: package.json не бампается, коммитов и тегов
+ *   нет. Используется для проверок workflow без шума.
+ *
+ * USAGE
+ *   pnpm release:local                            # все группы
+ *   node scripts/release-local.mjs --group=cli    # одна группа
+ *
+ * FLAGS
+ *   --group=<name|all>   имя группы из nx.json release.groups (или all) — обязательный
+ *   --registry=<url>     override локального verdaccio (default http://localhost:4873)
+ *   --no-build           пропустить pnpm -r build (использовать существующий dist/)
+ *   --no-clean           не очищать tmp/local-registry/storage/<pkg>
+ *
+ * WHAT IT DOES
+ *   1. Читает release.groups из nx.json → список пакетов группы.
+ *   2. Находит их package.json в packages/** (по полю "name").
+ *   3. Чистит tmp/local-registry/storage/<pkg> чтобы перепубликовать
+ *      ту же версию (verdaccio version-immutable).
+ *   4. Билдит пакеты через pnpm -r run build.
+ *   5. `pnpm publish` каждого в verdaccio. Версия — как в package.json,
+ *      НЕ бампится. workspace:* deps pnpm подставит в tarball автоматически.
+ *
+ * NOT FOR
+ *   - Публикация во внешний registry → release.mjs.
+ *   - Bump версий и changelog → release.mjs.
+ * ==========================================================================*/
+import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(__dirname, '..');
+
+const args = new Map(
+  process.argv.slice(2).map((a) => {
+    const [k, v] = a.replace(/^--/, '').split('=');
+    return [k, v ?? true];
+  }),
+);
+
+const REGISTRY = args.get('registry') && args.get('registry') !== true
+  ? String(args.get('registry'))
+  : (process.env.NPM_REGISTRY_VERDACCIO || 'http://localhost:4873');
+const TAG = args.get('tag') && args.get('tag') !== true ? String(args.get('tag')) : 'local';
+const SHOULD_BUILD = !args.has('no-build');
+const SHOULD_CLEAN = !args.has('no-clean');
+const GROUP = args.get('group');
+
+if (!GROUP || GROUP === true) {
+  console.error('[release-local] требуется --group=<name|all>. См. nx.json release.groups');
+  process.exit(1);
+}
+
+const log = (m) => console.log(`\x1b[36m[release-local]\x1b[0m ${m}`);
+const warn = (m) => console.warn(`\x1b[33m[release-local]\x1b[0m ${m}`);
+const fail = (m) => { console.error(`\x1b[31m[release-local]\x1b[0m ${m}`); process.exit(1); };
+
+// Группы из nx.json
+const nxJson = JSON.parse(readFileSync(join(repoRoot, 'nx.json'), 'utf8'));
+const allGroups = nxJson.release?.groups ?? {};
+const resolveGroupNames = (g) => {
+  if (g === 'all') return Object.keys(allGroups);
+  if (!allGroups[g]) fail(`Группа "${g}" не найдена. Доступно: ${Object.keys(allGroups).join(', ') || '<пусто>'} или all`);
+  return [g];
+};
+const targetGroupNames = resolveGroupNames(GROUP);
+const targetPackages = new Set(targetGroupNames.flatMap((n) => allGroups[n].projects ?? []));
+log(`Группы: ${targetGroupNames.join(', ')} → пакетов: ${targetPackages.size}`);
+
+// Найти package.json по имени
+const findPackages = (root) => {
+  const found = new Map();
+  const SKIP = new Set(['node_modules', 'dist', '.git', '.nx', 'tmp']);
+  const walk = (dir) => {
+    const pkgPath = join(dir, 'package.json');
+    if (existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+        if (typeof pkg.name === 'string') found.set(pkg.name, { dir, pkgPath, pkg });
+      } catch {}
+    }
+    let entries;
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      if (e.isDirectory() && !SKIP.has(e.name)) walk(join(dir, e.name));
+    }
+  };
+  walk(root);
+  return found;
+};
+
+const all = findPackages(join(repoRoot, 'packages'));
+const toPublish = [];
+for (const name of targetPackages) {
+  const hit = all.get(name);
+  if (!hit) { warn(`Пакет "${name}" из группы не найден — пропускаю`); continue; }
+  if (hit.pkg.private) { warn(`Пакет "${name}" private — пропускаю`); continue; }
+  toPublish.push(hit);
+}
+if (toPublish.length === 0) fail('Нечего публиковать');
+log(`К публикации: ${toPublish.map((p) => `${p.pkg.name}@${p.pkg.version}`).join(', ')}`);
+
+// Очистка verdaccio storage
+if (SHOULD_CLEAN) {
+  const storage = resolve(repoRoot, 'tmp/local-registry/storage');
+  for (const { pkg } of toPublish) {
+    const pkgDir = join(storage, pkg.name);
+    if (existsSync(pkgDir)) {
+      try { rmSync(pkgDir, { recursive: true, force: true }); log(`storage ✂ ${pkg.name}`); }
+      catch (e) { warn(`storage cleanup ${pkg.name}: ${e.message}`); }
+    }
+  }
+}
+
+const run = (cmd, opts = {}) => {
+  log(`> pnpm ${cmd.join(' ')}`);
+  const r = spawnSync('pnpm', cmd, {
+    cwd: repoRoot,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+    ...opts,
+  });
+  return r.status ?? 1;
+};
+
+// Билд
+if (SHOULD_BUILD) {
+  log('build all packages…');
+  const code = run(['-r', '--filter', './packages/**', 'run', 'build']);
+  if (code !== 0) fail('build упал — публикация отменена');
+} else {
+  warn('--no-build: использую существующий dist/');
+}
+
+// Publish — версия как есть, workspace:* deps pnpm подставит в tarball.
+let failures = 0;
+for (const { dir, pkg } of toPublish) {
+  log(`publish ${pkg.name}@${pkg.version} → ${REGISTRY}`);
+  const r = spawnSync('pnpm', ['publish', '--no-git-checks', '--registry', REGISTRY, '--tag', TAG], {
+    cwd: dir,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
+  if ((r.status ?? 1) !== 0) { failures++; warn(`✖ ${pkg.name}`); }
+}
+
+if (failures > 0) fail(`Завершено с ошибками: ${failures}/${toPublish.length}`);
+log(`✓ Готово. Опубликовано ${toPublish.length} пакетов в ${REGISTRY} (tag=${TAG}).`);

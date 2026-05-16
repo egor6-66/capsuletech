@@ -1,78 +1,94 @@
 #!/usr/bin/env node
-/**
- * release — обёртка над `nx release`, переключает реестр для публикации.
+/* ============================================================================
+ * scripts/release.mjs
+ * ---------------------------------------------------------------------------
+ * PURPOSE
+ *   PROD-релиз группы пакетов во внешний реестр (npmjs / nexus / corporate).
+ *   Стандартный nx release flow: bump версий → CHANGELOG → git commit → tag
+ *   → publish. Push в remote — отдельным шагом руками или из CI.
  *
- * Использование:
- *   node scripts/release.mjs --group=<your-group|all> --registry=<npm|verdaccio|nexus|<url>> [--dry-run] [--first-release]
+ * USAGE
+ *   pnpm release:prod:npm                          # default: registry.npmjs.org
+ *   pnpm release:prod:nexus                        # internal nexus (нужен NEXUS_REGISTRY env)
+ *   node scripts/release.mjs --group=all --registry=https://my.repo/npm/
+ *   node scripts/release.mjs --group=cli minor --registry=npm
  *
- * Группы релизов настраиваются в `nx.json` → `release.groups`.
+ * FLAGS
+ *   --group=<name|all>   group из nx.json release.groups, или all — обязательный
+ *   --registry=<key|url> npm (default) | nexus | <full-url>
+ *   --first-release      первый релиз группы (нет предыдущего git tag)
+ *   --dry-run            прокинуть в nx release без реальных изменений
  *
- * Реестры:
- *   --registry=npm        → process.env.NPM_REGISTRY_NPM       (default https://registry.npmjs.org)
- *   --registry=verdaccio  → process.env.NPM_REGISTRY_VERDACCIO (default http://localhost:4873)
- *   --registry=nexus      → process.env.NEXUS_REGISTRY         (обязательно)
- *   --registry=<url>      → используется как есть
+ * POSITIONAL
+ *   patch | minor | major | prerelease | <semver> — specifier для bump'а.
+ *   Если не указан — bump по conventional-commits с последнего тега группы.
  *
- * Креды (опционально, берутся из env):
- *   NEXUS_TOKEN                        → bearer-token (рекомендуется)
- *   NEXUS_USERNAME + NEXUS_PASSWORD    → basic-auth (base64)
- *   NPM_TOKEN                          → для авторизованной публикации в npm
+ * REGISTRY KEYS
+ *   npm        → NPM_REGISTRY_NPM env (default https://registry.npmjs.org)
+ *   nexus      → NEXUS_REGISTRY env (обязательно)
+ *   <url>      → используется как есть
  *
- * Делается в два шага:
- *   1. `nx release --skip-publish`  — version + changelog + git commit/tag
- *   2. `nx release publish --registry=<url>` — публикация (с временным .npmrc если нужны креды)
- */
+ * AUTH ENV
+ *   NPM_TOKEN                          → bearer-token для npm
+ *   NEXUS_TOKEN                        → bearer-token для nexus (приоритетно)
+ *   NEXUS_USERNAME + NEXUS_PASSWORD    → basic-auth fallback для nexus
+ *   Записывается во временный .npmrc, очищается в finally + on SIGINT.
+ *
+ * NOT FOR
+ *   - Локальная отладка в verdaccio без следов в git → release-local.mjs.
+ *   - Push коммитов/тегов в origin — это вручную или CI после ревью.
+ * ==========================================================================*/
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+const rawArgs = process.argv.slice(2);
+const positional = rawArgs.filter((a) => !a.startsWith('--'));
 const args = new Map(
-  process.argv.slice(2).map((a) => {
-    const [k, v] = a.replace(/^--/, '').split('=');
-    return [k, v ?? true];
-  }),
+  rawArgs
+    .filter((a) => a.startsWith('--'))
+    .map((a) => {
+      const [k, v] = a.replace(/^--/, '').split('=');
+      return [k, v ?? true];
+    }),
 );
+
+const groupArg = args.get('group');
+const registryArg = args.get('registry');
+
+if (!groupArg || groupArg === true) {
+  console.error('[release] требуется --group=<name|all>. См. nx.json release.groups');
+  process.exit(1);
+}
 
 const REGISTRIES = {
   npm: process.env.NPM_REGISTRY_NPM || 'https://registry.npmjs.org',
-  verdaccio: process.env.NPM_REGISTRY_VERDACCIO || 'http://localhost:4873',
   nexus: process.env.NEXUS_REGISTRY,
 };
-
-const registryArg = args.get('registry');
-if (!registryArg || registryArg === true) {
-  console.error(
-    'Usage: node scripts/release.mjs --group=<name|all> --registry=<npm|verdaccio|nexus|<url>> [--dry-run] [--first-release]',
-  );
-  process.exit(1);
-}
-const registry = REGISTRIES[registryArg] || registryArg;
-if (registryArg === 'nexus' && !registry) {
-  console.error('[release] --registry=nexus, но NEXUS_REGISTRY не задана в env');
+const registryKey = !registryArg || registryArg === true ? 'npm' : String(registryArg);
+const registry = REGISTRIES[registryKey] ?? registryKey;
+if (registryKey === 'nexus' && !registry) {
+  console.error('[release] --registry=nexus, но NEXUS_REGISTRY env не задана');
   process.exit(1);
 }
 
-const group = args.get('group');
-const groupFlag = group && group !== 'all' ? ['--group', group] : [];
-const dryRun = args.has('dry-run') ? ['--dry-run'] : [];
+const groupFlag = String(groupArg) === 'all' ? [] : ['--group', String(groupArg)];
 const firstRelease = args.has('first-release') ? ['--first-release'] : [];
+const dryRun = args.has('dry-run') ? ['--dry-run'] : [];
 
 const run = (cmd) => {
   console.log(`\x1b[36m[release]\x1b[0m pnpm ${cmd.join(' ')}`);
-  const r = spawnSync('pnpm', cmd, {
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  });
+  const r = spawnSync('pnpm', cmd, { stdio: 'inherit', shell: process.platform === 'win32' });
   return r.status ?? 1;
 };
 
 const setupAuth = () => {
   let token, username, password;
-  if (registryArg === 'nexus') {
+  if (registryKey === 'nexus') {
     token = process.env.NEXUS_TOKEN;
     username = process.env.NEXUS_USERNAME;
     password = process.env.NEXUS_PASSWORD;
-  } else if (registryArg === 'npm') {
+  } else if (registryKey === 'npm') {
     token = process.env.NPM_TOKEN;
   }
 
@@ -80,19 +96,20 @@ const setupAuth = () => {
 
   const url = new URL(registry);
   const base = `//${url.host}${url.pathname.replace(/\/?$/, '/')}`;
-  const lines = [];
-  if (token) {
-    lines.push(`${base}:_authToken=${token}`);
-  } else {
-    const auth = Buffer.from(`${username}:${password}`).toString('base64');
-    lines.push(`${base}:_auth=${auth}`, `${base}:always-auth=true`);
-  }
+  const lines = token
+    ? [`${base}:_authToken=${token}`]
+    : [
+        `${base}:_auth=${Buffer.from(`${username}:${password}`).toString('base64')}`,
+        `${base}:always-auth=true`,
+      ];
 
   const npmrcPath = resolve('.npmrc');
   const backup = existsSync(npmrcPath) ? readFileSync(npmrcPath, 'utf8') : null;
-  const marker = `\n# release temp auth (auto-cleanup, registry=${registryArg})\n`;
-  writeFileSync(npmrcPath, (backup ?? '') + marker + lines.join('\n') + '\n');
-  console.log(`\x1b[36m[release]\x1b[0m injected auth for ${url.host} into .npmrc`);
+  writeFileSync(
+    npmrcPath,
+    `${backup ?? ''}\n# release temp auth (registry=${registryKey})\n${lines.join('\n')}\n`,
+  );
+  console.log(`\x1b[36m[release]\x1b[0m auth для ${url.host} → .npmrc`);
 
   const cleanup = () => {
     try {
@@ -103,16 +120,14 @@ const setupAuth = () => {
     }
   };
   process.on('exit', cleanup);
-  process.on('SIGINT', () => {
-    cleanup();
-    process.exit(130);
-  });
+  process.on('SIGINT', () => { cleanup(); process.exit(130); });
   return { cleanup };
 };
 
+// nx release <specifier> --skip-publish → bump+changelog+commit+tag (по nx.json).
 const versionStatus = run([
-  'nx',
-  'release',
+  'nx', 'release',
+  ...positional,
   ...groupFlag,
   ...firstRelease,
   ...dryRun,
@@ -121,20 +136,19 @@ const versionStatus = run([
 ]);
 if (versionStatus !== 0) process.exit(versionStatus);
 
+// nx release publish --registry=<url>.
 const auth = setupAuth();
+let publishStatus = 1;
 try {
-  const publishStatus = run([
-    'nx',
-    'release',
-    'publish',
+  publishStatus = run([
+    'nx', 'release', 'publish',
     ...groupFlag,
     ...firstRelease,
     ...dryRun,
-    '--registry',
-    registry,
+    '--registry', registry,
     '--verbose',
   ]);
-  process.exit(publishStatus);
 } finally {
   auth.cleanup();
 }
+process.exit(publishStatus);

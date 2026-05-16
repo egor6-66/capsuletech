@@ -11,7 +11,10 @@
     "lint": "biome check --write .",
     "lint:fix": "biome check --apply --unsafe .",
     "format": "biome format --write .",
-    "registry": "pnpm nx local-registry",
+    "verdaccio:registry": "pnpm nx local-registry",
+    "release:local": "node scripts/release-local.mjs --group=all",
+    "release:prod:npm": "node scripts/release.mjs --group=all --registry=npm",
+    "release:prod:nexus": "node scripts/release.mjs --group=all --registry=nexus",
     "report": "node scripts/feature-report.mjs",
     "report:list": "node scripts/feature-report.mjs list",
     "report:all": "node scripts/feature-report.mjs all"
