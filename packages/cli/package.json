@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/cli",
+  "name": "@capsuletech/cli",
   "version": "0.0.64",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -10,9 +10,9 @@
     "release:prod": "node ../../scripts/release.mjs --group=cli --mode=prod"
   },
   "dependencies": {
-    "@capsule/shared-compliance": "workspace:*",
-    "@capsule/shared-file-manager": "workspace:*",
-    "@capsule/shared-vite": "workspace:*",
+    "@capsuletech/shared-compliance": "workspace:*",
+    "@capsuletech/shared-file-manager": "workspace:*",
+    "@capsuletech/shared-vite": "workspace:*",
     "@clack/prompts": "^1.3.0",
     "@nx/devkit": "^22.7.0",
     "@tailwindcss/vite": "^4.2.4",

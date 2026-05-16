@@ -1,4 +1,4 @@
-import { cva } from '@capsule/web-style';
+import { cva } from '@capsuletech/web-style';
 
 export const listVariants = cva('flex w-full', {
   variants: {

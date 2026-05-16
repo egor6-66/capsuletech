@@ -20,7 +20,7 @@ export default libConfig({
   // compliance в devDep тянет shared-vite для своей сборки через libConfig.
   // (file-manager заинлайнен в utils/generateFromTemplates — убран из deps.)
   bundleDependencies: [
-    /^@capsule\/shared-compliance/,
+    /^@capsuletech\/shared-compliance/,
     /^@babel\//,
     /^babel-/,
     /babel-plugin/,

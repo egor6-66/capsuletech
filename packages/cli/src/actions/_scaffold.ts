@@ -1,6 +1,6 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import { generateFromTemplates } from '@capsule/shared-file-manager';
+import { generateFromTemplates } from '@capsuletech/shared-file-manager';
 import { execa } from 'execa';
 import type { CliMode } from '../context';
 import { kit } from '../kit';
@@ -22,7 +22,7 @@ export interface ScaffoldOptions {
   subDir?: 'apps' | 'packages';
   /** Уже известное имя (из CLI-аргументов). Если не задано — спросим в интерактиве. */
   name?: string;
-  /** dev → @capsule/* = workspace:* (внутри capsule-репо); prod → latest (npm). */
+  /** dev → @capsuletech/* = workspace:* (внутри capsule-репо); prod → latest (npm). */
   mode: CliMode;
 }
 

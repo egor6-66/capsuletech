@@ -3,10 +3,10 @@ tags: [hca, package, ui]
 status: documented
 ---
 
-# @capsule/ui
+# @capsuletech/ui
 
 **Расположение:** `packages/ui/`
-**Зависит от:** `@kobalte/core`, `@capsule/style`, `solid-js`
+**Зависит от:** `@kobalte/core`, `@capsuletech/style`, `solid-js`
 
 Базовый stateless UI-kit. Это **строительные блоки** для Entity, не Entity сами по себе.
 
@@ -30,7 +30,7 @@ packages/ui/src/components/
 
 ## Соглашения
 
-- **Стили через CVA + `createStyle`** (см. [[style|@capsule/style]]).
+- **Стили через CVA + `createStyle`** (см. [[style|@capsuletech/style]]).
 - **Компаунд-компоненты** через `Object.assign(Base, { Part: ... })`. Пример: `Card.Header`, `Field.Label`.
 - **`asChild` (где есть)** — паттерн Radix: рендерится не базовый тег, а функция-children, в которую прокидывается `class`/`style`.
 
@@ -52,13 +52,13 @@ return (
 ## Как UI попадает в Entity
 
 ```
-@capsule/ui ──▶ @capsule/core/wrappers/ui/ui-kit/imports.tsx (lazy-импорты)
+@capsuletech/ui ──▶ @capsuletech/core/wrappers/ui/ui-kit/imports.tsx (lazy-импорты)
                 ──▶ Ui (объект всех компонентов)
                 ──▶ EntityWrapper.UiProxy(ctx, props)  // оборачивает
                 ──▶ <Component {...Ui} />              // Entity получает Field/Button/Input в props
 ```
 
-## Что **не** должно жить в `@capsule/ui`
+## Что **не** должно жить в `@capsuletech/ui`
 
 - Бизнес-валидация полей.
 - Знание о `meta`/`tags`. UI не знает про мета-теги — это договор между Entity и [[ui-proxy|UiProxy]].
@@ -75,5 +75,5 @@ pnpm ui:gen
 ## Связанное
 
 - [[ui-proxy]]
-- [[style|@capsule/style]]
+- [[style|@capsuletech/style]]
 - [[layers]]

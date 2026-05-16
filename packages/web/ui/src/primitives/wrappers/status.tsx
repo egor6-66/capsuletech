@@ -1,4 +1,4 @@
-import { type ComponentStatus, STATUS_VARIABLES } from '@capsule/web-style';
+import { type ComponentStatus, STATUS_VARIABLES } from '@capsuletech/web-style';
 import { type JSX, children, splitProps } from 'solid-js';
 
 interface StatusProps {

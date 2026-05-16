@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/<%= fileName %>",
+  "name": "@capsuletech/<%= fileName %>",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -7,16 +7,16 @@
     "dev": "node ../../packages/cli/bin/capsule.mjs"
   },
   "dependencies": {
-    "@capsule/web-core": "<%= cap %>",
-    "@capsule/web-router": "<%= cap %>",
-    "@capsule/web-state": "<%= cap %>",
-    "@capsule/web-style": "<%= cap %>",
-    "@capsule/web-ui": "<%= cap %>",
-    "@capsule/web-profiler": "<%= cap %>",
-    "@capsule/web-query": "<%= cap %>",
-    "@capsule/web-renderer": "<%= cap %>",
-    "@capsule/web-inspector": "<%= cap %>",
-    "@capsule/web-manifests": "<%= cap %>",
-    "@capsule/shared-zod": "<%= cap %>"
+    "@capsuletech/web-core": "<%= cap %>",
+    "@capsuletech/web-router": "<%= cap %>",
+    "@capsuletech/web-state": "<%= cap %>",
+    "@capsuletech/web-style": "<%= cap %>",
+    "@capsuletech/web-ui": "<%= cap %>",
+    "@capsuletech/web-profiler": "<%= cap %>",
+    "@capsuletech/web-query": "<%= cap %>",
+    "@capsuletech/web-renderer": "<%= cap %>",
+    "@capsuletech/web-inspector": "<%= cap %>",
+    "@capsuletech/web-manifests": "<%= cap %>",
+    "@capsuletech/shared-zod": "<%= cap %>"
   }
 }

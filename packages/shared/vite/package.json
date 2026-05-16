@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/shared-vite",
+  "name": "@capsuletech/shared-vite",
   "version": "0.0.64",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@babel/parser": "^7.29.3",
-    "@capsule/shared-compliance": "workspace:*",
+    "@capsuletech/shared-compliance": "workspace:*",
     "vite-plugin-solid": "^2.11.12"
   },
   "devDependencies": {

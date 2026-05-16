@@ -1,4 +1,4 @@
-import { canAcceptChild, getManifest } from '@capsule/manifests';
+import { canAcceptChild, getManifest } from '@capsuletech/manifests';
 import { ROOT_ID, generateId } from './ids';
 import type {
   IAddNodePayload,

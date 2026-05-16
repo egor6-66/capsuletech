@@ -104,7 +104,7 @@ export const check = (absPath: string, code: string, opts: ICheckOptions = {}): 
       return;
     }
 
-    // Внешние / @capsule/* — проверяем allowlist
+    // Внешние / @capsuletech/* — проверяем allowlist
     if (allowed.some((rx) => rx.test(source))) return;
 
     violations.push({

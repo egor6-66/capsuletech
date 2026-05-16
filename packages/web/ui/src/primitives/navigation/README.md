@@ -14,7 +14,7 @@
 ### Горизонтальная навигация
 
 ```tsx
-import { Navigation, NavigationList, NavigationItem } from '@capsule/ui/navigation';
+import { Navigation, NavigationList, NavigationItem } from '@capsuletech/ui/navigation';
 import { Link } from '@tanstack/solid-router';
 
 const navItems = [
@@ -45,7 +45,7 @@ export function HorizontalNav() {
 ### Вертикальная навигация
 
 ```tsx
-import { Navigation, NavigationList, NavigationItem } from '@capsule/ui/navigation';
+import { Navigation, NavigationList, NavigationItem } from '@capsuletech/ui/navigation';
 
 const sections = [
   { id: 1, name: 'Section 1', href: '#section1', active: true },

@@ -5,7 +5,7 @@ status: documented
 
 # 💻 CLI
 
-**Пакет:** `@capsule/cli` (`packages/cli`)
+**Пакет:** `@capsuletech/cli` (`packages/cli`)
 **Бинарь:** `packages/cli/bin/capsule.mjs`
 
 ## Запуск
@@ -49,7 +49,7 @@ CAPSULE CLI
     └── 👀 (watch-preview)                → createPreviewServer
 ```
 
-Все три действия — реэкспорты из `@capsule/core/builder` (`packages/core/src/builder/index.ts`), которые читают `capsule.config.ts` через `jiti` и кормят его в `@capsule/shared-vite`.
+Все три действия — реэкспорты из `@capsuletech/core/builder` (`packages/core/src/builder/index.ts`), которые читают `capsule.config.ts` через `jiti` и кормят его в `@capsuletech/shared-vite`.
 
 ## capsule.config.ts
 
@@ -61,7 +61,7 @@ export default defineCapsuleConfig({
 });
 ```
 
-`defineCapsuleConfig` — глобальная функция, объявляется в `@capsule/core/builder/index.ts` через `globalThis.defineCapsuleConfig = (c) => c`.
+`defineCapsuleConfig` — глобальная функция, объявляется в `@capsuletech/core/builder/index.ts` через `globalThis.defineCapsuleConfig = (c) => c`.
 
 ## Расширение CLI
 
@@ -74,5 +74,5 @@ export default defineCapsuleConfig({
 
 ## Связанное
 
-- [[core|@capsule/core]]
+- [[core|@capsuletech/core]]
 - [[vite-plugins]]

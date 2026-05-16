@@ -5,41 +5,41 @@ const createLazy = (importer: () => Promise<any>, name: string) =>
   lazy(() => importer().then((m) => ({ default: m[name] })));
 
 // 2. Простые компоненты
-export const Button = createLazy(() => import('@capsule/web-ui/button'), 'Button');
-export const Input = createLazy(() => import('@capsule/web-ui/input'), 'Input');
-export const Layout = createLazy(() => import('@capsule/web-ui/layout'), 'Layout');
-export const List = createLazy(() => import('@capsule/web-ui/list'), 'List');
-export const Animate = createLazy(() => import('@capsule/web-ui/wrappers'), 'Animate');
+export const Button = createLazy(() => import('@capsuletech/web-ui/button'), 'Button');
+export const Input = createLazy(() => import('@capsuletech/web-ui/input'), 'Input');
+export const Layout = createLazy(() => import('@capsuletech/web-ui/layout'), 'Layout');
+export const List = createLazy(() => import('@capsuletech/web-ui/list'), 'List');
+export const Animate = createLazy(() => import('@capsuletech/web-ui/wrappers'), 'Animate');
 
 // 5. Компонент Navigation с подкомпонентами
-const NavigationBase = createLazy(() => import('@capsule/web-ui/navigation'), 'Navigation');
+const NavigationBase = createLazy(() => import('@capsuletech/web-ui/navigation'), 'Navigation');
 export const Navigation = Object.assign(NavigationBase, {
-  List: createLazy(() => import('@capsule/web-ui/navigation'), 'NavigationList'),
-  Item: createLazy(() => import('@capsule/web-ui/navigation'), 'NavigationItem'),
+  List: createLazy(() => import('@capsuletech/web-ui/navigation'), 'NavigationList'),
+  Item: createLazy(() => import('@capsuletech/web-ui/navigation'), 'NavigationItem'),
 });
 
 // 3. Компонент Card со вложенными частями
-const CardBase = createLazy(() => import('@capsule/web-ui/card'), 'Card');
+const CardBase = createLazy(() => import('@capsuletech/web-ui/card'), 'Card');
 export const Card = Object.assign(CardBase, {
-  Header: createLazy(() => import('@capsule/web-ui/card/parts'), 'CardHeader'),
-  Title: createLazy(() => import('@capsule/web-ui/card/parts'), 'CardTitle'),
-  Description: createLazy(() => import('@capsule/web-ui/card/parts'), 'CardDescription'),
-  Content: createLazy(() => import('@capsule/web-ui/card/parts'), 'CardContent'),
-  Footer: createLazy(() => import('@capsule/web-ui/card/parts'), 'CardFooter'),
+  Header: createLazy(() => import('@capsuletech/web-ui/card/parts'), 'CardHeader'),
+  Title: createLazy(() => import('@capsuletech/web-ui/card/parts'), 'CardTitle'),
+  Description: createLazy(() => import('@capsuletech/web-ui/card/parts'), 'CardDescription'),
+  Content: createLazy(() => import('@capsuletech/web-ui/card/parts'), 'CardContent'),
+  Footer: createLazy(() => import('@capsuletech/web-ui/card/parts'), 'CardFooter'),
 });
 
 // 4. Компонент Field со всеми частями
-const FieldBase = createLazy(() => import('@capsule/web-ui/field'), 'Field');
+const FieldBase = createLazy(() => import('@capsuletech/web-ui/field'), 'Field');
 export const Field = Object.assign(FieldBase, {
-  Content: createLazy(() => import('@capsule/web-ui/field/parts'), 'FieldContent'),
-  Description: createLazy(() => import('@capsule/web-ui/field/parts'), 'FieldDescription'),
-  Error: createLazy(() => import('@capsule/web-ui/field/parts'), 'FieldError'),
-  Group: createLazy(() => import('@capsule/web-ui/field/parts'), 'FieldGroup'),
-  Label: createLazy(() => import('@capsule/web-ui/field/parts'), 'FieldLabel'),
-  Legend: createLazy(() => import('@capsule/web-ui/field/parts'), 'FieldLegend'),
-  Separator: createLazy(() => import('@capsule/web-ui/field/parts'), 'FieldSeparator'),
-  Set: createLazy(() => import('@capsule/web-ui/field/parts'), 'FieldSet'),
-  Title: createLazy(() => import('@capsule/web-ui/field/parts'), 'FieldTitle'),
+  Content: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldContent'),
+  Description: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldDescription'),
+  Error: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldError'),
+  Group: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldGroup'),
+  Label: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldLabel'),
+  Legend: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldLegend'),
+  Separator: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldSeparator'),
+  Set: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldSet'),
+  Title: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldTitle'),
 });
 
 // Реэкспорт сторонних утилит

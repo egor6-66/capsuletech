@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-router",
+  "name": "@capsuletech/web-router",
   "version": "0.0.17",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -22,7 +22,7 @@
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
-    "@capsule/shared-vite": "workspace:*"
+    "@capsuletech/shared-vite": "workspace:*"
   },
   "publishConfig": {
     "access": "public",

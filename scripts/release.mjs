@@ -102,13 +102,13 @@ const run = (cmd) => {
   return r.status ?? 1;
 };
 
-// Scope для override @capsule:registry в .npmrc — у corner-case'а высокий
+// Scope для override @capsuletech:registry в .npmrc — у corner-case'а высокий
 // приоритет: если корневой .npmrc проекта (используется для dev в verdaccio)
-// содержит `@capsule:registry=http://localhost:4873/`, npm/pnpm берут эту
+// содержит `@capsuletech:registry=http://localhost:4873/`, npm/pnpm берут эту
 // строку для scoped пакетов И ИГНОРИРУЮТ `--registry` флаг при publish.
 // Поэтому дописываем правильный scope в конец .npmrc на время publish
 // (last-wins внутри одного файла) и восстанавливаем в cleanup.
-const SCOPE = '@capsule';
+const SCOPE = '@capsuletech';
 
 // Auth setup: пишем во временный .npmrc, чистится по exit/SIGINT.
 //   nexus:  NEXUS_TOKEN (предпочтительно) или NEXUS_USERNAME+PASSWORD
@@ -176,17 +176,17 @@ const setupAuth = () => {
 //   2. Все остальные shared-* (кроме compliance/vite/biome) + web-* + cli —
 //      используют готовый shared-vite/dist через libConfig.
 const phases = [
-  { name: 'shared-compliance', filters: ['--filter', '@capsule/shared-compliance'] },
-  { name: 'shared-vite', filters: ['--filter', '@capsule/shared-vite'] },
+  { name: 'shared-compliance', filters: ['--filter', '@capsuletech/shared-compliance'] },
+  { name: 'shared-vite', filters: ['--filter', '@capsuletech/shared-vite'] },
   {
     name: 'shared-* (rest) + web-* + cli',
     filters: [
-      '--filter', '@capsule/shared-*',
-      '--filter', '!@capsule/shared-biome',
-      '--filter', '!@capsule/shared-vite',
-      '--filter', '!@capsule/shared-compliance',
-      '--filter', '@capsule/web-*',
-      '--filter', '@capsule/cli',
+      '--filter', '@capsuletech/shared-*',
+      '--filter', '!@capsuletech/shared-biome',
+      '--filter', '!@capsuletech/shared-vite',
+      '--filter', '!@capsuletech/shared-compliance',
+      '--filter', '@capsuletech/web-*',
+      '--filter', '@capsuletech/cli',
     ],
   },
 ];

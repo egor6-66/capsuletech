@@ -1,4 +1,4 @@
-# @capsule/profiler
+# @capsuletech/profiler
 
 Performance monitoring and profiling utilities for SolidJS applications.
 
@@ -13,7 +13,7 @@ Performance monitoring and profiling utilities for SolidJS applications.
 ## Installation
 
 ```bash
-pnpm add @capsule/profiler
+pnpm add @capsuletech/profiler
 ```
 
 ## Usage
@@ -23,7 +23,7 @@ pnpm add @capsule/profiler
 Wrap your application with the provider to start collecting metrics:
 
 ```tsx
-import { VitalsMonitoringProvider } from '@capsule/profiler/providers';
+import { VitalsMonitoringProvider } from '@capsuletech/profiler/providers';
 
 export default function App() {
   return (
@@ -39,7 +39,7 @@ export default function App() {
 Access metrics from the context:
 
 ```tsx
-import { useVitalsContext } from '@capsule/profiler/providers';
+import { useVitalsContext } from '@capsuletech/profiler/providers';
 
 function MyComponent() {
   const context = useVitalsContext();

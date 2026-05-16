@@ -6,16 +6,16 @@
 // biome-ignore lint: disable
 export {}
 declare global {
-  const Controller: typeof import('@capsule/web/core').Controller
-  const defineEndpoint: typeof import('@capsule/web-query').defineEndpoint
+  const Controller: typeof import('@capsuletech/web/core').Controller
+  const defineEndpoint: typeof import('@capsuletech/web-query').defineEndpoint
   const Controllers: typeof import('../registry/wrappers').Controllers
   const Entities: typeof import('../registry/wrappers').Entities
-  const Entity: typeof import('@capsule/web/core').Entity
-  const Feature: typeof import('@capsule/web/core').Feature
+  const Entity: typeof import('@capsuletech/web/core').Entity
+  const Feature: typeof import('@capsuletech/web/core').Feature
   const Features: typeof import('../registry/wrappers').Features
-  const Page: typeof import('@capsule/web/core').Page
-  const Shape: typeof import('@capsule/web/core').Shape
+  const Page: typeof import('@capsuletech/web/core').Page
+  const Shape: typeof import('@capsuletech/web/core').Shape
   const Shapes: typeof import('../registry/wrappers').Shapes
-  const Widget: typeof import('@capsule/web/core').Widget
+  const Widget: typeof import('@capsuletech/web/core').Widget
   const Widgets: typeof import('../registry/wrappers').Widgets
 }

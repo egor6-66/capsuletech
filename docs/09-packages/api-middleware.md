@@ -283,9 +283,9 @@ export const get = defineEndpoint((z) => ({
 
 ## Troubleshooting
 
-**`Cannot find module '@capsule/web-query'`** — если используешь функции вне auto-import (редко), добавь в `apps/<app>/package.json`:
+**`Cannot find module '@capsuletech/web-query'`** — если используешь функции вне auto-import (редко), добавь в `apps/<app>/package.json`:
 ```json
-"devDependencies": { "@capsule/web-query": "workspace:*" }
+"devDependencies": { "@capsuletech/web-query": "workspace:*" }
 ```
 
 **`services.api is undefined` в Feature** — в `capsule.app.ts` не задан блок `api`, либо dev-сервер ещё не перегенерировал registry. Перезапустить dev.

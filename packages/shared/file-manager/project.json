@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/shared-file-manager",
+  "name": "@capsuletech/shared-file-manager",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/shared/file-manager/src",
   "projectType": "library",

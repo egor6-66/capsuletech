@@ -31,7 +31,7 @@ export type WrapperName = (typeof WRAPPER_NAMES)[number];
  * в будущем — `defineShape`, `defineRoute`, и т.п.
  */
 export const DEFINE_FACTORIES = {
-  '@capsule/web-query': ['defineEndpoint'],
+  '@capsuletech/web-query': ['defineEndpoint'],
 } as const;
 
 /**

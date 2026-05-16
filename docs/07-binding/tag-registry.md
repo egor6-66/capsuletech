@@ -6,7 +6,7 @@ status: documented
 # 🏷️ Реестр тегов и алиасов
 
 **Файл:** `packages/state/src/tag-registry.ts`
-**API:** `registerAliases`, `clearAliases`, `getAliases`, `expandTags` — экспорт из `@capsule/state`
+**API:** `registerAliases`, `clearAliases`, `getAliases`, `expandTags` — экспорт из `@capsuletech/state`
 
 Реализация решения [[005-tag-aliases-registry|ADR 005]].
 
@@ -27,7 +27,7 @@ status: documented
 
 ```ts
 // в одном из модулей приложения, например apps/<app>/src/main.ts
-import { registerAliases } from '@capsule/state';
+import { registerAliases } from '@capsuletech/state';
 
 registerAliases({
   // Доменные алиасы
@@ -46,7 +46,7 @@ registerAliases({
 Если хочешь жёстко контролировать алиасы:
 
 ```ts
-import { clearAliases, registerAliases } from '@capsule/state';
+import { clearAliases, registerAliases } from '@capsuletech/state';
 clearAliases();
 registerAliases({ ... }); // теперь только твоё
 ```

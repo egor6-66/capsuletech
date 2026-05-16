@@ -9,8 +9,8 @@ import { kit } from '../kit';
  * Если nx.json меняется — поправь и здесь.
  */
 const GROUPS: Array<{ value: string; label: string; hint: string }> = [
-  { value: 'cli', label: 'cli', hint: '@capsule/cli + shared-{file-manager, vite, compliance}' },
-  { value: 'web_base', label: 'web_base', hint: '@capsule/web-* + shared-zod' },
+  { value: 'cli', label: 'cli', hint: '@capsuletech/cli + shared-{file-manager, vite, compliance}' },
+  { value: 'web_base', label: 'web_base', hint: '@capsuletech/web-* + shared-zod' },
   { value: 'all', label: 'all', hint: 'обе группы за один заход' },
 ];
 

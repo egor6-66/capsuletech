@@ -1,4 +1,4 @@
-import { z } from '@capsule/shared-zod';
+import { z } from '@capsuletech/shared-zod';
 import { For } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { useShapeUi } from './context';

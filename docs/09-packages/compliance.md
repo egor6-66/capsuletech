@@ -3,7 +3,7 @@ tags: [hca, package, compliance]
 status: documented
 ---
 
-# @capsule/compliance
+# @capsuletech/compliance
 
 **Расположение:** `packages/system/compliance/`
 **Зависит от:** `@babel/parser`, `@babel/traverse`, `@babel/types`
@@ -32,9 +32,9 @@ import {
   RUNTIME_ALLOWED,
   LAYER_PREFIXES,
   CROSS_LAYER_ALLOWED,
-} from '@capsule/compliance';
+} from '@capsuletech/compliance';
 
-import type { Layer, IViolation, ICheckOptions } from '@capsule/compliance';
+import type { Layer, IViolation, ICheckOptions } from '@capsuletech/compliance';
 ```
 
 ### `classify(absPath): Layer`
@@ -73,11 +73,11 @@ if (violations.length) console.error(formatViolations(violations));
 
 | Слой | Разрешено |
 |---|---|
-| `entity` | `solid-js`, `@capsule/style`, относительные |
-| `controller` | + `xstate`, `@xstate/solid`, `es-toolkit`, `@capsule/state`, `@capsule/router` |
+| `entity` | `solid-js`, `@capsuletech/style`, относительные |
+| `controller` | + `xstate`, `@xstate/solid`, `es-toolkit`, `@capsuletech/state`, `@capsuletech/router` |
 | `feature` | + `@app/api/*`, `@app/services/*` (доменный API/services приложения) |
-| `widget` | `solid-js`, `@capsule/ui`, `@capsule/style` |
-| `page` | `solid-js`, `@capsule/ui`, `@capsule/style`, `@tanstack/solid-router` |
+| `widget` | `solid-js`, `@capsuletech/ui`, `@capsuletech/style` |
+| `page` | `solid-js`, `@capsuletech/ui`, `@capsuletech/style`, `@tanstack/solid-router` |
 | `system` | без ограничений |
 | `test` | без ограничений |
 
@@ -97,7 +97,7 @@ Cross-layer импорты по alias (`CROSS_LAYER_ALLOWED`):
 `packages/system/vite/src/plugins/compliance.ts`
 
 ```ts
-import { plugins } from '@capsule/building.ts';
+import { plugins } from '@capsuletech/building.ts';
 
 plugins.CompliancePlugin({
   mode: 'warn' | 'error',         // default: 'warn'

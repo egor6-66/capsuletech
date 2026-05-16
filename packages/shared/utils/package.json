@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/shared-utils",
+  "name": "@capsuletech/shared-utils",
   "version": "0.0.0",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -17,6 +17,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@capsule/shared-vite": "workspace:*"
+    "@capsuletech/shared-vite": "workspace:*"
   }
 }

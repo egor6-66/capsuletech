@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-manifests",
+  "name": "@capsuletech/web-manifests",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/web/manifests/src",
   "projectType": "library",

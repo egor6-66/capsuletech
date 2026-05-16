@@ -9,7 +9,7 @@ interface IProps {
 }
 
 /**
- * Простой native select на v1. Когда в @capsule/ui появится полноценный
+ * Простой native select на v1. Когда в @capsuletech/ui появится полноценный
  * Select (Kobalte popover + Listbox) — заменим, API наружу не изменится.
  */
 export const SelectField = (props: IProps) => (

@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/ewc",
+  "name": "@capsuletech/ewc",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -7,16 +7,16 @@
     "dev": "node ../../packages/cli/bin/capsule.mjs"
   },
   "dependencies": {
-    "@capsule/web-core": "workspace:*",
-    "@capsule/web-router": "workspace:*",
-    "@capsule/web-state": "workspace:*",
-    "@capsule/web-style": "workspace:*",
-    "@capsule/web-ui": "workspace:*",
-    "@capsule/web-profiler": "workspace:*",
-    "@capsule/web-query": "workspace:*",
-    "@capsule/web-renderer": "workspace:*",
-    "@capsule/web-inspector": "workspace:*",
-    "@capsule/web-manifests": "workspace:*",
-    "@capsule/shared-zod": "workspace:*"
+    "@capsuletech/web-core": "workspace:*",
+    "@capsuletech/web-router": "workspace:*",
+    "@capsuletech/web-state": "workspace:*",
+    "@capsuletech/web-style": "workspace:*",
+    "@capsuletech/web-ui": "workspace:*",
+    "@capsuletech/web-profiler": "workspace:*",
+    "@capsuletech/web-query": "workspace:*",
+    "@capsuletech/web-renderer": "workspace:*",
+    "@capsuletech/web-inspector": "workspace:*",
+    "@capsuletech/web-manifests": "workspace:*",
+    "@capsuletech/shared-zod": "workspace:*"
   }
 }

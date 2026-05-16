@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/source",
+  "name": "@capsuletech/source",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -8,7 +8,7 @@
   "packageManager": "pnpm@9.0.0",
   "scripts": {
     "start:workspace": "node packages/cli/bin/capsule.mjs",
-    "dev:agent": "pnpm --filter @capsule/agent dev",
+    "dev:agent": "pnpm --filter @capsuletech/agent dev",
     "dev:agent:plugin": "cd plugins/webstorm-agent && ./gradlew runIde",
     "dev:backend": "node scripts/dev-backend.mjs",
     "verdaccio:registry": "pnpm nx local-registry",
@@ -22,7 +22,7 @@
     "report": "node scripts/feature-report.mjs",
     "report:list": "node scripts/feature-report.mjs list",
     "report:all": "node scripts/feature-report.mjs all",
-    "remote": "pnpm install -g @capsule/cli@latest --registry=http://localhost:4873",
+    "remote": "pnpm install -g @capsuletech/cli@latest --registry=http://localhost:4873",
     "kill": "npx kill-port 2233 2250"
   },
   "devDependencies": {
@@ -62,8 +62,8 @@
     "@babel/plugin-syntax-jsx": "^7.24.7",
     "@babel/traverse": "^7.25.6",
     "@babel/types": "^7.25.6",
-    "@capsule/shared-compliance": "workspace:*",
-    "@capsule/shared-file-manager": "workspace:*",
+    "@capsuletech/shared-compliance": "workspace:*",
+    "@capsuletech/shared-file-manager": "workspace:*",
     "@clack/prompts": "^1.3.0",
     "@kobalte/core": "^0.13.11",
     "@motionone/solid": "^10.16.4",

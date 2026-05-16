@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/agent",
+  "name": "@capsuletech/agent",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -7,13 +7,13 @@
     "dev": "node ../../packages/cli/bin/capsule.mjs"
   },
   "dependencies": {
-    "@capsule/web-core": "workspace:*",
-    "@capsule/web-router": "workspace:*",
-    "@capsule/web-state": "workspace:*",
-    "@capsule/web-style": "workspace:*",
-    "@capsule/web-ui": "workspace:*",
-    "@capsule/web-query": "workspace:*",
-    "@capsule/shared-zod": "workspace:*",
+    "@capsuletech/web-core": "workspace:*",
+    "@capsuletech/web-router": "workspace:*",
+    "@capsuletech/web-state": "workspace:*",
+    "@capsuletech/web-style": "workspace:*",
+    "@capsuletech/web-ui": "workspace:*",
+    "@capsuletech/web-query": "workspace:*",
+    "@capsuletech/shared-zod": "workspace:*",
     "@tanstack/solid-router": "^1.169.0",
     "solid-js": "^1.9.5"
   }

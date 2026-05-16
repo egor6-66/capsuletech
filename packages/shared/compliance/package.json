@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/shared-compliance",
+  "name": "@capsuletech/shared-compliance",
   "version": "0.0.64",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -8,7 +8,7 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "@capsule/shared-vite": "workspace:*"
+    "@capsuletech/shared-vite": "workspace:*"
   },
   "publishConfig": {
     "access": "public",

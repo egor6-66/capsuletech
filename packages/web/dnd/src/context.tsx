@@ -36,7 +36,7 @@ const Ctx = createContext<IDnDContext>();
 export const useDnD = (): IDnDContext => {
   const ctx = useContext(Ctx);
   if (!ctx) {
-    throw new Error('[@capsule/dnd] useDnD must be used inside <DnDProvider>');
+    throw new Error('[@capsuletech/dnd] useDnD must be used inside <DnDProvider>');
   }
   return ctx;
 };

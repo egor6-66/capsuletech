@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-profiler",
+  "name": "@capsuletech/web-profiler",
   "version": "0.0.17",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -13,6 +13,6 @@
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
-    "@capsule/shared-vite": "workspace:*"
+    "@capsuletech/shared-vite": "workspace:*"
   }
 }

@@ -1,4 +1,4 @@
-import { createStyle } from '@capsule/web-style';
+import { createStyle } from '@capsuletech/web-style';
 import type { ValidComponent } from 'solid-js';
 import { splitProps } from 'solid-js';
 

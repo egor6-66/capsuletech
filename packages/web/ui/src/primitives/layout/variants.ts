@@ -1,4 +1,4 @@
-import { cva } from '@capsule/web-style';
+import { cva } from '@capsuletech/web-style';
 
 export const layoutSlots = {
   header: 'sticky top-0 z-40 w-full  backdrop-blur px-[--layout-padding] py-[--component-padding]',

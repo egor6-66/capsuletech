@@ -1,4 +1,4 @@
-import { type ICategory, Inspector } from '@capsule/inspector';
+import { type ICategory, Inspector } from '@capsuletech/inspector';
 import { createSignal } from 'solid-js';
 
 const CATEGORIES: ICategory[] = [

@@ -27,7 +27,7 @@ audience: claude
 | `packages/web/query/src/client.ts` | Существующий `QueryClient` — теперь работает как transport-слой под pipeline (кэш, dedupe) |
 | `packages/shared/vite/src/plugins/endpointsRegistry.ts` | Vite-plugin: сканит `src/endpoints/**`, эмитит `.capsule/registry/endpoints.ts` + `.capsule/@types/api.d.ts` |
 | `packages/shared/vite/src/plugins/appConfig.ts` | Эмитит `.capsule/app-config.gen.ts` с `setApiClient(createApi(appConfig.api, endpoints))` |
-| `packages/shared/vite/src/plugins/constants.ts` | `DEFINE_FACTORIES = { '@capsule/web-query': ['defineEndpoint'] }` — auto-import конфиг |
+| `packages/shared/vite/src/plugins/constants.ts` | `DEFINE_FACTORIES = { '@capsuletech/web-query': ['defineEndpoint'] }` — auto-import конфиг |
 | `packages/shared/vite/src/defines/capsuleConfig.ts` | Регистрация плагинов + `define: { defineAppConfig: '((__x__)=>__x__)' }` (browser-stub для globalThis-фабрик) |
 | `packages/web/core/src/wrappers/logic/utils/createLogicWrapper.tsx` | Инжект `services.api = getApiClient()` (только в Feature, не в Controller) |
 | `packages/web/core/src/wrappers/ui/interfaces.ts` | Пустой fallback `interface CapsuleApi {}` для interface-merging |
@@ -124,7 +124,7 @@ Vite-плагин `EndpointsRegistryPlugin` следит за `apps/*/src/endpoi
 - `.capsule/registry/endpoints.ts` — namespace-tree с lazy-импортами.
 - `.capsule/@types/api.d.ts` — `declare global { interface CapsuleApi extends InferApi<Endpoints> {} }`.
 
-`IServices.api: CapsuleApi` — пустой fallback в `@capsule/web-core` сливается с генерируемой формой через interface merging. Ctrl+Click на `services.api.user.get` ведёт в исходник.
+`IServices.api: CapsuleApi` — пустой fallback в `@capsuletech/web-core` сливается с генерируемой формой через interface merging. Ctrl+Click на `services.api.user.get` ведёт в исходник.
 
 ## Bootstrap flow
 
@@ -137,13 +137,13 @@ Vite-плагин `EndpointsRegistryPlugin` следит за `apps/*/src/endpoi
 
 ## Известные грабли
 
-1. **`defineAppConfig is not defined` в браузере** — решено через Vite `define: { defineAppConfig: '((__x__)=>__x__)' }` в `capsuleConfig.ts`. В Node CLI глобал ставит `@capsule/cli/defines.ts`.
+1. **`defineAppConfig is not defined` в браузере** — решено через Vite `define: { defineAppConfig: '((__x__)=>__x__)' }` в `capsuleConfig.ts`. В Node CLI глобал ставит `@capsuletech/cli/defines.ts`.
 
 2. **`endpoints.ts` пустой** — `EndpointsRegistryPlugin` не успел отсканить или папка `src/endpoints/` отсутствует. Перезапустить dev.
 
-3. **[[shared-vite-dist]]** — после правок в `packages/shared/vite/src/` обязательно `pnpm --filter @capsule/shared-vite build` + рестарт dev-сервера.
+3. **[[shared-vite-dist]]** — после правок в `packages/shared/vite/src/` обязательно `pnpm --filter @capsuletech/shared-vite build` + рестарт dev-сервера.
 
-4. **`zod` peer-dep** — у `@capsule/web-query` `zod` в `peerDependencies`. Workspace pnpm подтягивает версию из root deps.
+4. **`zod` peer-dep** — у `@capsuletech/web-query` `zod` в `peerDependencies`. Workspace pnpm подтягивает версию из root deps.
 
 5. **Order of middleware matters** — `statusMapper` ставится раньше `on401`, чтобы он видел типизированный `UnauthorizedError`, а не сырой `Error`.
 

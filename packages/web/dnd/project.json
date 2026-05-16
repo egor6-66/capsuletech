@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-dnd",
+  "name": "@capsuletech/web-dnd",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/web/dnd/src",
   "projectType": "library",

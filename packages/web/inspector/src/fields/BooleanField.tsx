@@ -1,4 +1,4 @@
-import { Toggle } from '@capsule/ui/toggle';
+import { Toggle } from '@capsuletech/ui/toggle';
 import { Show } from 'solid-js';
 import type { IBooleanField } from '../types';
 

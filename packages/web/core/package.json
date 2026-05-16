@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-core",
+  "name": "@capsuletech/web-core",
   "version": "0.0.17",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -10,15 +10,15 @@
     "release:prod": "node ../../../scripts/release.mjs --group=web_base --mode=prod"
   },
   "dependencies": {
-    "@capsule/web-profiler": "workspace:*",
-    "@capsule/web-router": "workspace:*",
-    "@capsule/web-state": "workspace:*",
-    "@capsule/web-ui": "workspace:*",
-    "@capsule/web-query": "workspace:*",
-    "@capsule/shared-zod": "workspace:*",
-    "@capsule/shared-vite": "workspace:*",
-    "@capsule/shared-file-manager": "workspace:*",
-    "@capsule/web-style": "workspace:*"
+    "@capsuletech/web-profiler": "workspace:*",
+    "@capsuletech/web-router": "workspace:*",
+    "@capsuletech/web-state": "workspace:*",
+    "@capsuletech/web-ui": "workspace:*",
+    "@capsuletech/web-query": "workspace:*",
+    "@capsuletech/shared-zod": "workspace:*",
+    "@capsuletech/shared-vite": "workspace:*",
+    "@capsuletech/shared-file-manager": "workspace:*",
+    "@capsuletech/web-style": "workspace:*"
   },
   "peerDependencies": {
     "solid-js": "^1.9.5"

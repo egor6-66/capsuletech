@@ -122,5 +122,5 @@ createEffect(() => {
 - [[ui-proxy]]
 - [[lifecycle]]
 - [[overrides]]
-- [[state|@capsule/state]]
+- [[state|@capsuletech/state]]
 - [[001-xstate-as-canonical-fsm|ADR 001]] · [[008-hybrid-fsm-api|ADR 008]]

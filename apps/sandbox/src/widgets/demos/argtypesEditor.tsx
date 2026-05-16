@@ -1,4 +1,4 @@
-import { Button } from '@capsule/web-ui/button';
+import { Button } from '@capsuletech/web-ui/button';
 import { ArrowRight, type LucideProps, Plus, Send, Trash2 } from 'lucide-solid';
 import { type Component, For, Show, createSignal, createUniqueId } from 'solid-js';
 

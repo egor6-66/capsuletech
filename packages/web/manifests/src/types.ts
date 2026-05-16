@@ -1,4 +1,4 @@
-import type { ZodTypeAny } from '@capsule/zod';
+import type { ZodTypeAny } from '@capsuletech/zod';
 import type { JSX } from 'solid-js';
 
 /**
@@ -19,7 +19,7 @@ export type ComponentCategory =
  * инспектору пропсов (`propsSchema`, `styleSlots`) и создателю нод
  * (`defaultProps`).
  *
- * Тип `type` совпадает с тем, что используется в `@capsule/renderer` для
+ * Тип `type` совпадает с тем, что используется в `@capsuletech/renderer` для
  * `node.type` — это dot-path в реестре (e.g. `'ui.Button'`, `'ui.Card.Header'`).
  */
 export interface IComponentManifest {

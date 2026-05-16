@@ -69,7 +69,7 @@ on: { LOGIN: { target: 'submitting', actions: 'callApi' } }
 ### `UiProxy`
 В обработчиках вместо `ctx.controller.onClick?.(data, ctx.store.ctx)` будет `ctx.actor.send({ type: 'CLICK', target: data })`. Сигнатура хэндлера в схеме перестаёт быть «функция, которая что-то делает» и становится «`actions:` в transition».
 
-### `bridge` (`@capsule/state/createBridge`)
+### `bridge` (`@capsuletech/state/createBridge`)
 Остаётся, но `update`/`setLoading`/`setStyles`/`setErrors`/`registerComponent` превращаются в `send({ type: ... })` к **конкретному** actor'у, а не к глобальной машине.
 
 `registerComponent` стоит вынести **за пределы** машины: это runtime-метаданные UI, не бизнес-состояние. Их место — обычный Solid-store или WeakMap, не XState `context`.
@@ -157,7 +157,7 @@ const Form = Controller(({ setup }) => setup({
 ## Связанное
 
 - [[controller-proxy]] (текущая реализация — будет переписана)
-- [[state|@capsule/state]]
+- [[state|@capsuletech/state]]
 - [[lifecycle]]
 - [[ui-proxy]]
 - ADR 002 (`Controller vs Feature` — зависит от исхода)

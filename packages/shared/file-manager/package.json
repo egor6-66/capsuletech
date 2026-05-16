@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/shared-file-manager",
+  "name": "@capsuletech/shared-file-manager",
   "version": "0.0.64",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -9,7 +9,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@capsule/shared-vite": "workspace:*"
+    "@capsuletech/shared-vite": "workspace:*"
   },
   "publishConfig": {
     "access": "public",

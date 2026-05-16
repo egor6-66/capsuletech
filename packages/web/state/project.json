@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-state",
+  "name": "@capsuletech/web-state",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/web/state/src",
   "projectType": "library",

@@ -1,4 +1,4 @@
-import { cn, createStyle } from '@capsule/web-style';
+import { cn, createStyle } from '@capsuletech/web-style';
 import { splitProps } from 'solid-js';
 
 import type { IFieldProps } from './interfaces';

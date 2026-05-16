@@ -1,9 +1,9 @@
 {
-  "name": "@capsule/biome",
+  "name": "@capsuletech/biome",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/system/biome/src",
   "projectType": "library",
   "tags": [],
-  "// targets": "to see all targets run: nx show project @capsule/biome --web",
+  "// targets": "to see all targets run: nx show project @capsuletech/biome --web",
   "targets": {}
 }

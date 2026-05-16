@@ -18,37 +18,37 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {
-      "@capsule/web-core/create": ["packages/web/core/src/create/index.ts"],
-      "@capsule/web-core/providers": [
+      "@capsuletech/web-core/create": ["packages/web/core/src/create/index.ts"],
+      "@capsuletech/web-core/providers": [
         "packages/web/core/src/providers/index.ts"
       ],
-      "@capsule/web-core": ["packages/web/core/src/index.ts"],
-      "@capsule/web-state": ["packages/web/state/src/index.ts"],
-      "@capsule/web-renderer": ["packages/web/renderer/src/index.ts"],
-      "@capsule/web-dnd": ["packages/web/dnd/src/index.ts"],
-      "@capsule/web-manifests": ["packages/web/manifests/src/index.ts"],
-      "@capsule/web-editor-state": ["packages/web/editor-state/src/index.ts"],
-      "@capsule/web-inspector": ["packages/web/inspector/src/index.ts"],
-      "@capsule/web-profiler": ["packages/web/profiler/src/index.ts"],
-      "@capsule/web-query": ["packages/web/query/src/index.ts"],
-      "@capsule/web-router": ["packages/web/router/src/index.ts"],
-      "@capsule/web-style": ["packages/web/style/src/index.ts"],
-      "@capsule/web-style/editor": ["packages/web/style/src/editor/index.ts"],
-      "@capsule/web-style/css": ["packages/web/style/src/index.css"],
-      "@capsule/web-ui": ["packages/web/ui/src/index.ts"],
-      "@capsule/web-ui/*": [
+      "@capsuletech/web-core": ["packages/web/core/src/index.ts"],
+      "@capsuletech/web-state": ["packages/web/state/src/index.ts"],
+      "@capsuletech/web-renderer": ["packages/web/renderer/src/index.ts"],
+      "@capsuletech/web-dnd": ["packages/web/dnd/src/index.ts"],
+      "@capsuletech/web-manifests": ["packages/web/manifests/src/index.ts"],
+      "@capsuletech/web-editor-state": ["packages/web/editor-state/src/index.ts"],
+      "@capsuletech/web-inspector": ["packages/web/inspector/src/index.ts"],
+      "@capsuletech/web-profiler": ["packages/web/profiler/src/index.ts"],
+      "@capsuletech/web-query": ["packages/web/query/src/index.ts"],
+      "@capsuletech/web-router": ["packages/web/router/src/index.ts"],
+      "@capsuletech/web-style": ["packages/web/style/src/index.ts"],
+      "@capsuletech/web-style/editor": ["packages/web/style/src/editor/index.ts"],
+      "@capsuletech/web-style/css": ["packages/web/style/src/index.css"],
+      "@capsuletech/web-ui": ["packages/web/ui/src/index.ts"],
+      "@capsuletech/web-ui/*": [
         "packages/web/ui/src/primitives/*",
         "packages/web/ui/src/components/*"
       ],
-      "@capsule/cli": ["packages/cli/src/index.ts"],
-      "@capsule/cli/*": ["packages/cli/*"],
-      "@capsule/shared-file-manager": [
+      "@capsuletech/cli": ["packages/cli/src/index.ts"],
+      "@capsuletech/cli/*": ["packages/cli/*"],
+      "@capsuletech/shared-file-manager": [
         "packages/shared/file-manager/src/index.ts"
       ],
-      "@capsule/shared-compliance": ["packages/shared/compliance/src/index.ts"],
-      "@capsule/shared-vite": ["packages/shared/vite/src/index.ts"],
-      "@capsule/shared-zod": ["packages/shared/zod/src/index.ts"],
-      "@capsule/shared-utils": ["packages/shared/utils/src/index.ts"]
+      "@capsuletech/shared-compliance": ["packages/shared/compliance/src/index.ts"],
+      "@capsuletech/shared-vite": ["packages/shared/vite/src/index.ts"],
+      "@capsuletech/shared-zod": ["packages/shared/zod/src/index.ts"],
+      "@capsuletech/shared-utils": ["packages/shared/utils/src/index.ts"]
     }
   }
 }

@@ -9,13 +9,13 @@ status: documented
 
 ## Два источника
 
-### 1. Wrapper-функции (от `@capsule/core`)
+### 1. Wrapper-функции (от `@capsuletech/core`)
 
 Подключаются через `unplugin-auto-import`:
 
 ```ts
 AutoImport({
-  imports: [{ '@capsule/core': ['Page', 'Widget', 'Entity', 'Controller', 'Feature'] }],
+  imports: [{ '@capsuletech/core': ['Page', 'Widget', 'Entity', 'Controller', 'Feature'] }],
   dts: './@types/capsule-imports.d.ts',
 })
 ```
@@ -62,7 +62,7 @@ export const Controllers = {
 
 | Имя | Источник | Что |
 |---|---|---|
-| `Page`, `Widget`, `Entity`, `Controller`, `Feature` | `@capsule/core` | Wrapper-функции |
+| `Page`, `Widget`, `Entity`, `Controller`, `Feature` | `@capsuletech/core` | Wrapper-функции |
 | `Widgets.<Group>.<Name>` | `.capsule/registry/wrappers.ts` | Lazy-компонент |
 | `Entities.<Group>.<Name>` | то же | Lazy-компонент |
 | `Controllers.<Group>.<Name>` | то же | Lazy-компонент |

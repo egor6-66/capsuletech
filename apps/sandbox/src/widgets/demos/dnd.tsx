@@ -4,7 +4,7 @@ import {
   createDraggable,
   createDroppable,
   createSortable,
-} from '@capsule/dnd';
+} from '@capsuletech/dnd';
 import { type LucideProps, MousePointerClick, Package, Rows3, TextCursorInput } from 'lucide-solid';
 import { type Component, For, createSignal } from 'solid-js';
 

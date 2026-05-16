@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/shared-zod",
+  "name": "@capsuletech/shared-zod",
   "version": "0.0.17",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -21,6 +21,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@capsule/shared-vite": "workspace:*"
+    "@capsuletech/shared-vite": "workspace:*"
   }
 }

@@ -31,7 +31,7 @@ export interface ICreateEditorSchemaOptions {
  *
  * Обёртка над пакетом-операциями — нужна чтобы внутри editor-app можно было:
  * ```ts
- * import { createEditorSchema } from '@capsule/editor-state';
+ * import { createEditorSchema } from '@capsuletech/editor-state';
  * const State = Feature(() => createEditorSchema());
  * export default State;
  * ```

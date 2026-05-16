@@ -12,9 +12,9 @@ const getViteEntry = (root: string, mode: 'dev' | 'prod'): string => {
     return resolve(root, 'packages/shared/vite/dist/index.mjs');
   }
   try {
-    return require.resolve('@capsule/shared-vite');
+    return require.resolve('@capsuletech/shared-vite');
   } catch {
-    return resolve(root, 'node_modules/@capsule/shared-vite');
+    return resolve(root, 'node_modules/@capsuletech/shared-vite');
   }
 };
 

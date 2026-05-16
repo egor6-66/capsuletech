@@ -1,4 +1,4 @@
-import { createStyle } from '@capsule/web-style';
+import { createStyle } from '@capsuletech/web-style';
 import { For, type JSX, splitProps } from 'solid-js';
 import type { INavigationItemProps, INavigationListProps, INavigationProps } from './interfaces';
 import { navigationCva, navigationItemCva, navigationListCva } from './variants';

@@ -37,7 +37,7 @@ const ComponentWrapper = (componentProps) => {
 
 ## Реализация
 
-### `@capsule/state` — добавить событие в машину
+### `@capsuletech/state` — добавить событие в машину
 
 ```ts
 // packages/state/src/create.ts (после рефакторинга по ADR 008)
@@ -110,5 +110,5 @@ const ComponentWrapper = (componentProps) => {
 
 - [[ui-proxy]]
 - [[008-hybrid-fsm-api|ADR 008]] — фиксы бандлятся в один рефакторинг
-- [[state|@capsule/state]] — `UNREGISTER_COMPONENT`-ивент
+- [[state|@capsuletech/state]] — `UNREGISTER_COMPONENT`-ивент
 - [[tagging-system]] — после фикса начнёт работать как задумано

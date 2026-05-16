@@ -1,4 +1,4 @@
-import { cn } from '@capsule/web-style';
+import { cn } from '@capsuletech/web-style';
 import { For, type JSX, Show, splitProps } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { Label } from '../label';

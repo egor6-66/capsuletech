@@ -3,7 +3,7 @@ tags: [hca, package, style]
 status: documented
 ---
 
-# @capsule/style
+# @capsuletech/style
 
 **Расположение:** `packages/system/style/`
 **Зависит от:** `clsx`, `tailwind-merge`, `class-variance-authority`, `solid-js`
@@ -13,8 +13,8 @@ status: documented
 ## API
 
 ```ts
-import { cn, createStyle } from '@capsule/style';
-import '@capsule/style/css'; // глобальные базовые стили (опционально)
+import { cn, createStyle } from '@capsuletech/style';
+import '@capsuletech/style/css'; // глобальные базовые стили (опционально)
 ```
 
 ### `cn(...classes)`
@@ -64,4 +64,4 @@ export const buttonCva = cva('inline-flex items-center ...', {
 
 ## Связанное
 
-- [[ui|@capsule/ui]]
+- [[ui|@capsuletech/ui]]

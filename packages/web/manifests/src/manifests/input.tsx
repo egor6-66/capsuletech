@@ -1,4 +1,4 @@
-import { z } from '@capsule/zod';
+import { z } from '@capsuletech/zod';
 import { TextCursorInput } from 'lucide-solid';
 import type { IComponentManifest } from '../types';
 

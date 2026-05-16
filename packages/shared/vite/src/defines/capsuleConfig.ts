@@ -41,9 +41,9 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
     'solid-js',
     'solid-js/web',
     'solid-js/store',
-    '@capsule/ui',
-    '@capsule/state',
-    '@capsule/file-manager',
+    '@capsuletech/ui',
+    '@capsuletech/state',
+    '@capsuletech/file-manager',
   ];
 
   const capsuleConfig = {
@@ -53,7 +53,7 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
       __CAPSULE_CONFIG__: JSON.stringify(config),
       // Browser-side identity-стабы для globalThis-фабрик, которыми пользователь
       // объявляет конфиги (`capsule.app.ts` / `capsule.config.ts`). В Node-CLI
-      // эти функции выставляет `@capsule/cli/defines.ts` на globalThis; в браузере
+      // эти функции выставляет `@capsuletech/cli/defines.ts` на globalThis; в браузере
       // их нет, а `app-config.gen.ts` импортит `../capsule.app` — без define
       // получили бы `defineAppConfig is not defined`.
       defineAppConfig: '((__x__)=>__x__)',
@@ -75,16 +75,16 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
       // Исключаем внутренние пакеты монорепозитория из пре-бандлинга esbuild.
       // Благодаря этому Vite будет обрабатывать их на лету через плагины (включая JSX транспиляцию).
       exclude: [
-        '@capsule/sandbox',
-        '@capsule/ui',
-        '@capsule/core',
-        '@capsule/web-core',
-        '@capsule/web-ui',
-        '@capsule/web-style',
-        '@capsule/web-router',
-        '@capsule/web-profiler',
-        '@capsule/web-state',
-        '@capsule/web-query',
+        '@capsuletech/sandbox',
+        '@capsuletech/ui',
+        '@capsuletech/core',
+        '@capsuletech/web-core',
+        '@capsuletech/web-ui',
+        '@capsuletech/web-style',
+        '@capsuletech/web-router',
+        '@capsuletech/web-profiler',
+        '@capsuletech/web-state',
+        '@capsuletech/web-query',
       ],
     },
     plugins: [
@@ -93,7 +93,7 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
         // (plugins/constants). Когда добавляешь новый wrapper/factory —
         // правишь только constants.ts.
         imports: [
-          { '@capsule/web-core': [...WRAPPER_NAMES] },
+          { '@capsuletech/web-core': [...WRAPPER_NAMES] },
           ...Object.entries(DEFINE_FACTORIES).map(([mod, names]) => ({
             [mod]: [...names],
           })),
@@ -135,9 +135,9 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
     ],
     resolve: {
       dedupe,
-      // Без `'development'` условия: оно бы перенаправило `@capsule/*` на
+      // Без `'development'` условия: оно бы перенаправило `@capsuletech/*` на
       // `./src/...`, который не публикуется в npm/Verdaccio (`files: ["dist"]`).
-      // Для внешних воркспейсов это ломает резолв `@capsule/web-core/providers`
+      // Для внешних воркспейсов это ломает резолв `@capsuletech/web-core/providers`
       // и т.п. App-сервер всегда читает собранный `dist/*.mjs` через `import`.
       conditions: ['solid', 'browser', 'import'],
     },

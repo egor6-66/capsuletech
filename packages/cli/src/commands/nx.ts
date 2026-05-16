@@ -51,13 +51,13 @@ export const nxCommands: Command[] = [
     params: [
       {
         name: 'target',
-        description: 'project:target, например @capsule/cli:build',
+        description: 'project:target, например @capsuletech/cli:build',
         positional: true,
         required: true,
         prompt: {
           type: 'input',
           message: 'project:target',
-          placeholder: '@capsule/cli:build',
+          placeholder: '@capsuletech/cli:build',
         },
       },
     ],

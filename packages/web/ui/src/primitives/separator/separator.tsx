@@ -1,4 +1,4 @@
-import { createStyle } from '@capsule/web-style';
+import { createStyle } from '@capsuletech/web-style';
 import { Separator as SeparatorPrimitive } from '@kobalte/core/separator';
 import { mergeProps, splitProps } from 'solid-js';
 import type { ISeparatorProps } from './interfaces';

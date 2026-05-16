@@ -1,4 +1,4 @@
-import type { CapsuleZ } from '@capsule/zod';
+import type { CapsuleZ } from '@capsuletech/zod';
 import type { Component, JSX, ValidComponent } from 'solid-js';
 import type { ZodArray, ZodTypeAny, z as zod } from 'zod';
 

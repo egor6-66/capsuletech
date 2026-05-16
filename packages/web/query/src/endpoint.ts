@@ -1,4 +1,4 @@
-import { type CapsuleZ, z } from '@capsule/shared-zod';
+import { type CapsuleZ, z } from '@capsuletech/shared-zod';
 import type { ZodType } from 'zod';
 import type { Middleware } from './pipeline';
 import type { HttpMethod } from './types';
@@ -50,7 +50,7 @@ export type InferInput<E> = E extends Endpoint<infer I, any> ? I : never;
 export type InferOutput<E> = E extends Endpoint<any, infer D> ? D : never;
 
 /**
- * Фабрика endpoint'а. Получает `z` (CapsuleZ из `@capsule/shared-zod`),
+ * Фабрика endpoint'а. Получает `z` (CapsuleZ из `@capsuletech/shared-zod`),
  * возвращает конфиг. Дизайн повторяет `Shape((z, ui) => ...)`:
  * пользователь не импортирует zod руками.
  *

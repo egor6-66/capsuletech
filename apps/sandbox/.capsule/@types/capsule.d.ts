@@ -1,5 +1,5 @@
-import type { ICapsuleConfig } from '@capsule/shared-vite';
-import type { IAppConfig } from '@capsule/web-core';
+import type { ICapsuleConfig } from '@capsuletech/shared-vite';
+import type { IAppConfig } from '@capsuletech/web-core';
 
 declare global {
   function defineCapsuleConfig(config: ICapsuleConfig): ICapsuleConfig;

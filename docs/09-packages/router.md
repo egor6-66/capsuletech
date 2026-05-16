@@ -3,7 +3,7 @@ tags: [hca, package, router]
 status: documented
 ---
 
-# @capsule/router
+# @capsuletech/router
 
 **Расположение:** `packages/router/`
 **Зависит от:** `@tanstack/solid-router`, `solid-js`
@@ -18,13 +18,13 @@ import {
   useRouter,
   RouterContext,
   RouterProvider,
-} from '@capsule/router';
+} from '@capsuletech/router';
 
 import type {
   ICapsuleRouter,
   ICapsuleRouterContext,
   ICreateRouterOpts,
-} from '@capsule/router';
+} from '@capsuletech/router';
 ```
 
 ### `createRouter({ routeTree, context? })`
@@ -48,7 +48,7 @@ const { raw, capsuleRouter } = createRouter({
 Hook для доступа к Capsule-роутеру из компонента или wrapper'а. Бросает, если вне `<Providers.Base>` — это намеренно (silent-null опаснее явной ошибки).
 
 ```ts
-import { useRouter } from '@capsule/router';
+import { useRouter } from '@capsuletech/router';
 
 const router = useRouter();
 router.goTo('/dashboard');
@@ -79,7 +79,7 @@ API специально **не** копирует все возможности
 Обычно — через `Providers.Base`:
 
 ```tsx
-import { Providers } from '@capsule/core';
+import { Providers } from '@capsuletech/core';
 import { routeTree } from './routes/routeTree.gen';
 
 <Providers.Base routeTree={routeTree} routerContext={{ isAuthenticated: false }} />
@@ -105,7 +105,7 @@ const Auth = Feature(({ router }) => ({
 
 `router` приходит автоматически через `services` из `createLogicWrapper`. API-сигнатура не меняется при будущих рефакторингах внутренностей роутера.
 
-## Что **не** входит в `@capsule/router`
+## Что **не** входит в `@capsuletech/router`
 
 - API-клиент / fetch-обёртка — это уровень приложения.
 - Guards (`beforeLoad`, `loader`) — пишутся в TanStack-роутах напрямую (`.capsule/routes/__pages/...`).

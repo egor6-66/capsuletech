@@ -2,7 +2,7 @@ export type NodeId = string;
 
 /**
  * Узел дерева редактора. Полностью описывает один JSX-узел в формате,
- * совместимом с `@capsule/renderer` (`ISchema.components.nodes[id]`).
+ * совместимом с `@capsuletech/renderer` (`ISchema.components.nodes[id]`).
  *
  * Никакого UI-state'а (selected/expanded/etc.) — это отдельный концерн
  * редактора и хранится вне дерева.

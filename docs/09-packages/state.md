@@ -3,7 +3,7 @@ tags: [hca, package, state]
 status: documented
 ---
 
-# @capsule/state
+# @capsuletech/state
 
 **Расположение:** `packages/state/`
 **Зависит от:** `xstate`, `@xstate/solid`, `es-toolkit`
@@ -20,13 +20,13 @@ import {
   omitByTags,
   matchByTags,
   matchEntryByTags,
-} from '@capsule/state';
+} from '@capsuletech/state';
 
 import type {
   IDefineStateSchema,
   IStateHandlers,
   IMachineContext,
-} from '@capsule/state';
+} from '@capsuletech/state';
 ```
 
 ## `createState(schema)`
@@ -84,7 +84,7 @@ import type {
 Те же `pickByTags / omitByTags / matchByTags / matchEntryByTags` экспортируются напрямую — для случаев, когда работаем с `components`-картой не через bridge:
 
 ```ts
-import { pickByTags } from '@capsule/state';
+import { pickByTags } from '@capsuletech/state';
 const inputs = pickByTags(componentsMap, ['@inputs']);
 ```
 

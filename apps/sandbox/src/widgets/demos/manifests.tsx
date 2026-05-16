@@ -1,4 +1,4 @@
-import { getAllManifests, getCategories, listByCategory } from '@capsule/web-manifests';
+import { getAllManifests, getCategories, listByCategory } from '@capsuletech/web-manifests';
 import { For } from 'solid-js';
 
 const Manifests = Widget(() => {

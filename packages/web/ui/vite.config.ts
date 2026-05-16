@@ -11,14 +11,14 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
 
-import { libConfig } from '@capsule/shared-vite';
+import { libConfig } from '@capsuletech/shared-vite';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // vite-plugin-dts кладёт .d.ts по структуре src (entryRoot: 'src'),
 // а .mjs идут по entry-ключам Vite — поэтому для атомов получается
 // dist/primitives/<comp>/index.d.ts и dist/components/<comp>/index.mjs.
-// Subpath-exports (@capsule/web-ui/button) ищут .d.ts рядом с .mjs — мерджим:
+// Subpath-exports (@capsuletech/web-ui/button) ищут .d.ts рядом с .mjs — мерджим:
 // переносим dist/primitives/* в dist/components/* и патчим barrel index.d.ts.
 const remapPrimitivesDtsPlugin = (outDir: string): Plugin => ({
   name: 'capsule-web-ui:remap-primitives-dts',
@@ -56,7 +56,7 @@ const remapPrimitivesDtsPlugin = (outDir: string): Plugin => ({
 // Примитивы (atoms) и композиции (molecules) собираются в один плоский dist:
 //   src/primitives/button/index.tsx   → dist/components/button/index.mjs
 //   src/components/text-field/index.tsx → dist/components/text-field/index.mjs
-// Это нужно, чтобы exports вида `@capsule/web-ui/card/parts` резолвились в
+// Это нужно, чтобы exports вида `@capsuletech/web-ui/card/parts` резолвились в
 // реальный dist-файл, а имя «components» в dist оставалось стабильным для
 // внешних потребителей (см. package.json#exports).
 const SRC_DIRS = ['primitives', 'components'] as const;

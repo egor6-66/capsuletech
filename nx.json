@@ -88,10 +88,10 @@
     "groups": {
       "cli": {
         "projects": [
-          "@capsule/cli",
-          "@capsule/shared-file-manager",
-          "@capsule/shared-vite",
-          "@capsule/shared-compliance"
+          "@capsuletech/cli",
+          "@capsuletech/shared-file-manager",
+          "@capsuletech/shared-vite",
+          "@capsuletech/shared-compliance"
         ],
         "projectsRelationship": "fixed",
         "releaseTagPattern": "cli@{version}",
@@ -104,19 +104,19 @@
       },
       "web_base": {
         "projects": [
-          "@capsule/web-core",
-          "@capsule/web-dnd",
-          "@capsule/web-editor-state",
-          "@capsule/web-inspector",
-          "@capsule/web-manifests",
-          "@capsule/web-profiler",
-          "@capsule/web-query",
-          "@capsule/web-renderer",
-          "@capsule/web-router",
-          "@capsule/web-state",
-          "@capsule/web-style",
-          "@capsule/web-ui",
-          "@capsule/shared-zod"
+          "@capsuletech/web-core",
+          "@capsuletech/web-dnd",
+          "@capsuletech/web-editor-state",
+          "@capsuletech/web-inspector",
+          "@capsuletech/web-manifests",
+          "@capsuletech/web-profiler",
+          "@capsuletech/web-query",
+          "@capsuletech/web-renderer",
+          "@capsuletech/web-router",
+          "@capsuletech/web-state",
+          "@capsuletech/web-style",
+          "@capsuletech/web-ui",
+          "@capsuletech/shared-zod"
         ],
         "projectsRelationship": "fixed",
         "releaseTagPattern": "web@{version}",

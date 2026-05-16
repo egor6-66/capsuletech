@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-query",
+  "name": "@capsuletech/web-query",
   "version": "0.0.17",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -18,14 +18,14 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@capsule/shared-zod": "workspace:*"
+    "@capsuletech/shared-zod": "workspace:*"
   },
   "peerDependencies": {
     "solid-js": "^1.9.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@capsule/shared-vite": "workspace:*"
+    "@capsuletech/shared-vite": "workspace:*"
   },
   "publishConfig": {
     "access": "public",

@@ -15,7 +15,7 @@ export interface IDefineLibConfigOptions {
   name: string;
   /**
    * `'browser'` (default) — client lib, `'node'` — серверный/build-time пакет,
-   * `'isomorphic'` — пакет с обоими типами entry (например `@capsule/core`,
+   * `'isomorphic'` — пакет с обоими типами entry (например `@capsuletech/core`,
    * где `./create` для браузера, а `./builder` для node).
    */
   runtime?: LibRuntime;
@@ -47,7 +47,7 @@ export interface IDefineLibConfigOptions {
 
 /** Всё, что не должно вшиваться в bundle — резолвится у consumer'а. */
 const BROWSER_EXTERNAL: (string | RegExp)[] = [
-  /^@capsule\//,
+  /^@capsuletech\//,
   'solid-js',
   /^solid-js\//,
   /^@solidjs\//,

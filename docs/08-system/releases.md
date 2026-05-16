@@ -15,13 +15,13 @@ type: guide
 
 | Группа | Тип | Пакеты | Тег |
 |---|---|---|---|
-| `cli` | independent | `@capsule/cli` | `cli@x.y.z` |
+| `cli` | independent | `@capsuletech/cli` | `cli@x.y.z` |
 | `web_base` | fixed | `core`, `router`, `ui`, `vite`, `style`, `file-manager`, `profiler` | `web@x.y.z` |
 
 - **independent** — у каждого пакета своя версия.
 - **fixed** — все пакеты группы делят одну версию. Любой conventional-commit в любой из них бампает всю группу.
 
-Почему `web_base` fixed: `@capsule/core` re-export'ит router/ui/vite/etc. Если обновить только router, core останется на старом — потребитель получит рассинхрон. Fixed гарантирует, что весь "веб-стек" Capsule всегда совпадает по версиям.
+Почему `web_base` fixed: `@capsuletech/core` re-export'ит router/ui/vite/etc. Если обновить только router, core останется на старом — потребитель получит рассинхрон. Fixed гарантирует, что весь "веб-стек" Capsule всегда совпадает по версиям.
 
 ## Команды
 
@@ -149,12 +149,12 @@ pnpm release:web:nexus
 
 ```json
 "node_server": {
-  "projects": ["@capsule/server", "@capsule/server-_auth"],
+  "projects": ["@capsuletech/server", "@capsuletech/server-_auth"],
   "projectsRelationship": "independent",
   "releaseTagPattern": "node@{version}",
   "version": {
     "conventionalCommits": true,
-    "preVersionCommand": "pnpm nx run-many -t build -p @capsule/server,@capsule/server-_auth"
+    "preVersionCommand": "pnpm nx run-many -t build -p @capsuletech/server,@capsuletech/server-_auth"
   },
   "changelog": { "projectChangelogs": true }
 }
@@ -176,7 +176,7 @@ pnpm release:web:nexus
 
 **`does not have a package.json file available in dist\packages\<name>\`** — у Capsule `dist/` лежит **внутри** каждого пакета, а Nx по дефолту ищет publishable artifact в `dist/<projectRoot>/`. Чинится через `targetDefaults["nx-release-publish"].options.packageRoot = "{projectRoot}"` в `nx.json` (уже стоит). Если воспроизводится — проверь что эта секция не уехала.
 
-**`task graph has a circular dependency`** на pre-version build — Nx видит ложный цикл `@capsule/shared-vite ↔ @capsule/compliance` (vite использует compliance в runtime, compliance использует vite в devDeps для собственной сборки). Решение: `preVersionCommand` в `nx.json` использует `pnpm --filter ... build`, а не `nx run-many` — pnpm сортирует только по runtime-deps и цикла не видит.
+**`task graph has a circular dependency`** на pre-version build — Nx видит ложный цикл `@capsuletech/shared-vite ↔ @capsuletech/compliance` (vite использует compliance в runtime, compliance использует vite в devDeps для собственной сборки). Решение: `preVersionCommand` в `nx.json` использует `pnpm --filter ... build`, а не `nx run-many` — pnpm сортирует только по runtime-deps и цикла не видит.
 
 **`401 Unauthorized`** — креды не подхватились. Проверь:
 - `cat .npmrc` (после падения, до cleanup'а — креды должны быть там)
@@ -193,6 +193,6 @@ pnpm release:web:nexus
 
 ## Связанное
 
-- [[cli|@capsule/cli]] — отдельная независимая группа, релизится своей командой.
-- [[vite-plugins]] — vite-плагины из `@capsule/shared-vite` ходят в составе web_base.
+- [[cli|@capsuletech/cli]] — отдельная независимая группа, релизится своей командой.
+- [[vite-plugins]] — vite-плагины из `@capsuletech/shared-vite` ходят в составе web_base.
 - Старый `scripts/publish.mjs` (без git-тегов, snapshot-versioning) остался для быстрой публикации в локальный verdaccio во время разработки — не путать с `release:*:verdaccio`.

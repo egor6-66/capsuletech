@@ -143,7 +143,7 @@ const renderRuntime = (leaves: Leaf[]): string => {
  * Типизация: `declare global { interface Widgets {...}; interface Entities {...}; ... }`.
  *
  * Используются именно `interface` (а не `type`-алиасы), чтобы:
- *  1. Сливаться с пустыми fallback-интерфейсами в `@capsule/core` через interface merging.
+ *  1. Сливаться с пустыми fallback-интерфейсами в `@capsuletech/core` через interface merging.
  *  2. IDE показывала имя интерфейса (`Widgets`) в tooltip'ах вместо раскрытой структуры.
  *
  * Каждое поле-лист — `typeof import('@...').default`; для Ctrl+Click IDE предложит
@@ -162,7 +162,7 @@ const renderTypes = (leaves: Leaf[]): string => {
   }
 
   // Эмитим интерфейс ДЛЯ КАЖДОГО слоя, даже пустого: иначе interface merging
-  // в `@capsule/core` сломается и `Controllers`/`Shapes` будут `unknown`.
+  // в `@capsuletech/core` сломается и `Controllers`/`Shapes` будут `unknown`.
   const layerOrder = Object.keys(LAYER_TO_NAMESPACE);
   for (const layer of layerOrder) {
     const namespace = LAYER_TO_NAMESPACE[layer] ?? names(layer).className;

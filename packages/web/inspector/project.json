@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-inspector",
+  "name": "@capsuletech/web-inspector",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/web/inspector/src",
   "projectType": "library",

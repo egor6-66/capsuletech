@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/shared-compliance",
+  "name": "@capsuletech/shared-compliance",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/shared/compliance/src",
   "projectType": "library",

@@ -1,5 +1,5 @@
-import { type ICapsuleRouter, RouterContext } from '@capsule/web-router';
-import { cn } from '@capsule/web-style';
+import { type ICapsuleRouter, RouterContext } from '@capsuletech/web-router';
+import { cn } from '@capsuletech/web-style';
 import { type JSX, Match, Show, Switch, useContext } from 'solid-js';
 import { Animate, type AnimateVariant } from '../wrappers/animate';
 import type { ILayoutProps, LayoutSlotMap } from './interfaces';

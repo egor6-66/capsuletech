@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import { generateFiles, names } from '@nx/devkit';
 import { FsTree, flushChanges } from 'nx/src/generators/tree.js';
 
-// Локальная копия `generateFromTemplates` из `@capsule/shared-file-manager`.
+// Локальная копия `generateFromTemplates` из `@capsuletech/shared-file-manager`.
 // Заинлайнено, чтобы разорвать цикл: shared-vite -> file-manager (runtime),
 // file-manager devDep -> shared-vite (для своей сборки через libConfig).
 // RouterPlugin был единственным потребителем — выносить ради него ещё один

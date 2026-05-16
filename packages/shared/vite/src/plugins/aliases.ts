@@ -12,12 +12,12 @@ interface IProps {
  * Единый плагин для path-aliases.
  *
  * Источник правды — два файла:
- *   - `<workspace>/tsconfig.base.json`  — общие пути `@capsule/*`
+ *   - `<workspace>/tsconfig.base.json`  — общие пути `@capsuletech/*`
  *   - `<app>/.capsule/paths.config.json` — локальные `@pages/*`, `@widgets/*`, …
  *
  * Что делает на старте Vite:
  *   1. Регистрирует Vite `resolve.alias` для всех ключей из `paths.config.json`
- *      (с поддержкой `/*` шаблонов через regex). `@capsule/*` уже резолвится
+ *      (с поддержкой `/*` шаблонов через regex). `@capsuletech/*` уже резолвится
  *      внешним `vite-tsconfig-paths`, дублировать не нужно.
  *   2. Пишет `<app>/.capsule/tsconfig.paths.json` со слитыми paths
  *      (base'овые + локальные, последние пере-проецированы относительно
@@ -28,7 +28,7 @@ interface IProps {
  *
  * Зачем именно так: TypeScript не мержит `paths` через `extends` — child paths
  * полностью замещают parent paths. Если объявить `@pages/*` в app, base'овые
- * `@capsule/*` исчезают. Этот плагин обходит ограничение генерируя файл со
+ * `@capsuletech/*` исчезают. Этот плагин обходит ограничение генерируя файл со
  * всем сразу.
  */
 export const AliasesPlugin = ({ appRoot, workspaceRoot }: IProps): Plugin => ({
@@ -56,7 +56,7 @@ export const AliasesPlugin = ({ appRoot, workspaceRoot }: IProps): Plugin => ({
     await writeFile(outPath, `${JSON.stringify(tsPathsOutput, null, 2)}\n`, 'utf-8');
 
     // (2) Vite: build resolve.alias entries from local-only paths
-    //     (@capsule/* are handled by vite-tsconfig-paths plugin)
+    //     (@capsuletech/* are handled by vite-tsconfig-paths plugin)
     const viteAliases = buildViteAliases(localRaw, appRoot);
     return {
       resolve: {

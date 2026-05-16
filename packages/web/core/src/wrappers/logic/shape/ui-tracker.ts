@@ -11,7 +11,7 @@
  * `ui.X.Y`, а резолв делается lazy в момент рендера.
  */
 
-const PATH = Symbol.for('@capsule/core:shape-ui-path');
+const PATH = Symbol.for('@capsuletech/core:shape-ui-path');
 
 type Tracker = ((..._: unknown[]) => unknown) & {
   readonly [PATH]: readonly string[];

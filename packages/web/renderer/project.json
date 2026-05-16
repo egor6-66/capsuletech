@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-renderer",
+  "name": "@capsuletech/web-renderer",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/web/renderer/src",
   "projectType": "library",

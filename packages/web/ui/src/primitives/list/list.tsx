@@ -1,4 +1,4 @@
-import { createStyle } from '@capsule/web-style';
+import { createStyle } from '@capsuletech/web-style';
 import { createVirtualizer } from '@tanstack/solid-virtual';
 import { For, type JSX, splitProps } from 'solid-js';
 import type { IListProps, IVirtualListProps } from './interfaces';

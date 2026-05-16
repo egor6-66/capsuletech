@@ -60,5 +60,5 @@ file: apps/<app>/src/features/<group>/<name>.tsx
 ## Связанное
 - [[03-controllers/_template|Controllers, которые её вызывают]]
 - [[controller-proxy]]
-- [[router|@capsule/router]]
+- [[router|@capsuletech/router]]
 ```

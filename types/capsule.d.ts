@@ -8,8 +8,8 @@
 // (see `packages/cli/src/templates/app/tsconfig.json.template`). Edit here —
 // the change propagates to every app without per-app duplication.
 
-import type { ICapsuleConfig } from '@capsule/shared-vite';
-import type { IAppConfig } from '@capsule/web-core';
+import type { ICapsuleConfig } from '@capsuletech/shared-vite';
+import type { IAppConfig } from '@capsuletech/web-core';
 
 declare global {
   /**

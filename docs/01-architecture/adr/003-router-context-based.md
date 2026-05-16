@@ -38,12 +38,12 @@ export { routerService };
 | Что | Было | Стало |
 |---|---|---|
 | Создание роутера | `routerService.createRouter(routeTree)` (singleton + side-effect) | `createRouter({ routeTree, context })` (factory) |
-| Доступ из компонента | `import { routerService } from '@capsule/router'` | `import { useRouter } from '@capsule/router'` |
+| Доступ из компонента | `import { routerService } from '@capsuletech/router'` | `import { useRouter } from '@capsuletech/router'` |
 | Тип публичного API | (нет) | `ICapsuleRouter` |
 | Контекст роутера | хардкод | `<Providers.Base routerContext={{...}} />` |
 | API в `services.router` | `routerService` (singleton) | `ICapsuleRouter` (от useRouter) |
 
-### Новые экспорты `@capsule/router`
+### Новые экспорты `@capsuletech/router`
 
 ```ts
 export { createRouter, RouterContext, useRouter, RouterProvider };
@@ -113,6 +113,6 @@ const Auth = Feature(({ router }) => ({
 
 ## Связанное
 
-- [[router|@capsule/router]]
+- [[router|@capsuletech/router]]
 - [[controller-proxy]]
 - [[002-controller-vs-feature|ADR 002]] (services-инъекция)

@@ -3,16 +3,16 @@ tags: [hca, package, core]
 status: documented
 ---
 
-# @capsule/core
+# @capsuletech/core
 
 **Расположение:** `packages/core/`
-**Зависит от:** `@capsule/state`, `@capsule/router`, `@capsule/ui`, `@capsule/style`, `@capsule/profiler`, `@capsule/shared-vite`, `@capsule/file-manager`
+**Зависит от:** `@capsuletech/state`, `@capsuletech/router`, `@capsuletech/ui`, `@capsuletech/style`, `@capsuletech/profiler`, `@capsuletech/shared-vite`, `@capsuletech/file-manager`
 
 Сердце фреймворка. Тут живут:
 
 - 5 wrapper-функций ([[layers|слои HCA]]),
 - двойная Proxy-механика ([[ui-proxy]] + [[controller-proxy]]),
-- Builder-обёртки для запуска `@capsule/shared-vite`,
+- Builder-обёртки для запуска `@capsuletech/shared-vite`,
 - Provider'ы (`Base`).
 
 ## Карта файлов
@@ -61,40 +61,40 @@ packages/core/src/
 ## Точки входа
 
 ```ts
-// @capsule (= @capsule/core)
+// @capsuletech (= @capsuletech/core)
 export { Page, Widget, Entity, Controller, Feature } from './wrappers';
 export * as Providers from './providers';
 export * from './interfaces';
 ```
 
 Дополнительные подпути (через ручные алиасы Vite, см. `builder/config.ts`):
-- `@capsule/core/builder` → `./builder/index.ts`
-- `@capsule/core/create` → `./create/index.ts`
+- `@capsuletech/core/builder` → `./builder/index.ts`
+- `@capsuletech/core/create` → `./create/index.ts`
 
 ## Зависимости wrapper'ов друг от друга
 
 ```
 Page ────┐
-Widget ──┼─→ Ui (lazy from @capsule/ui)
+Widget ──┼─→ Ui (lazy from @capsuletech/ui)
 Entity ──┘   + UiProxy(ctx)
                 ↑
                 ctx ← Solid Context
                 ↑
 Controller, Feature ─→ создают ControllerProxy и кладут в Context
                        ↑
-                       useMachine(createState(...))  // @capsule/state
+                       useMachine(createState(...))  // @capsuletech/state
 ```
 
 ## Что **не** входит в core
 
 - API-клиенты — это уровень приложения (`apps/<app>/services/`).
-- Bridge между Solid и XState — это `@capsule/state`.
-- UI-компоненты — `@capsule/ui`.
+- Bridge между Solid и XState — это `@capsuletech/state`.
+- UI-компоненты — `@capsuletech/ui`.
 
 ## Связанное
 
 - [[layers]]
 - [[ui-proxy]]
 - [[controller-proxy]]
-- [[state|@capsule/state]]
-- [[ui|@capsule/ui]]
+- [[state|@capsuletech/state]]
+- [[ui|@capsuletech/ui]]

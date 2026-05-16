@@ -95,7 +95,7 @@ const dynamicProps = {
 
 ## Контракт UI-kit
 
-Базовые компоненты `@capsule/ui` должны прокидывать все семь событий в DOM-узел. Сейчас `Button` (`packages/ui/src/components/button/button.tsx`) использует `splitProps` и через `{...others}` пробрасывает всё, что не Local/Variants — ✅ работает. Аналогично для Input. Проверить остальные при имплементации; добавить acceptance-test.
+Базовые компоненты `@capsuletech/ui` должны прокидывать все семь событий в DOM-узел. Сейчас `Button` (`packages/ui/src/components/button/button.tsx`) использует `splitProps` и через `{...others}` пробрасывает всё, что не Local/Variants — ✅ работает. Аналогично для Input. Проверить остальные при имплементации; добавить acceptance-test.
 
 ## Альтернативы
 
@@ -129,5 +129,5 @@ const dynamicProps = {
 
 - [[008-hybrid-fsm-api|ADR 008]] — единый рефакторинг proxy
 - [[ui-proxy]]
-- [[ui|@capsule/ui]] — контракт прокидывания событий в DOM
+- [[ui|@capsuletech/ui]] — контракт прокидывания событий в DOM
 - [[philosophy]]

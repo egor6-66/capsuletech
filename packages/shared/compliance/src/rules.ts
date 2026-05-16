@@ -9,7 +9,7 @@ import type { Layer } from './classify';
 
 const COMMON: RegExp[] = [
   /^solid-js(\/.*)?$/, // solid-js, solid-js/web, solid-js/store
-  /^@capsule\/style(\/.*)?$/,
+  /^@capsuletech\/style(\/.*)?$/,
 ];
 
 export const RUNTIME_ALLOWED: Record<Exclude<Layer, null | 'system' | 'test'>, RegExp[]> = {
@@ -23,8 +23,8 @@ export const RUNTIME_ALLOWED: Record<Exclude<Layer, null | 'system' | 'test'>, R
     /^xstate(\/.*)?$/,
     /^@xstate\/solid$/,
     /^es-toolkit(\/.*)?$/,
-    /^@capsule\/state$/,
-    /^@capsule\/router$/,
+    /^@capsuletech\/state$/,
+    /^@capsuletech\/router$/,
     // Тяжёлая логика, кастомные FSM-машины, утилиты — да.
     // API-клиенты — нет (это Feature).
   ],
@@ -34,22 +34,22 @@ export const RUNTIME_ALLOWED: Record<Exclude<Layer, null | 'system' | 'test'>, R
     /^xstate(\/.*)?$/,
     /^@xstate\/solid$/,
     /^es-toolkit(\/.*)?$/,
-    /^@capsule\/state$/,
-    /^@capsule\/router$/,
+    /^@capsuletech\/state$/,
+    /^@capsuletech\/router$/,
     // Feature-only:
     /^@app\/(api|services)(\/.*)?$/, // конвенция: API/services живут под @app/*
   ],
 
   widget: [
     ...COMMON,
-    /^@capsule\/ui(\/.*)?$/,
+    /^@capsuletech\/ui(\/.*)?$/,
     // Widget — чистая композиция через глобальные namespaces (Entities/Controllers/Features),
     // которые приходят через unplugin-auto-import из .capsule/registry. Их в коде не видно.
   ],
 
   page: [
     ...COMMON,
-    /^@capsule\/ui(\/.*)?$/,
+    /^@capsuletech\/ui(\/.*)?$/,
     /^@tanstack\/solid-router$/,
     // Page — корневой layout; widgets подсасываются через namespace, не импортом.
   ],

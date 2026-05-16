@@ -15,7 +15,7 @@ status: documented
 
 | Что | Можно импортировать |
 |---|---|
-| Entity | Solid.js, типы, `@capsule/style` |
+| Entity | Solid.js, типы, `@capsuletech/style` |
 | Controller | XState, services (router), типы |
 | Feature | API-клиенты, services, типы |
 | Widget | `Entities.*`, `Controllers.*`, `Features.*` (через namespace) |
@@ -100,7 +100,7 @@ Entity получает только то, что приходит через pr
 3. **Сторонние эффекты.** В Entity/Widget ищи `fetch`, `axios`, `await` — должны быть только во Feature.
 
 > [!success]
-> Линтер реализован: [[004-compliance-linter|ADR 004]] + [[compliance|@capsule/compliance]]. Vite-плагин `CompliancePlugin` подключён, режим `warn`. Когда репо чистое — переключим в `error`.
+> Линтер реализован: [[004-compliance-linter|ADR 004]] + [[compliance|@capsuletech/compliance]]. Vite-плагин `CompliancePlugin` подключён, режим `warn`. Когда репо чистое — переключим в `error`.
 
 ---
 

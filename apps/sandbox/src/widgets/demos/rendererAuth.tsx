@@ -1,4 +1,4 @@
-import { type ISchema, Renderer } from '@capsule/renderer';
+import { type ISchema, Renderer } from '@capsuletech/renderer';
 
 // JSON-эквивалент `widgets/forms/_auth.tsx`. По сравнению с оригиналом ничего
 // руками не «допиливалось»: то же дерево, те же meta-теги, тот же

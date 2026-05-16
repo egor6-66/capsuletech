@@ -1,10 +1,10 @@
 {
-  "name": "@capsule/shared-vite",
+  "name": "@capsuletech/shared-vite",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/shared/vite/src",
   "projectType": "library",
   "tags": [],
-  "// targets": "to see all targets run: nx show project @capsule/shared-vite --web",
+  "// targets": "to see all targets run: nx show project @capsuletech/shared-vite --web",
   "targets": {},
   "release": {
     "version": {

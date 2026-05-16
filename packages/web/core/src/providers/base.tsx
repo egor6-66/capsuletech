@@ -1,10 +1,10 @@
-import { VitalsMonitoringProvider } from '@capsule/web-profiler';
+import { VitalsMonitoringProvider } from '@capsuletech/web-profiler';
 import {
   type ICapsuleRouterContext,
   RouterContext,
   RouterProvider,
   createRouter,
-} from '@capsule/web-router';
+} from '@capsuletech/web-router';
 import { Show } from 'solid-js';
 
 interface IBaseProviderProps {

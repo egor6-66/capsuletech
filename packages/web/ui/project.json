@@ -1,5 +1,5 @@
 {
-  "name": "@capsule/web-ui",
+  "name": "@capsuletech/web-ui",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/web/ui/src",
   "projectType": "library",

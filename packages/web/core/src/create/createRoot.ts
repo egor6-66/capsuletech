@@ -1,5 +1,5 @@
-import '@capsule/web-style/css';
-import '@capsule/web-style/themes';
+import '@capsuletech/web-style/css';
+import '@capsuletech/web-style/themes';
 import '../index.css';
 
 import type { JSX } from 'solid-js';

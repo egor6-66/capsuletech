@@ -1,6 +1,6 @@
 import { copyFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { libConfig } from '@capsule/shared-vite';
+import { libConfig } from '@capsuletech/shared-vite';
 
 export default libConfig({
   entry: {

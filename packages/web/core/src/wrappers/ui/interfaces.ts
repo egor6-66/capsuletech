@@ -7,7 +7,7 @@ import type {
   Layout,
   List,
   Navigation,
-} from '@capsule/web-ui';
+} from '@capsuletech/web-ui';
 import type { Component, JSX, JSXElement } from 'solid-js';
 
 type EntityUi = {

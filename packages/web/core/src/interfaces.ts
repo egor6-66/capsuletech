@@ -1,4 +1,4 @@
-import type { ApiConfig, MwToolbox } from '@capsule/web-query';
+import type { ApiConfig, MwToolbox } from '@capsuletech/web-query';
 
 /**
  * Конфиг приложения (apps/<app>/capsule.app.ts). Здесь разработчик

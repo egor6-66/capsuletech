@@ -1,4 +1,4 @@
-import { ThemeEditor } from '@capsule/style/editor';
+import { ThemeEditor } from '@capsuletech/style/editor';
 
 const ThemeEditorPage = Page(() => <ThemeEditor />);
 

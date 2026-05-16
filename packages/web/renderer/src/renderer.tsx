@@ -5,7 +5,7 @@ import type { IInteraction, IRendererProps, ISchema, NodeId, Registry, RenderMod
 
 /** Default-fallback: dev-warning + ничего. */
 const DefaultFallback: Component<{ type: string; nodeId: NodeId }> = (p) => {
-  console.warn(`[@capsule/renderer] cannot resolve component "${p.type}" for node "${p.nodeId}"`);
+  console.warn(`[@capsuletech/renderer] cannot resolve component "${p.type}" for node "${p.nodeId}"`);
   return null;
 };
 
@@ -24,13 +24,13 @@ const activeInteractions = (list: IInteraction[] | undefined, mode: RenderMode):
     if (it.inline) {
       if (mode === 'controlled') {
         console.warn(
-          `[@capsule/renderer] interaction "${it.id}" has inline schema but mode is "controlled" — ignored. Use mode="full" once supported.`,
+          `[@capsuletech/renderer] interaction "${it.id}" has inline schema but mode is "controlled" — ignored. Use mode="full" once supported.`,
         );
         continue;
       }
       // mode === 'full' — пока не реализовано, см. v1.2 (R3).
       console.warn(
-        `[@capsule/renderer] interaction "${it.id}" inline schema requires mode="full" (not implemented yet).`,
+        `[@capsuletech/renderer] interaction "${it.id}" inline schema requires mode="full" (not implemented yet).`,
       );
     }
   }
@@ -141,7 +141,7 @@ const RenderNode: Component<IRenderNodeProps> = (props) => {
         : undefined;
       if (!Wrapper) {
         console.warn(
-          `[@capsule/renderer] interaction "${it.id}" ref "${it.ref}" not found in registry — skipped.`,
+          `[@capsuletech/renderer] interaction "${it.id}" ref "${it.ref}" not found in registry — skipped.`,
         );
         continue;
       }

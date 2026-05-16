@@ -7,7 +7,7 @@ date: 2026-05-10
 # ADR 004 — Линтер для compliance (No Upward / No Horizontal imports)
 
 > [!success] Реализовано
-> Пакет `@capsule/compliance` + Vite-плагин `CompliancePlugin` подключены в `packages/core/src/builder/config.ts`. Дефолтный режим — `warn`. Описание API и rules — [[compliance|@capsule/compliance]].
+> Пакет `@capsuletech/compliance` + Vite-плагин `CompliancePlugin` подключены в `packages/core/src/builder/config.ts`. Дефолтный режим — `warn`. Описание API и rules — [[compliance|@capsuletech/compliance]].
 
 ## Контекст
 
@@ -21,12 +21,12 @@ date: 2026-05-10
 
 ## Решение
 
-Реализовать **`@capsule/compliance`** — двухсоставной чек:
+Реализовать **`@capsuletech/compliance`** — двухсоставной чек:
 
 1. **Vite-плагин `compliancePlugin`** (`packages/system/vite/src/plugins/compliance.ts`) — проверяет в `transform`-хуке, валит `dev`/`build` при нарушении.
 2. **CLI-команда `capsule check`** (`packages/cli`) — обходит дерево статически, без Vite, для CI и pre-commit.
 
-Оба используют **общее ядро** `@capsule/compliance` (новый пакет в `packages/system/compliance/`), которое инкапсулирует:
+Оба используют **общее ядро** `@capsuletech/compliance` (новый пакет в `packages/system/compliance/`), которое инкапсулирует:
 - классификатор «слой по пути файла»,
 - таблицу разрешённых импортов,
 - AST-парсер (Babel — уже в deps),
@@ -57,15 +57,15 @@ function classify(absPath: string): Layer | null;
 const allowed: Record<Layer, RegExp[]> = {
   entity: [
     /^solid-js/,
-    /^@capsule\/style/,
-    /^@capsule\/ui/,
+    /^@capsuletech\/style/,
+    /^@capsuletech\/ui/,
     /^\.\.?\//,           // относительные импорты внутри своей папки
   ],
   controller: [
     /^solid-js/,
     /^xstate/,
     /^@xstate\/solid/,
-    /^@capsule\/(state|router|style)/,
+    /^@capsuletech\/(state|router|style)/,
     /^es-toolkit/,
   ],
   feature: [
@@ -75,12 +75,12 @@ const allowed: Record<Layer, RegExp[]> = {
   ],
   widget: [
     /^solid-js/,
-    /^@capsule\/(ui|style)/,
+    /^@capsuletech\/(ui|style)/,
     // namespaces из .capsule/registry приходят через auto-import — их в коде не видно
   ],
   page: [
     /^solid-js/,
-    /^@capsule\/(ui|style)/,
+    /^@capsuletech\/(ui|style)/,
     /^@tanstack\/solid-router/,
   ],
   system: [/.*/], // системные пакеты не ограничиваем
@@ -146,7 +146,7 @@ node packages/cli/bin/capsule.mjs check --fix    # (опционально) ав
 - Нарушения видны в `dev` сразу, не на ревью.
 
 ### Отрицательные
-- Новый пакет `@capsule/compliance` (поддерживать).
+- Новый пакет `@capsuletech/compliance` (поддерживать).
 - Babel-парсинг каждого файла в `transform` стоит времени; для крупных проектов — заметно. Mitigation: кэширование по hash, скип `node_modules`.
 - Точная таблица allowlist'ов потребует подгонки под реальные нужды (например, разрешить ли `lodash-es` во всех слоях?).
 

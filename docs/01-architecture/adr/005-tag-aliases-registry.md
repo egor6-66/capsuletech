@@ -14,7 +14,7 @@ date: 2026-05-10
 
 ## Решение
 
-Реестр алиасов живёт в **`@capsule/state`** (там же, где helpers работают с тегами). Раскрытие происходит **на стороне запроса** в `pickByTags / omitByTags / matchByTags / matchEntryByTags`. Реестр поддерживает рекурсивное раскрытие (алиасы алиасов) с защитой от циклов.
+Реестр алиасов живёт в **`@capsuletech/state`** (там же, где helpers работают с тегами). Раскрытие происходит **на стороне запроса** в `pickByTags / omitByTags / matchByTags / matchEntryByTags`. Реестр поддерживает рекурсивное раскрытие (алиасы алиасов) с защитой от циклов.
 
 ### API
 
@@ -24,7 +24,7 @@ import {
   clearAliases,
   getAliases,
   expandTags,
-} from '@capsule/state';
+} from '@capsuletech/state';
 
 // Расширение реестра (merge)
 registerAliases({

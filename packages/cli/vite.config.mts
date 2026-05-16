@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { libConfig, plugins } from '@capsule/shared-vite';
+import { libConfig, plugins } from '@capsuletech/shared-vite';
 
 export default libConfig({
   entry: {

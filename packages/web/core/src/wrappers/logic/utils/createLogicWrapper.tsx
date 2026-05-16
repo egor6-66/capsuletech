@@ -1,6 +1,6 @@
-import { getApiClient } from '@capsule/web-query';
-import { useRouter } from '@capsule/web-router';
-import { createBridge, createState } from '@capsule/web-state';
+import { getApiClient } from '@capsuletech/web-query';
+import { useRouter } from '@capsuletech/web-router';
+import { createBridge, createState } from '@capsuletech/web-state';
 import { useMachine } from '@xstate/solid';
 import { Suspense, createEffect, onCleanup } from 'solid-js';
 import { Context, useCtx } from '../../ctx';

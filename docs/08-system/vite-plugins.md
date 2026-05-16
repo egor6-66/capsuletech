@@ -58,7 +58,7 @@ export const Entities = {
         ↓
    .capsule/routes/__pages/__auth/login.tsx
    ```
-   Содержимое генерируется из `template/__name__.tsx.template` через `generateFromTemplates` (`@capsule/file-manager`):
+   Содержимое генерируется из `template/__name__.tsx.template` через `generateFromTemplates` (`@capsuletech/file-manager`):
    ```tsx
    import { lazy } from 'solid-js';
    const Login = lazy(() => import('@pages/_auth/login') as Promise<{ default: any }>);
@@ -76,7 +76,7 @@ export const Entities = {
 
 **Файл:** `packages/system/vite/src/plugins/compliance.ts`
 
-Тонкая обёртка над `@capsule/compliance.check()`. Запускается в `transform`-хуке (enforce: 'pre'), парсит файл через babel, ловит upward / horizontal / disallowed import + side-effect-fetch.
+Тонкая обёртка над `@capsuletech/compliance.check()`. Запускается в `transform`-хуке (enforce: 'pre'), парсит файл через babel, ловит upward / horizontal / disallowed import + side-effect-fetch.
 
 Дефолтный режим `warn` — нарушения логируются как warnings, dev-server не валится. Переключается в `error` когда репо чистое:
 
@@ -84,7 +84,7 @@ export const Entities = {
 plugins.CompliancePlugin({ mode: 'error' });
 ```
 
-Подробнее — [[compliance|@capsule/compliance]].
+Подробнее — [[compliance|@capsuletech/compliance]].
 
 ## HMRWrappingPlugin
 
@@ -145,12 +145,12 @@ watcherManager.subscribe(watchPath, {
     solidPlugin(),
     tailwindcss(),
     AutoImport({
-      imports: [{ '@capsule/core': ['Page', 'Widget', 'Entity', 'Controller', 'Feature'] }],
+      imports: [{ '@capsuletech/core': ['Page', 'Widget', 'Entity', 'Controller', 'Feature'] }],
       dirs: ['.capsule/registry'],
       dts: './@types/capsule-imports.d.ts',
     }),
   ],
-  resolve: { alias: [...] },              // ручные алиасы для @capsule/*
+  resolve: { alias: [...] },              // ручные алиасы для @capsuletech/*
 }
 ```
 
@@ -161,4 +161,4 @@ watcherManager.subscribe(watchPath, {
 
 - [[auto-import]]
 - [[cli]]
-- [[core|@capsule/core]]
+- [[core|@capsuletech/core]]

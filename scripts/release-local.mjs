@@ -17,12 +17,12 @@
  *   --group=<name>     имя группы из nx.json release.groups (cli|web_base|all)
  *   --registry=<url>   override локального verdaccio (default http://localhost:4873)
  *   --no-build         пропустить pnpm build (использовать существующий dist/)
- *   --no-clean         не очищать tmp/local-registry/storage/@capsule/<pkg>
+ *   --no-clean         не очищать tmp/local-registry/storage/@capsuletech/<pkg>
  *
  * WHAT IT DOES
  *   1. Читает release.groups из nx.json → список пакетов группы.
  *   2. Находит их package.json в packages/** (по полю "name").
- *   3. Чистит tmp/local-registry/storage/@capsule/<pkg> чтобы повторно опубликовать
+ *   3. Чистит tmp/local-registry/storage/@capsuletech/<pkg> чтобы повторно опубликовать
  *      ту же версию (verdaccio version-immutable).
  *   4. Билдит пакеты через pnpm -r (две фазы: shared-vite сначала, остальное потом).
  *   5. `pnpm publish` каждого пакета в верpdaccio. Версия берётся как есть из
@@ -30,7 +30,7 @@
  *      автоматически, исходники не трогаются.
  *
  * WHEN TO USE
- *   - Когда нужно протестировать `npm install @capsule/cli` из локального
+ *   - Когда нужно протестировать `npm install @capsuletech/cli` из локального
  *     verdaccio без коммита release-меток в git.
  *   - При отладке templates / postinstall / TUI пользовательского flow.
  *
@@ -127,7 +127,7 @@ log(`К публикации: ${toPublish.map((p) => `${p.pkg.name}@${p.pkg.vers
 if (SHOULD_CLEAN) {
   const storage = resolve(repoRoot, 'tmp/local-registry/storage');
   for (const { pkg } of toPublish) {
-    const pkgDir = join(storage, pkg.name); // pkg.name = "@capsule/foo"
+    const pkgDir = join(storage, pkg.name); // pkg.name = "@capsuletech/foo"
     if (existsSync(pkgDir)) {
       try { rmSync(pkgDir, { recursive: true, force: true }); log(`storage ✂ ${pkg.name}`); }
       catch (e) { warn(`storage cleanup ${pkg.name}: ${e.message}`); }
@@ -156,17 +156,17 @@ if (SHOULD_BUILD) {
   // shared-vite стартует одновременно с shared-compliance и падает на резолве
   // compliance/main (dist ещё не создан).
   const phases = [
-    { name: 'shared-compliance', filters: ['--filter', '@capsule/shared-compliance'] },
-    { name: 'shared-vite', filters: ['--filter', '@capsule/shared-vite'] },
+    { name: 'shared-compliance', filters: ['--filter', '@capsuletech/shared-compliance'] },
+    { name: 'shared-vite', filters: ['--filter', '@capsuletech/shared-vite'] },
     {
       name: 'shared-* (rest) + web-* + cli',
       filters: [
-        '--filter', '@capsule/shared-*',
-        '--filter', '!@capsule/shared-compliance',
-        '--filter', '!@capsule/shared-biome',
-        '--filter', '!@capsule/shared-vite',
-        '--filter', '@capsule/web-*',
-        '--filter', '@capsule/cli',
+        '--filter', '@capsuletech/shared-*',
+        '--filter', '!@capsuletech/shared-compliance',
+        '--filter', '!@capsuletech/shared-biome',
+        '--filter', '!@capsuletech/shared-vite',
+        '--filter', '@capsuletech/web-*',
+        '--filter', '@capsuletech/cli',
       ],
     },
   ];

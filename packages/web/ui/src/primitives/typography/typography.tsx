@@ -1,4 +1,4 @@
-import { createStyle } from '@capsule/web-style';
+import { createStyle } from '@capsuletech/web-style';
 import { mergeProps, splitProps } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import type { ITypographyProps } from './interfaces';

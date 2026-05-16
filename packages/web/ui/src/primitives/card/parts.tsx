@@ -1,4 +1,4 @@
-import { cn } from '@capsule/web-style';
+import { cn } from '@capsuletech/web-style';
 import { type JSX, splitProps } from 'solid-js';
 
 const createCardPart = (defaultClass: string) => {

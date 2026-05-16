@@ -1,6 +1,6 @@
 import { splitProps } from 'solid-js';
 
-import { createStyle } from '@capsule/web-style';
+import { createStyle } from '@capsuletech/web-style';
 import type { ILabelProps } from './interfaces';
 import { labelCva } from './variants';
 

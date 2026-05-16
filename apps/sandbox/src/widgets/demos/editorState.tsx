@@ -1,4 +1,4 @@
-import { DnDProvider, DragOverlay, createDraggable, createDroppable, useDnD } from '@capsule/dnd';
+import { DnDProvider, DragOverlay, createDraggable, createDroppable, useDnD } from '@capsuletech/dnd';
 import {
   EditorOpError,
   type IEditorTree,
@@ -7,9 +7,9 @@ import {
   createEmptyTree,
   moveNode,
   removeNode,
-} from '@capsule/editor-state';
-import { canAcceptChild, getAllManifests, getManifest } from '@capsule/manifests';
-import { type ISchema, Renderer } from '@capsule/renderer';
+} from '@capsuletech/editor-state';
+import { canAcceptChild, getAllManifests, getManifest } from '@capsuletech/manifests';
+import { type ISchema, Renderer } from '@capsuletech/renderer';
 import { For, Show, createMemo, createSignal } from 'solid-js';
 
 type PaletteDrag = { source: 'palette'; type: string; label: string };
@@ -187,7 +187,7 @@ const TreeRow = (props: ITreeRowProps) => {
         'bg-blue-500/5 ring-1 ring-blue-400/40': isContainerOver(),
       }}
     >
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: drag-based tree row, keyboard sensor — отдельная задача в @capsule/dnd */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: drag-based tree row, keyboard sensor — отдельная задача в @capsuletech/dnd */}
       <div
         ref={headerRefSet}
         data-tree-header

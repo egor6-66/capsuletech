@@ -30,8 +30,8 @@ export interface IStateApi {
   matches: (name: string | string[]) => boolean;
 }
 
-import type { IBridge } from '@capsule/web-state';
-export type { IRegisteredComponent } from '@capsule/web-state';
+import type { IBridge } from '@capsuletech/web-state';
+export type { IRegisteredComponent } from '@capsuletech/web-state';
 
 export interface IHandlerApi<TCtx = any> {
   target: ITarget;
@@ -92,7 +92,7 @@ export interface IDefineStateSchema<TCtx = any> {
   [methodName: string]: any;
 }
 
-import type { ICapsuleRouter } from '@capsule/web-router';
+import type { ICapsuleRouter } from '@capsuletech/web-router';
 
 export interface IServices {
   router: ICapsuleRouter;
@@ -101,7 +101,7 @@ export interface IServices {
    * (compliance запрещает IO в Controller'е). `undefined` если приложение не вызвало
    * `setApiClient(...)` (т.е. в `capsule.app.ts` нет поля `api`).
    *
-   * Тип `CapsuleApi` — глобальный interface; пустой fallback в `@capsule/web-core`
+   * Тип `CapsuleApi` — глобальный interface; пустой fallback в `@capsuletech/web-core`
    * сливается через interface merging с `EndpointsRegistryPlugin`'овой
    * `.capsule/@types/api.d.ts` → `services.api.user.get({ id })` корректно типизируется.
    */

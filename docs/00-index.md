@@ -53,12 +53,12 @@ type: index
 
 ## 📦 Пакеты
 
-- [[core|@capsule/core]]
-- [[state|@capsule/state]]
-- [[router|@capsule/router]]
-- [[ui|@capsule/ui]]
-- [[style|@capsule/style]]
-- [[compliance|@capsule/compliance]]
+- [[core|@capsuletech/core]]
+- [[state|@capsuletech/state]]
+- [[router|@capsuletech/router]]
+- [[ui|@capsuletech/ui]]
+- [[style|@capsuletech/style]]
+- [[compliance|@capsuletech/compliance]]
 - [[api-middleware|🌐 API middleware — endpoints + pipeline]]
 
 ## 🗺️ Быстрая навигация

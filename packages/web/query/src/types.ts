@@ -1,4 +1,4 @@
-import type { IBridge } from '@capsule/web-state';
+import type { IBridge } from '@capsuletech/web-state';
 
 /**
  * Ключ кэша. Поддерживает префиксную инвалидацию: `['users']`

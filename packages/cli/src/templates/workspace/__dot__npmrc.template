@@ -1,8 +1,8 @@
 # Default registry — публичный npm.
 registry=https://registry.npmjs.org/
 
-# @capsule идёт в локальный Verdaccio когда он запущен (см. `pnpm registry`).
-# Если Verdaccio не нужен — удали две строки ниже, и @capsule/* будут тянуться
+# @capsuletech идёт в локальный Verdaccio когда он запущен (см. `pnpm registry`).
+# Если Verdaccio не нужен — удали две строки ниже, и @capsuletech/* будут тянуться
 # из публичного npm.
-@capsule:registry=http://localhost:4873/
+@capsuletech:registry=http://localhost:4873/
 //localhost:4876/:_authToken=secretVerdaccioToken
