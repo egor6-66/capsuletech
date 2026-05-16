@@ -17,17 +17,18 @@
  *   --group=<name>     имя группы из nx.json release.groups (cli|web_base|all)
  *   --registry=<url>   override локального verdaccio (default http://localhost:4873)
  *   --no-build         пропустить pnpm build (использовать существующий dist/)
- *   --no-clean         не очищать tmp/local-registry/storage/@capsuletech/<pkg>
  *
  * WHAT IT DOES
  *   1. Читает release.groups из nx.json → список пакетов группы.
  *   2. Находит их package.json в packages/** (по полю "name").
- *   3. Чистит tmp/local-registry/storage/@capsuletech/<pkg> чтобы повторно опубликовать
- *      ту же версию (verdaccio version-immutable).
- *   4. Билдит пакеты через pnpm -r (две фазы: shared-vite сначала, остальное потом).
- *   5. `pnpm publish` каждого пакета в верpdaccio. Версия берётся как есть из
- *      package.json — НЕ бампится. workspace:* deps pnpm подставит в tarball
- *      автоматически, исходники не трогаются.
+ *   3. Snapshot всех package.json → in-memory. Бампит version в `<curr>-dev.<ts>`
+ *      и переписывает workspace:* deps на актуальные dev-версии соседей.
+ *      Уникальный timestamp обходит verdaccio version-immutable.
+ *   4. Билдит пакеты через pnpm -r (три фазы: compliance → vite → rest).
+ *   5. `pnpm publish` каждого с dev-версией. workspace:* мы уже переписали
+ *      явно — в tarball уходят точные версии.
+ *   6. Restore package.json из snapshot (через exit/SIGINT hooks) →
+ *      worktree чистый, в git ничего не уйдёт.
  *
  * WHEN TO USE
  *   - Когда нужно протестировать `npm install @capsuletech/cli` из локального
@@ -39,7 +40,7 @@
  *   - Bump версий и changelog — это release.mjs (prod).
  * ==========================================================================*/
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -58,7 +59,6 @@ const REGISTRY = args.get('registry') && args.get('registry') !== true
   : (process.env.NPM_REGISTRY_VERDACCIO || 'http://localhost:4873');
 const TAG = args.get('tag') && args.get('tag') !== true ? String(args.get('tag')) : 'local';
 const SHOULD_BUILD = !args.has('no-build');
-const SHOULD_CLEAN = !args.has('no-clean');
 const GROUP = args.get('group');
 
 if (!GROUP || GROUP === true) {
@@ -122,29 +122,66 @@ if (toPublish.length === 0) fail('Нечего публиковать — спи
 log(`К публикации: ${toPublish.map((p) => `${p.pkg.name}@${p.pkg.version}`).join(', ')}`);
 
 // ---------------------------------------------------------------------------
-// 3. Очистка verdaccio: unpublish через API + rm storage директории.
-//    Только rmSync не работает — verdaccio держит in-memory state и при повторной
-//    публикации той же версии возвращает 403 "cannot publish over previously
-//    published". `npm unpublish --force` сбрасывает и стейт, и хранилище.
+// 3. Bump в `-dev.<timestamp>` суффикс + snapshot для отката.
+//    Verdaccio запрещает overwrite published version (allow_replace игнорится
+//    в 6.x), npm unpublish не сбрасывает in-memory state. Уникальная
+//    -dev.<ts> версия — единственный надёжный способ. Восстановим
+//    package.json в finally, чтобы в worktree не осталось следов.
 // ---------------------------------------------------------------------------
-if (SHOULD_CLEAN) {
-  const storage = resolve(repoRoot, 'tmp/local-registry/storage');
-  for (const { pkg } of toPublish) {
-    // Через npm API — даже если пакета нет в registry, упадёт с warning, не критично.
-    spawnSync(
-      'npm',
-      ['unpublish', '--force', pkg.name, '--registry', REGISTRY],
-      { cwd: repoRoot, stdio: ['ignore', 'ignore', 'ignore'], shell: process.platform === 'win32' },
-    );
-    // Подчищаем storage на всякий случай (если unpublish не дошёл).
-    const pkgDir = join(storage, pkg.name);
-    if (existsSync(pkgDir)) {
-      try { rmSync(pkgDir, { recursive: true, force: true }); }
-      catch (e) { warn(`storage cleanup ${pkg.name}: ${e.message}`); }
-    }
-    log(`reset ${pkg.name}`);
-  }
+const ts = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+
+// Снапшот ВСЕХ найденных пакетов (не только toPublish), чтобы при rewrite
+// workspace:* deps правильно подставить новые -dev версии соседей.
+const snapshot = new Map(); // pkgPath -> raw text
+for (const { pkgPath } of all.values()) {
+  snapshot.set(pkgPath, readFileSync(pkgPath, 'utf8'));
 }
+
+let _restored = false;
+const restore = () => {
+  if (_restored) return;
+  _restored = true;
+  for (const [path, raw] of snapshot) {
+    try { writeFileSync(path, raw); } catch {}
+  }
+};
+process.on('exit', restore);
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) {
+  process.on(sig, () => { restore(); process.exit(130); });
+}
+process.on('uncaughtException', (e) => { restore(); console.error(e); process.exit(1); });
+
+// Новые dev-версии: <текущая без -dev.*> + -dev.<ts>
+const newVersions = new Map(); // pkgName -> newVersion
+for (const { pkg } of toPublish) {
+  const base = (pkg.version || '0.0.1').replace(/-.*$/, '');
+  newVersions.set(pkg.name, `${base}-dev.${ts}`);
+}
+
+const DEP_FIELDS = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
+const rewritePkgJson = ({ pkgPath, pkg }) => {
+  const newVer = newVersions.get(pkg.name);
+  if (newVer) pkg.version = newVer;
+  // Заменяем workspace:* на актуальную dev-версию соседа из той же группы,
+  // либо на текущую публичную (для пакетов вне toPublish).
+  for (const field of DEP_FIELDS) {
+    const deps = pkg[field];
+    if (!deps) continue;
+    for (const [name, range] of Object.entries(deps)) {
+      if (typeof range === 'string' && range.startsWith('workspace:')) {
+        const devVer = newVersions.get(name);
+        if (devVer) deps[name] = devVer;
+        else {
+          const neighbor = all.get(name);
+          if (neighbor) deps[name] = neighbor.pkg.version;
+        }
+      }
+    }
+  }
+  writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, 'utf8');
+};
+for (const entry of toPublish) rewritePkgJson(entry);
+log(`bumped versions: ${[...newVersions.entries()].map(([n, v]) => `${n}@${v}`).join(', ')}`);
 
 // ---------------------------------------------------------------------------
 // 4. Билд (две фазы, shared-vite первым — у него нет рантайм-зависимости на
