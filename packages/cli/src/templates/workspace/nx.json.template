@@ -19,7 +19,7 @@
       "executor": "nx:run-commands",
       "options": {
         "packageRoot": "{projectRoot}",
-        "command": "pnpm publish --no-git-checks --registry={args.registry}",
+        "command": "pnpm publish --no-git-checks --access=public --registry={args.registry}",
         "cwd": "{projectRoot}"
       }
     }
