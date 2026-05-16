@@ -7,4 +7,3 @@ const Component = lazy(() => import('@pages/welcome') as Promise<{ default: any 
 export const Route = createFileRoute('/welcome')({
   component: Component,
 });
-

@@ -36,7 +36,10 @@
       "@capsule/web-style/editor": ["packages/web/style/src/editor/index.ts"],
       "@capsule/web-style/css": ["packages/web/style/src/index.css"],
       "@capsule/web-ui": ["packages/web/ui/src/index.ts"],
-      "@capsule/web-ui/*": ["packages/web/ui/src/components/*"],
+      "@capsule/web-ui/*": [
+        "packages/web/ui/src/primitives/*",
+        "packages/web/ui/src/components/*"
+      ],
       "@capsule/cli": ["packages/cli/src/index.ts"],
       "@capsule/cli/*": ["packages/cli/*"],
       "@capsule/shared-file-manager": [

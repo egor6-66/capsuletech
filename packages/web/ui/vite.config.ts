@@ -1,30 +1,86 @@
-import { readdirSync, statSync } from 'node:fs';
+import {
+  cpSync,
+  existsSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { Plugin } from 'vite';
 
 import { libConfig } from '@capsule/shared-vite';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Multi-entry: bundle на каждый файл внутри src/components/*/. Это нужно,
-// чтобы exports вида `@capsule/ui/card/parts` резолвились в реальный
-// dist/components/card/parts.mjs, а не только в index.mjs одной папки.
-const componentsDir = resolve(__dirname, 'src/components');
+// vite-plugin-dts кладёт .d.ts по структуре src (entryRoot: 'src'),
+// а .mjs идут по entry-ключам Vite — поэтому для атомов получается
+// dist/primitives/<comp>/index.d.ts и dist/components/<comp>/index.mjs.
+// Subpath-exports (@capsule/web-ui/button) ищут .d.ts рядом с .mjs — мерджим:
+// переносим dist/primitives/* в dist/components/* и патчим barrel index.d.ts.
+const remapPrimitivesDtsPlugin = (outDir: string): Plugin => ({
+  name: 'capsule-web-ui:remap-primitives-dts',
+  apply: 'build',
+  closeBundle() {
+    const distDir = resolve(__dirname, outDir);
+    const primitivesDir = resolve(distDir, 'primitives');
+    const componentsDir = resolve(distDir, 'components');
+    if (!existsSync(primitivesDir)) return;
+
+    // Мерджим содержимое primitives/ в components/ (только .d.ts).
+    for (const comp of readdirSync(primitivesDir)) {
+      const from = resolve(primitivesDir, comp);
+      try {
+        if (!statSync(from).isDirectory()) continue;
+      } catch {
+        continue;
+      }
+      const to = resolve(componentsDir, comp);
+      cpSync(from, to, { recursive: true });
+    }
+    rmSync(primitivesDir, { recursive: true, force: true });
+
+    // dist/index.d.ts ссылается на ./primitives — перенацеливаем на ./components.
+    const rootDts = resolve(distDir, 'index.d.ts');
+    if (existsSync(rootDts)) {
+      const src = readFileSync(rootDts, 'utf8');
+      const patched = src.replace(/(['"])\.\/primitives\1/g, "$1./components$1");
+      if (patched !== src) writeFileSync(rootDts, patched, 'utf8');
+    }
+  },
+});
+
+// Multi-entry: на каждый файл внутри src/primitives/*/ и src/components/*/.
+// Примитивы (atoms) и композиции (molecules) собираются в один плоский dist:
+//   src/primitives/button/index.tsx   → dist/components/button/index.mjs
+//   src/components/text-field/index.tsx → dist/components/text-field/index.mjs
+// Это нужно, чтобы exports вида `@capsule/web-ui/card/parts` резолвились в
+// реальный dist-файл, а имя «components» в dist оставалось стабильным для
+// внешних потребителей (см. package.json#exports).
+const SRC_DIRS = ['primitives', 'components'] as const;
 const componentEntries: Record<string, string> = {};
-for (const compName of readdirSync(componentsDir)) {
-  const compDir = resolve(componentsDir, compName);
+for (const srcName of SRC_DIRS) {
+  const srcDir = resolve(__dirname, 'src', srcName);
   try {
-    if (!statSync(compDir).isDirectory()) continue;
+    if (!statSync(srcDir).isDirectory()) continue;
   } catch {
     continue;
   }
-  for (const file of readdirSync(compDir)) {
-    if (!/\.(ts|tsx)$/.test(file)) continue;
-    if (/\.(d\.ts|test\.ts|spec\.ts)$/.test(file)) continue;
-    const stem = file.replace(/\.(ts|tsx)$/, '');
-    // Для index → ключ `components/<comp>/index` → dist/components/<comp>/index.mjs.
-    // Для прочих файлов аналогично — сохраняем структуру папок.
-    componentEntries[`components/${compName}/${stem}`] = `src/components/${compName}/${file}`;
+  for (const compName of readdirSync(srcDir)) {
+    const compDir = resolve(srcDir, compName);
+    try {
+      if (!statSync(compDir).isDirectory()) continue;
+    } catch {
+      continue;
+    }
+    for (const file of readdirSync(compDir)) {
+      if (!/\.(ts|tsx)$/.test(file)) continue;
+      if (/\.(d\.ts|test\.ts|spec\.ts)$/.test(file)) continue;
+      const stem = file.replace(/\.(ts|tsx)$/, '');
+      componentEntries[`components/${compName}/${stem}`] = `src/${srcName}/${compName}/${file}`;
+    }
   }
 }
 
@@ -34,4 +90,5 @@ export default libConfig({
     ...componentEntries,
   },
   name: 'CapsuleUi',
+  plugins: [remapPrimitivesDtsPlugin('dist')],
 });

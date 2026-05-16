@@ -51,6 +51,7 @@
         "packages/web/ui/src/index.ts"
       ],
       "@capsule/web-ui/*": [
+        "packages/web/ui/src/primitives/*",
         "packages/web/ui/src/components/*"
       ],
       "@capsule/cli": [
