@@ -1,4 +1,8 @@
 import { lazy } from 'solid-js';
+// `slot` — крошечный identity-хелпер ради TS-автокомплита. Импортируется sync
+// (а не lazy), чтобы `Ui.Layout.slot({...})` был доступен на этапе compile-time.
+import { slot as layoutSlot } from '@capsuletech/web-ui/layout/slot';
+
 // 1. Хелпер для сокращения записи
 // m[name] вытаскивает конкретный компонент из модуля, так как у вас именованные экспорты
 const createLazy = (importer: () => Promise<any>, name: string) =>
@@ -7,7 +11,9 @@ const createLazy = (importer: () => Promise<any>, name: string) =>
 // 2. Простые компоненты
 export const Button = createLazy(() => import('@capsuletech/web-ui/button'), 'Button');
 export const Input = createLazy(() => import('@capsuletech/web-ui/input'), 'Input');
-export const Layout = createLazy(() => import('@capsuletech/web-ui/layout'), 'Layout');
+
+const LayoutBase = createLazy(() => import('@capsuletech/web-ui/layout'), 'Layout');
+export const Layout = Object.assign(LayoutBase, { slot: layoutSlot });
 export const List = createLazy(() => import('@capsuletech/web-ui/list'), 'List');
 export const Animate = createLazy(() => import('@capsuletech/web-ui/wrappers'), 'Animate');
 

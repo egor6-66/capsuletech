@@ -9,6 +9,8 @@
   "scripts": {
     "start:workspace": "node packages/cli/bin/capsule.mjs",
     "dev:agent": "pnpm --filter @capsuletech/agent dev",
+    "storybook:ui": "pnpm --filter @capsuletech/web-ui storybook",
+    "storybook:ui:build": "pnpm --filter @capsuletech/web-ui storybook:build",
     "dev:agent:plugin": "cd plugins/webstorm-agent && ./gradlew runIde",
     "dev:backend": "node scripts/dev-backend.mjs",
     "verdaccio:registry": "pnpm nx local-registry",

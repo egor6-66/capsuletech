@@ -1,5 +1,12 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite';
 
+import {
+  MockFooter,
+  MockHeader,
+  MockMain,
+  MockRightBar,
+  MockSidebar,
+} from '../_mocks';
 import { Button } from '../button';
 import { Layout } from './layout';
 
@@ -12,7 +19,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <div class="h-[600px] w-full border border-dashed border-white/20 overflow-hidden">
+      <div class="h-[600px] w-full border border-dashed border-white/15 overflow-hidden">
         {Story()}
       </div>
     ),
@@ -21,16 +28,6 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-const SlotBox = (props: { label: string; class?: string }) => (
-  <div
-    class={`flex items-center justify-center text-xs uppercase tracking-wide opacity-60 ${
-      props.class ?? ''
-    }`}
-  >
-    {props.label}
-  </div>
-);
 
 export const Centroid: Story = {
   name: 'centroid',
@@ -58,9 +55,9 @@ export const Standard: Story = {
   args: {
     variant: 'standard',
     slots: {
-      header: <SlotBox label="header" class="h-12 bg-white/5 border-b border-white/10" />,
-      main: <SlotBox label="main" class="h-full" />,
-      footer: <SlotBox label="footer" class="h-12 bg-white/5 border-t border-white/10" />,
+      header: <MockHeader />,
+      main: <MockMain />,
+      footer: <MockFooter />,
     },
   },
 };
@@ -70,8 +67,8 @@ export const Dashboard: Story = {
   args: {
     variant: 'dashboard',
     slots: {
-      sidebar: <SlotBox label="sidebar" class="h-full" />,
-      main: <SlotBox label="main" class="h-full" />,
+      sidebar: <MockSidebar />,
+      main: <MockMain />,
     },
   },
 };
@@ -81,10 +78,44 @@ export const DashboardFull: Story = {
   args: {
     variant: 'dashboard',
     slots: {
-      sidebar: <SlotBox label="sidebar" class="h-full" />,
-      header: <SlotBox label="header" class="h-12 bg-white/5 border-b border-white/10" />,
-      main: <SlotBox label="main" class="h-full" />,
-      rightBar: <SlotBox label="rightBar" class="h-full" />,
+      sidebar: <MockSidebar />,
+      header: <MockHeader />,
+      main: <MockMain />,
+      rightBar: <MockRightBar />,
+    },
+  },
+};
+
+/**
+ * Dashboard в режиме resize: слоты заданы объектами `{children, resizable, ...}`.
+ * Header остаётся над горизонтальной Resizable-группой sidebar/main/rightBar.
+ */
+export const DashboardResizable: Story = {
+  name: 'dashboard · resizable',
+  args: {
+    variant: 'dashboard',
+    slots: {
+      header: <MockHeader />,
+      sidebar: { children: <MockSidebar />, resizable: true, initialSize: 0.2, minSize: 0.12 },
+      main: { children: <MockMain />, resizable: true },
+      rightBar: { children: <MockRightBar />, resizable: true, initialSize: 0.22, minSize: 0.15 },
+    },
+  },
+};
+
+/**
+ * Dashboard с фиксированной правой панелью (`resizable: false`). Handle между
+ * `main` и `rightBar` исчезает.
+ */
+export const DashboardFixedRight: Story = {
+  name: 'dashboard · fixed rightBar',
+  args: {
+    variant: 'dashboard',
+    slots: {
+      header: <MockHeader />,
+      sidebar: { children: <MockSidebar />, resizable: true, initialSize: 0.22 },
+      main: { children: <MockMain />, resizable: true },
+      rightBar: { children: <MockRightBar />, resizable: false, initialSize: 0.22 },
     },
   },
 };

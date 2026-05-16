@@ -19,7 +19,8 @@
         "useTemplate": "off",
         "useBlockStatements": "off",
         "useFragmentSyntax": "error",
-        "useNodejsImportProtocol": "error"
+        "useNodejsImportProtocol": "error",
+        "noNonNullAssertion": "off"
       },
       "correctness": {
         "noUnusedVariables": "off",

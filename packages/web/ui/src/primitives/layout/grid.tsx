@@ -1,8 +1,9 @@
 import { type ICapsuleRouter, RouterContext } from '@capsuletech/web-router';
-import { cn } from '@capsuletech/web-style';
-import { type JSX, Match, Show, Switch, useContext } from 'solid-js';
+import { type JSX, Match, Switch, useContext } from 'solid-js';
 import { Animate, type AnimateVariant } from '../wrappers/animate';
+import { Dashboard } from './dashboard';
 import type { ILayoutProps, LayoutSlotMap } from './interfaces';
+import { normalizeSlot } from './utils';
 import { layoutSlots } from './variants';
 
 /**
@@ -14,11 +15,6 @@ import { layoutSlots } from './variants';
  *    перерендерит детей). Сам инстанс `<Animate>` остаётся стабильным —
  *    его функция компонента вызывается один раз.
  *  - Если router не подключён — initial mount-анимация only.
- *
- * ВАЖНО: routeKey НЕ читается на уровне этой функции (раньше принимали
- * `routeKey: string` аргументом — это создавало реактивный скоуп в
- * `{animateMain(..., routeKey())}` и при каждом изменении URL пересоздавался
- * новый компонент Animate).
  */
 const animateMain = (
   content: JSX.Element,
@@ -44,54 +40,45 @@ export const Grid = (props: ILayoutProps) => {
 
   return (
     <Switch fallback={null}>
-      {/* Для centroid */}
+      {/* centroid */}
       <Match when={props.variant === 'centroid'}>
-        {animateMain((props as any).slots.main, props.animated, router)}
+        {animateMain(
+          normalizeSlot((props.slots as LayoutSlotMap['centroid']).main)!.children,
+          props.animated,
+          router,
+        )}
       </Match>
 
-      {/* Для standard */}
+      {/* standard */}
       <Match when={props.variant === 'standard'}>
         {(() => {
           const s = props.slots as LayoutSlotMap['standard'];
+          const header = normalizeSlot(s.header)!;
+          const main = normalizeSlot(s.main)!;
+          const footer = normalizeSlot(s.footer)!;
           return (
             <>
-              <header class={layoutSlots.header}>{s.header}</header>
-              <main class={layoutSlots.main}>{animateMain(s.main, props.animated, router)}</main>
-              <footer class={layoutSlots.footer}>{s.footer}</footer>
+              <header class={layoutSlots.header}>{header.children}</header>
+              <main class={layoutSlots.main}>
+                {animateMain(main.children, props.animated, router)}
+              </main>
+              <footer class={layoutSlots.footer}>{footer.children}</footer>
             </>
           );
         })()}
       </Match>
 
-      {/* Для dashboard */}
+      {/* dashboard */}
       <Match when={props.variant === 'dashboard'}>
-        {
-          (() => {
-            const s = props.slots as LayoutSlotMap['dashboard'];
-            return (
-              <>
-                <aside class={layoutSlots.sidebar}>{s.sidebar}</aside>
-                <div class={layoutSlots.contentWrapper}>
-                  <Show when={s.header}>
-                    <header class={layoutSlots.header}>{s.header}</header>
-                  </Show>
-                  <div class="flex flex-1 overflow-y-auto">
-                    <main class={layoutSlots.main}>
-                      {animateMain(s.main, props.animated, router)}
-                    </main>
-                    <Show when={s.rightBar}>
-                      <aside class={layoutSlots.asideRight}>{s.rightBar}</aside>
-                    </Show>
-                  </div>
-                </div>
-              </>
-            );
-            // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-          })() as any
-        }
+        <Dashboard
+          slots={props.slots as LayoutSlotMap['dashboard']}
+          animated={props.animated}
+          router={router}
+          animateMain={animateMain}
+        />
       </Match>
 
-      {/* ... и так далее для holy-grail */}
+      {/* TODO: holy-grail */}
     </Switch>
   );
 };

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './__root'
 import { Route as LabRouteRouteImport } from './lab/route'
+import { Route as ChatRouteRouteImport } from './chat/route'
 import { Route as IndexRouteImport } from './index'
 import { Route as LabAuthRouteRouteImport } from './lab/auth/route'
 import { Route as LabAuthRegistrationRouteImport } from './lab/auth/registration'
@@ -22,6 +23,11 @@ import { Route as LabHomePlaygroundARouteImport } from './lab/home/_playground/a
 const LabRouteRoute = LabRouteRouteImport.update({
   id: '/lab',
   path: '/lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatRouteRoute = ChatRouteRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -67,6 +73,7 @@ const LabHomePlaygroundARoute = LabHomePlaygroundARouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/chat': typeof ChatRouteRoute
   '/lab': typeof LabRouteRouteWithChildren
   '/lab/auth': typeof LabAuthRouteRouteWithChildren
   '/lab/home/card': typeof LabHomeCardRouteRouteWithChildren
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/chat': typeof ChatRouteRoute
   '/lab': typeof LabRouteRouteWithChildren
   '/lab/auth': typeof LabAuthRouteRouteWithChildren
   '/lab/home/card': typeof LabHomeCardRouteRouteWithChildren
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/chat': typeof ChatRouteRoute
   '/lab': typeof LabRouteRouteWithChildren
   '/lab/auth': typeof LabAuthRouteRouteWithChildren
   '/lab/home/card': typeof LabHomeCardRouteRouteWithChildren
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/chat'
     | '/lab'
     | '/lab/auth'
     | '/lab/home/card'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/chat'
     | '/lab'
     | '/lab/auth'
     | '/lab/home/card'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/chat'
     | '/lab'
     | '/lab/auth'
     | '/lab/home/card'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChatRouteRoute: typeof ChatRouteRoute
   LabRouteRoute: typeof LabRouteRouteWithChildren
 }
 
@@ -147,6 +160,13 @@ declare module '@tanstack/solid-router' {
       path: '/lab'
       fullPath: '/lab'
       preLoaderRoute: typeof LabRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -253,6 +273,7 @@ const LabRouteRouteWithChildren = LabRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChatRouteRoute: ChatRouteRoute,
   LabRouteRoute: LabRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport

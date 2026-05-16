@@ -8,6 +8,7 @@ import {
   EndpointsRegistryPlugin,
   EnsureScaffoldPlugin,
   ExportGeneratorPlugin,
+  HMRWrappingPlugin,
   RouterPlugin,
   solidPlugin,
   tsconfigPaths,
@@ -101,6 +102,7 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
         dirs: [join(capsuleRoot, 'registry')],
         dts: './@types/capsule-imports.d.ts',
       }),
+      HMRWrappingPlugin(),
       AppConfigPlugin({
         configPath: join(root, 'capsule.app.ts'),
         typesOut: join(capsuleRoot, '@types', 'app-tags.d.ts'),

@@ -109,9 +109,12 @@
     "!**/*.tsbuildinfo"
   ],
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build"
   },
   "dependencies": {
+    "@corvu/resizable": "^0.2.5",
     "solid-motionone": "^1.0.4"
   },
   "peerDependencies": {
