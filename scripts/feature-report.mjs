@@ -1,25 +1,32 @@
 #!/usr/bin/env node
-/**
- * feature-report — парсит Claude Code session-логи и считает расход по фиче.
+/* ============================================================================
+ * scripts/feature-report.mjs
+ * ---------------------------------------------------------------------------
+ * PURPOSE
+ *   Парсит Claude Code session-логи и считает расход токенов/USD по фиче.
  *
- * Использование:
- *   pnpm report:list                    # все маркеры в текущих логах
+ * USAGE
+ *   pnpm report:list                    # перечислить маркеры в текущих логах
  *   pnpm report <feature-slug>          # сгенерить reports/<slug>.md
  *   pnpm report:all                     # все маркированные фичи в reports/
  *
- * Главный assistant маркирует фичи в своих текстовых ответах:
- *   <<feature: slug>>                   — старт
- *   <</feature>>                        — конец
+ * MARKERS
+ *   Главный assistant ставит в своих текстовых ответах:
+ *     <<feature: slug>>                 — старт
+ *     <</feature>>                      — конец
  *
- * Логи: ~/.claude/projects/<encoded-cwd>/*.jsonl
- *   - encoded-cwd: путь к репе с заменой '\\' и '/' и ':' на '-'
- *   - один .jsonl на сессию, в каждой строке JSON-event
- *   - assistant turns содержат message.usage:
- *       input_tokens, output_tokens,
- *       cache_creation_input_tokens, cache_read_input_tokens
+ * INPUTS
+ *   Логи: ~/.claude/projects/<encoded-cwd>/*.jsonl
+ *     - encoded-cwd: путь к репе с заменой '\\' и '/' и ':' на '-'
+ *     - один .jsonl на сессию, в каждой строке JSON-event
+ *     - assistant turns содержат message.usage:
+ *         input_tokens, output_tokens,
+ *         cache_creation_input_tokens, cache_read_input_tokens
  *
- * Цены (USD за миллион токенов, по состоянию 2026-05). При необходимости править руками.
- */
+ * PRICING
+ *   USD за миллион токенов, см. константу PRICES ниже. При смене тарифов —
+ *   править руками (по состоянию 2026-05).
+ * ==========================================================================*/
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, join, resolve } from 'node:path';

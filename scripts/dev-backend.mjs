@@ -1,11 +1,23 @@
 #!/usr/bin/env node
-// Запуск Rust-бэка capsule-server из корня workspace. Cross-platform обёртка
-// над `cargo run -p capsule-server`, ставит env-переменные и cwd.
-//
-// Зачем не одноразовая команда в package.json: на Windows встроенный шелл
-// (cmd) и pnpm не пробрасывают $PWD корректно в подкоманду PowerShell, а
-// одиночные кавычки в JSON ломают подстановку. Node-обёртка снимает весь
-// quoting-hell.
+/* ============================================================================
+ * scripts/dev-backend.mjs
+ * ---------------------------------------------------------------------------
+ * PURPOSE
+ *   Запуск Rust-бэка capsule-server из корня workspace. Cross-platform обёртка
+ *   над `cargo run -p capsule-server`, ставит env-переменные и cwd.
+ *
+ * USAGE
+ *   pnpm dev:backend
+ *
+ * ENV
+ *   CAPSULE_WORKSPACE_ROOT — выставляется автоматически в process.cwd()
+ *   CAPSULE_WRITE_SCOPE    — куда бэку разрешено писать (default 'apps/agent')
+ *
+ * WHY NOT INLINE COMMAND
+ *   На Windows cmd/pnpm не пробрасывают $PWD корректно в подкоманду PowerShell,
+ *   а одиночные кавычки в JSON ломают подстановку. Node-обёртка снимает
+ *   весь quoting-hell.
+ * ==========================================================================*/
 
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
