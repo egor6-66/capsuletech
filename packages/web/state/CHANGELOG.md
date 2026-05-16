@@ -1,3 +1,7 @@
+## 0.1.1 (2026-05-16)
+
+This was a version bump only for @capsuletech/web-state to align it with other projects, there were no code changes.
+
 ## 0.0.17 (2026-05-14)
 
 This was a version bump only for @capsuletech/web-state to align it with other projects, there were no code changes.

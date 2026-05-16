@@ -1,3 +1,13 @@
+## 0.1.1 (2026-05-16)
+
+### 🩹 Fixes
+
+- **web/ui:** upd imports ([45dea9d](https://github.com/egor6-66/capsule/commit/45dea9d))
+
+### ❤️ Thank You
+
+- EgorRaybul
+
 ## 0.0.17 (2026-05-14)
 
 This was a version bump only for @capsuletech/web-ui to align it with other projects, there were no code changes.

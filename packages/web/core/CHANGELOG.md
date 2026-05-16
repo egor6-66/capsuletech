@@ -1,3 +1,14 @@
+## 0.1.1 (2026-05-16)
+
+### 🚀 Features
+
+- add themes ([f2c75b5](https://github.com/egor6-66/capsule/commit/f2c75b5))
+- **cli:** add int ([77fc9a7](https://github.com/egor6-66/capsule/commit/77fc9a7))
+
+### ❤️ Thank You
+
+- EgorRaybul
+
 ## 0.0.17 (2026-05-14)
 
 This was a version bump only for @capsuletech/web-core to align it with other projects, there were no code changes.

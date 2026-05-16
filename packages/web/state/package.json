@@ -1,6 +1,6 @@
 {
   "name": "@capsuletech/web-state",
-  "version": "0.0.17",
+  "version": "0.1.1",
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
