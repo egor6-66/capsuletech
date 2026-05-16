@@ -9,7 +9,7 @@ path = "src/main.rs"
 
 [dependencies]
 capsule-ollama = { path = "../ollama" }
-capsule-fs = { path = "../fs" }
+capsule-fs = { path = "../../fs" }
 capsule-tools = { path = "../tools" }
 axum = { workspace = true }
 tokio = { workspace = true }

@@ -1,6 +1,12 @@
 [workspace]
 resolver = "2"
-members = ["fs", "ollama", "tools", "server"]
+members = [
+  "fs",
+  "desktop",
+  "scriber/ollama",
+  "scriber/tools",
+  "scriber/server",
+]
 
 [workspace.package]
 edition = "2021"

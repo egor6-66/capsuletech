@@ -1,0 +1,22 @@
+[package]
+name = "capsule-desktop"
+edition.workspace = true
+version.workspace = true
+description = "Tauri shell host for any Capsule app"
+
+[lib]
+name = "capsule_desktop"
+crate-type = ["staticlib", "cdylib", "rlib"]
+path = "src/lib.rs"
+
+[[bin]]
+name = "capsule-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { workspace = true }
+serde_json = { workspace = true }
