@@ -1,0 +1,43 @@
+# GitLab CI mirror для capsule monorepo.
+# Аналог .github/workflows/release.yml — запускается вручную из UI ("Run pipeline")
+# с переменными GROUP / SPECIFIER / REGISTRY / FIRST_RELEASE / DRY_RUN.
+#
+# Variables, которые нужно настроить в Settings → CI/CD → Variables:
+#   NPM_TOKEN          — для --registry=npm (publish в npmjs.org)
+#   NEXUS_REGISTRY     — URL внутреннего nexus
+#   NEXUS_TOKEN        — bearer для nexus
+#   GITLAB_REGISTRY    — для --registry=gitlab (URL вида
+#                        https://gitlab.com/api/v4/projects/<id>/packages/npm/)
+#   GITLAB_TOKEN       — может быть CI_JOB_TOKEN (predefined) или PAT с write:packages
+#
+# Trigger: manual из UI. CI_JOB_TOKEN автоматически даёт доступ к git push.
+
+stages:
+  - release
+
+release:
+  stage: release
+  image: node:20
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"   # ручной запуск из UI
+  variables:
+    GROUP: cli                            # cli | web_base | all
+    SPECIFIER: ''                         # patch|minor|major|prerelease|<semver> или пусто = conventional
+    REGISTRY: npm                         # npm | github | gitlab | nexus
+    FIRST_RELEASE: 'false'
+    DRY_RUN: 'false'
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@9.0.0 --activate
+    - pnpm install --frozen-lockfile
+    - git config user.name "gitlab-ci"
+    - git config user.email "gitlab-ci@${CI_SERVER_HOST}"
+    - git remote set-url origin "https://oauth2:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+  script:
+    - |
+      FLAGS=""
+      if [ "$FIRST_RELEASE" = "true" ]; then FLAGS="$FLAGS --first-release"; fi
+      if [ "$DRY_RUN" = "true" ]; then FLAGS="$FLAGS --dry-run"; fi
+      node scripts/release.mjs --group="$GROUP" --registry="$REGISTRY" $FLAGS $SPECIFIER
+  # NPM_TOKEN / NEXUS_REGISTRY / NEXUS_TOKEN / GITLAB_REGISTRY / GITLAB_TOKEN
+  # пробрасываются автоматически через CI/CD variables — release.mjs читает их из env.

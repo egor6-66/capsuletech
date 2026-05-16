@@ -15,8 +15,6 @@
     "release:local:cli": "node scripts/release-local.mjs --group=cli",
     "release:local:web": "node scripts/release-local.mjs --group=web_base",
     "release:local:all": "node scripts/release-local.mjs --group=all",
-    "release:prod:cli": "node scripts/release.mjs --group=cli",
-    "release:prod:web": "node scripts/release.mjs --group=web_base",
     "nx:reset": "nx reset",
     "lint": "biome check --write .",
     "lint:fix": "biome check --apply  --unsafe .",

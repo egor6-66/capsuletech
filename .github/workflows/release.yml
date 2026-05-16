@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      group:
+        description: 'nx release group (см. nx.json release.groups)'
+        required: true
+        default: 'cli'
+        type: choice
+        options:
+          - cli
+          - web_base
+          - all
+      specifier:
+        description: 'patch | minor | major | prerelease | <semver> | (пусто = conventional commits)'
+        required: false
+        default: ''
+        type: string
+      registry:
+        description: 'Куда публиковать'
+        required: true
+        default: 'npm'
+        type: choice
+        options:
+          - npm
+          - github
+          - nexus
+      first_release:
+        description: 'Первый релиз группы (нет предыдущего git tag)'
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: 'Dry run (без реальных изменений и push)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: release-${{ inputs.group }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release ${{ inputs.group }} → ${{ inputs.registry }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # для git push коммита + тегов
+      packages: write       # для publish в GitHub Packages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # nx release читает git log по тегу группы
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: ${{ inputs.registry == 'github' && 'https://npm.pkg.github.com' || 'https://registry.npmjs.org' }}
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Release
+        run: |
+          node scripts/release.mjs \
+            --group=${{ inputs.group }} \
+            --registry=${{ inputs.registry }} \
+            ${{ inputs.first_release && '--first-release' || '' }} \
+            ${{ inputs.dry_run && '--dry-run' || '' }} \
+            ${{ inputs.specifier }}
+        env:
+          # npm.js — нужен secret NPM_TOKEN
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # GitHub Packages — встроенный GITHUB_TOKEN с permissions.packages: write выше
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Внутренний nexus — secrets NEXUS_REGISTRY (URL) + NEXUS_TOKEN
+          NEXUS_REGISTRY: ${{ secrets.NEXUS_REGISTRY }}
+          NEXUS_TOKEN: ${{ secrets.NEXUS_TOKEN }}

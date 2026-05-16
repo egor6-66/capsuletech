@@ -10,9 +10,19 @@ Mini-tooling корня монорепо. Каждый файл начинает
 | Файл                  | Назначение                                                         | Триггер                         |
 | --------------------- | ------------------------------------------------------------------ | ------------------------------- |
 | `release-local.mjs`   | Публикация группы пакетов в локальный Verdaccio. ZERO следов в git и worktree (версии не бампаются, package.json не модифицируются). | `pnpm release:local:*`          |
-| `release.mjs`         | PROD-релиз: bump версий → CHANGELOG → git commit + tag → publish во внешний registry. Требует `--registry=<url>` явно. | `pnpm release:prod:*`           |
+| `release.mjs`         | **CI only** — PROD-релиз: build → bump → CHANGELOG → commit + tag → publish → git push. Вызывается из `.github/workflows/release.yml` или `.gitlab-ci.yml`. Локально с лэптопа **не запускаем** (нет прод-команд в package.json). | GitHub Actions workflow_dispatch / GitLab CI manual |
 | `dev-backend.mjs`     | Запуск Rust-бэка `capsule-server` (`cargo run -p capsule-server`) из корня workspace, cross-platform. | `pnpm dev:backend`              |
 | `feature-report.mjs`  | Расход токенов/USD по фиче из Claude Code session-логов (по маркерам `<<feature: slug>> ... <</feature>>`). | `pnpm report` / `report:list` / `report:all` |
+
+## Registry keys (release.mjs)
+
+| `--registry=` | URL                                                  | Auth env                                                |
+| ------------- | ---------------------------------------------------- | ------------------------------------------------------- |
+| `npm`         | `NPM_REGISTRY_NPM` или `https://registry.npmjs.org`  | `NPM_TOKEN`                                             |
+| `github`      | `https://npm.pkg.github.com`                         | `GITHUB_TOKEN` (в Actions встроенный)                   |
+| `nexus`       | `NEXUS_REGISTRY` env (обязательно)                   | `NEXUS_TOKEN` или `NEXUS_USERNAME` + `NEXUS_PASSWORD`   |
+| `gitlab`      | `GITLAB_REGISTRY` env (обязательно)                  | `GITLAB_TOKEN` (`CI_JOB_TOKEN` или PAT)                 |
+| `<url>`       | используется как есть                                | нет (внешний `.npmrc`)                                  |
 
 ## Соглашения
 
@@ -24,18 +34,20 @@ Mini-tooling корня монорепо. Каждый файл начинает
 ## Release flow коротко
 
 ```
-DEV (локалка)                    PROD (npmjs / nexus)
-─────────────                    ──────────────────
-release-local.mjs                release.mjs
+DEV (локалка)                    PROD (CI only — Actions / GitLab CI)
+─────────────                    ─────────────────────────────────────
+release-local.mjs                workflow_dispatch / manual pipeline
   ↓                                ↓
-read nx.json groups              pnpm -r build (фаза 1 + 2)
+read nx.json groups              node scripts/release.mjs --group=… --registry=…
   ↓                                ↓
-clean verdaccio storage          nx release <spec> --skip-publish
-  ↓                                  → bump + CHANGELOG + commit + tag
-pnpm -r build (фаза 1 + 2)         ↓
-  ↓                              setup .npmrc auth (NPM_AUTH_TOKEN)
+clean verdaccio storage          pnpm -r build (фаза 1 + 2)
+  ↓                                ↓
+pnpm -r build                    nx release <spec> --skip-publish
+  ↓                                → bump + CHANGELOG + commit + tag
 pnpm publish (текущая версия)      ↓
-  → НЕ трогает worktree          nx release publish --registry=<url>
+  → НЕ трогает worktree          setup .npmrc auth (по registry key)
                                    ↓
-                                 git push (руками или CI)
+                                 nx release publish --registry=<url>
+                                   ↓
+                                 git push --follow-tags
 ```
