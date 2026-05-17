@@ -79,6 +79,3 @@ export type IWidgetWrapper = Wrapper<IWidgetRenderer>;
  */
 export type IPageRenderer = (ui: PageUi, widgets: Widgets) => JSX.Element;
 export type IPageWrapper = Wrapper<IPageRenderer>;
-
-/** Back-compat alias: некоторое количество кода ссылается на старое имя `IPageRender`. */
-export type IPageRender = IPageRenderer;

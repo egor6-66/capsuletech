@@ -1,6 +1,9 @@
 import { createEffect, createUniqueId, mergeProps, onCleanup, splitProps } from 'solid-js';
 import type { ICtx } from '../../ctx';
+import { TAG_TO_INPUT_TYPE, deriveInputType, deriveName } from './derivation';
 import * as UI from './imports';
+
+export { TAG_TO_INPUT_TYPE, deriveInputType, deriveName };
 
 type AnyEvent = Event & {
   currentTarget?: any;
@@ -11,51 +14,17 @@ type AnyEvent = Event & {
   metaKey?: boolean;
 };
 
-const parseMeta = (raw: unknown, fallback: any) => {
-  if (typeof raw === 'string') {
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return fallback;
-    }
-  }
-  return fallback;
-};
-
-/** Деривация name: первый «конкретный» тег (без @-префикса) из meta.tags. */
-const deriveName = (meta: any): string | undefined =>
-  meta?.tags?.find?.((t: string) => typeof t === 'string' && !t.startsWith('@'));
-
-/**
- * Деривация HTML input-type из тегов. Если в meta.tags есть один из «типовых»
- * тегов (`password`, `email`, `phone`, `number`, `text`) — возвращаем
- * соответствующий `type` для DOM-атрибута. Маппинг закрыт; всё остальное —
- * `undefined` (пусть DOM использует свой default `text` либо то, что задал
- * автор Entity явно через `type="..."`).
- */
-const TAG_TO_INPUT_TYPE: Record<string, string> = {
-  password: 'password',
-  email: 'email',
-  phone: 'tel',
-  number: 'number',
-  text: 'text',
-};
-const deriveInputType = (meta: any): string | undefined => {
-  const tags: string[] = meta?.tags ?? [];
-  for (const tag of tags) {
-    const mapped = TAG_TO_INPUT_TYPE[tag];
-    if (mapped) return mapped;
-  }
-  return undefined;
-};
-
 const getTargetData = (e: AnyEvent | undefined, finalProps: any, derivedName?: string) => {
   const el: any = e?.currentTarget;
   return {
     name: el?.name || derivedName || finalProps.name,
     value: el?.type === 'checkbox' ? el?.checked : (el?.value ?? finalProps.value),
     type: el?.type,
-    meta: parseMeta(el?.getAttribute?.('meta'), finalProps.meta),
+    // `meta` приходит как JSX-prop (объект), а не как DOM-атрибут. Solid не
+    // сериализует объекты в attributes (получился бы `"[object Object]"`),
+    // поэтому раньше существовавший `parseMeta(el.getAttribute('meta'), ...)`
+    // путь всегда брал fallback — это был мёртвый код (см. A-5 cleanup-plan).
+    meta: finalProps?.meta,
     dynamicMeta: finalProps?.dynamicMeta,
     // JSX-declared payload — произвольные данные, которые автор Entity
     // прикрепил к элементу через `payload={{...}}`. На первом уровне (UI-click)
@@ -74,16 +43,21 @@ const getTargetData = (e: AnyEvent | undefined, finalProps: any, derivedName?: s
   };
 };
 
-// Закрытый набор перехватываемых событий (см. ADR 009).
-// updateStore: обновлять ли store.components[id] значением target (для инпутов / селектов).
-const EVENT_HANDLERS: ReadonlyArray<readonly [string, { updateStore: boolean }]> = [
-  ['onClick', { updateStore: false }],
-  ['onInput', { updateStore: true }],
-  ['onChange', { updateStore: true }],
-  ['onBlur', { updateStore: false }],
-  ['onFocus', { updateStore: false }],
-  ['onKeyDown', { updateStore: false }],
-];
+/**
+ * Закрытый набор перехватываемых событий (см. ADR 009).
+ * `updateStore: true` означает: после события компонент пишет в store.components[id]
+ * свой target (актуально для inputs / selects — value/checked-флаг сохраняется
+ * в reactive-снапшот).
+ */
+type EventName = 'onClick' | 'onInput' | 'onChange' | 'onBlur' | 'onFocus' | 'onKeyDown';
+const EVENT_HANDLERS: Record<EventName, { updateStore: boolean }> = {
+  onClick: { updateStore: false },
+  onInput: { updateStore: true },
+  onChange: { updateStore: true },
+  onBlur: { updateStore: false },
+  onFocus: { updateStore: false },
+  onKeyDown: { updateStore: false },
+};
 
 const safeCall = (fn: any, ...args: any[]) => {
   try {
@@ -139,7 +113,7 @@ export const UiProxy = (ctx: ICtx<any>, wrapperProps: any) => {
       });
 
       const eventBindings: Record<string, (e: AnyEvent) => void> = {};
-      for (const [eventName, opts] of EVENT_HANDLERS) {
+      for (const [eventName, opts] of Object.entries(EVENT_HANDLERS)) {
         const flag = `__capsule_${eventName}__`;
         eventBindings[eventName] = (e: AnyEvent) => {
           // Дедупликация на bubbling: первый сработавший handler помечает event,
