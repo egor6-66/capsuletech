@@ -107,12 +107,27 @@ if (action === 'dev') {
   console.log(`[desktop] build: app=${app} dist=${distAbs}`);
 }
 
+// ─── bundle targets ──────────────────────────────────────────────────────────
+// На Windows-runner'е форсим msi+nsis явно через CLI-флаг, не полагаясь
+// только на merge с `bundle.targets: "all"` в base config'е — у tauri 2.x
+// `--config <file>` иногда лотерея с merge'ом и тогда `bundle.active` из
+// override не подхватывается, build выходит 0, но `target/release/bundle/`
+// пустой. CLI-флаг — детерминирован.
+const explicitBundles = action === 'build' && process.platform === 'win32'
+  ? ['--bundles', 'msi,nsis']
+  : [];
+
 mkdirSync(desktopDir, { recursive: true });
 writeFileSync(overridePath, JSON.stringify(baseOverride, null, 2));
 
 // ─── invoke tauri ────────────────────────────────────────────────────────────
 
-const tauriArgs = [action === 'dev' ? 'dev' : 'build', '--config', overridePath];
+const tauriArgs = [
+  action === 'dev' ? 'dev' : 'build',
+  '--config',
+  overridePath,
+  ...explicitBundles,
+];
 
 console.log(`[desktop] tauri ${tauriArgs.join(' ')}`);
 console.log(`[desktop] productName=${productName} identifier=${identifier}`);

@@ -40,6 +40,8 @@ export const ICONS = {
   // dev
   devServer: '🚀',
   buildApp: '🏗️',
+  desktopDev: '💻',
+  desktopBuild: '📀',
 
   // workspace
   info: '💡',
