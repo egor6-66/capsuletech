@@ -7,21 +7,21 @@
     "dev": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "node ../../packages/system/cli/bin/capsule.mjs",
+        "command": "node ../../packages/cli/bin/capsule.mjs",
         "cwd": "apps/sandbox",
         "interactive": true,
         "parallel": false
       }
     },
     "serve": {
-      "command": "pnpm capsule dev",
+      "command": "node ../../packages/cli/bin/capsule.mjs dev",
       "options": {
         "cwd": "apps/sandbox"
       },
       "dependsOn": ["^build"]
     },
     "build": {
-      "command": "pnpm capsule build",
+      "command": "node ../../packages/cli/bin/capsule.mjs build",
       "options": {
         "cwd": "apps/sandbox"
       },

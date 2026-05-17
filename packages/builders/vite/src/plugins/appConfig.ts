@@ -126,21 +126,31 @@ const loadAndGenerate = (props: IProps) => {
 const BROWSER_FACTORY_NAMES = ['defineAppConfig', 'defineCapsuleConfig'] as const;
 const FACTORY_REPLACE_RE = new RegExp(`\\b(${BROWSER_FACTORY_NAMES.join('|')})\\b`, 'g');
 
+/**
+ * Нормализация пути для сравнения id ↔ configPath:
+ *  - убираем query-суффикс (Vite добавляет `?import`, `?t=<ts>` для HMR);
+ *  - заменяем `\` на `/` (на Windows `path.join` отдаёт backslash, а Vite
+ *    нормализует id к forward slash). Регрессионные тесты — в
+ *    `__tests__/appConfig.test.ts`.
+ */
+const normalizePath = (p: string): string => p.split('?')[0].replace(/\\/g, '/');
+
 export const AppConfigPlugin = (props: IProps): Plugin => {
+  const targetPath = normalizePath(props.configPath);
   return {
     name: 'app-config',
     async configureServer(server: ViteDevServer) {
       loadAndGenerate(props);
       server.watcher.add(props.configPath);
       server.watcher.on('change', (file) => {
-        if (file === props.configPath) loadAndGenerate(props);
+        if (normalizePath(file) === targetPath) loadAndGenerate(props);
       });
     },
     buildStart() {
       loadAndGenerate(props);
     },
     transform(code, id) {
-      if (id !== props.configPath) return null;
+      if (normalizePath(id) !== targetPath) return null;
       if (!FACTORY_REPLACE_RE.test(code)) return null;
       FACTORY_REPLACE_RE.lastIndex = 0;
       return {

@@ -25,10 +25,10 @@ audience: claude
 | `packages/web/query/src/middleware/user.ts` | User-facing mw factories: `cookies`, `auth`, `statusMapper`, `on401`, `log`, `retry` |
 | `packages/web/query/src/createApi.ts` | `createApi(config, endpoints)` — статическая сборка typed-proxy + `setApiClient`/`getApiClient` |
 | `packages/web/query/src/client.ts` | Существующий `QueryClient` — теперь работает как transport-слой под pipeline (кэш, dedupe) |
-| `packages/shared/vite/src/plugins/endpointsRegistry.ts` | Vite-plugin: сканит `src/endpoints/**`, эмитит `.capsule/registry/endpoints.ts` + `.capsule/@types/api.d.ts` |
-| `packages/shared/vite/src/plugins/appConfig.ts` | Эмитит `.capsule/app-config.gen.ts` с `setApiClient(createApi(appConfig.api, endpoints))` |
-| `packages/shared/vite/src/plugins/constants.ts` | `DEFINE_FACTORIES = { '@capsuletech/web-query': ['defineEndpoint'] }` — auto-import конфиг |
-| `packages/shared/vite/src/defines/capsuleConfig.ts` | Регистрация плагинов (browser-stub для globalThis-фабрик `defineAppConfig` живёт в `AppConfigPlugin.transform`) |
+| `packages/builders/vite/src/plugins/endpointsRegistry.ts` | Vite-plugin: сканит `src/endpoints/**`, эмитит `.capsule/registry/endpoints.ts` + `.capsule/@types/api.d.ts` |
+| `packages/builders/vite/src/plugins/appConfig.ts` | Эмитит `.capsule/app-config.gen.ts` с `setApiClient(createApi(appConfig.api, endpoints))` |
+| `packages/builders/vite/src/plugins/constants.ts` | `DEFINE_FACTORIES = { '@capsuletech/web-query': ['defineEndpoint'] }` — auto-import конфиг |
+| `packages/builders/vite/src/defines/capsuleConfig.ts` | Регистрация плагинов (browser-stub для globalThis-фабрик `defineAppConfig` живёт в `AppConfigPlugin.transform`) |
 | `packages/web/core/src/wrappers/logic/utils/createLogicWrapper.tsx` | Инжект `services.api = getApiClient()` (только в Feature, не в Controller) |
 | `packages/web/core/src/wrappers/ui/interfaces.ts` | Пустой fallback `interface CapsuleApi {}` для interface-merging |
 
@@ -141,7 +141,7 @@ Vite-плагин `EndpointsRegistryPlugin` следит за `apps/*/src/endpoi
 
 2. **`endpoints.ts` пустой** — `EndpointsRegistryPlugin` не успел отсканить или папка `src/endpoints/` отсутствует. Перезапустить dev.
 
-3. **[[shared-vite-dist]]** — после правок в `packages/shared/vite/src/` обязательно `pnpm --filter @capsuletech/shared-vite build` + рестарт dev-сервера.
+3. **[[shared-vite-dist]]** — после правок в `packages/builders/vite/src/` обязательно `pnpm --filter @capsuletech/vite-builder build` + рестарт dev-сервера.
 
 4. **`zod` peer-dep** — у `@capsuletech/web-query` `zod` в `peerDependencies`. Workspace pnpm подтягивает версию из root deps.
 
@@ -158,8 +158,8 @@ Vite-плагин `EndpointsRegistryPlugin` следит за `apps/*/src/endpoi
 | Добавить новый встроенный middleware (cache/trace) | `packages/web/query/src/middleware/user.ts` + экспорт из `middleware/index.ts` |
 | Поменять порядок default-pipeline | `packages/web/query/src/createApi.ts > wrapEndpoint` |
 | Добавить новый transport (WS/GraphQL) | `packages/web/query/src/middleware/core.ts` (новая mw) + расширить `EndpointConfig.transport` |
-| Поменять structure-mapping endpoints/ → namespace | `packages/shared/vite/src/plugins/endpointsRegistry.ts > fileToLeaf` |
-| Поменять формат `app-config.gen.ts` | `packages/shared/vite/src/plugins/appConfig.ts > generateRuntimeFile` |
+| Поменять structure-mapping endpoints/ → namespace | `packages/builders/vite/src/plugins/endpointsRegistry.ts > fileToLeaf` |
+| Поменять формат `app-config.gen.ts` | `packages/builders/vite/src/plugins/appConfig.ts > generateRuntimeFile` |
 | Добавить новый typed error | `packages/web/query/src/errors.ts` (extends `ApiError`) + маппинг в `statusMapper` |
 | Изменить inject в Feature | `packages/web/core/src/wrappers/logic/utils/createLogicWrapper.tsx > services` |
 

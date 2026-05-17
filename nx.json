@@ -90,9 +90,9 @@
         "projects": [
           "@capsuletech/cli",
           "@capsuletech/shared-file-manager",
-          "@capsuletech/shared-vite",
-          "@capsuletech/shared-compliance",
-          "@capsuletech/shared-lib-config"
+          "@capsuletech/vite-builder",
+          "@capsuletech/compliance",
+          "@capsuletech/lib-builder"
         ],
         "projectsRelationship": "fixed",
         "releaseTagPattern": "cli@{version}",

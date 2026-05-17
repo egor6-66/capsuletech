@@ -122,4 +122,4 @@ backend/target/release/bundle/
 
 - [[cli|💻 CLI]] — команды `desktopDev`/`desktopBuild` живут в `packages/cli/src/{actions,commands}/desktop.ts`.
 - [[releases|🚀 Releases]] — npm-релизы пакетов, **не** desktop. Desktop-релизы → `.github/workflows/desktop-release.yml`.
-- [[vite-plugins|🛠️ Vite-плагины]] — `outDir` контракт прокинут через `@capsuletech/shared-vite`.
+- [[vite-plugins|🛠️ Vite-плагины]] — `outDir` контракт прокинут через `@capsuletech/vite-builder`.

@@ -1,5 +1,5 @@
 {
-  "name": "@capsuletech/shared-lib-config",
+  "name": "@capsuletech/lib-builder",
   "version": "0.1.1",
   "type": "module",
   "main": "./dist/index.mjs",

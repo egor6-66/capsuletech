@@ -1,5 +1,5 @@
 {
-  "name": "@capsuletech/shared-biome",
+  "name": "@capsuletech/biome-config",
   "version": "0.0.10",
   "type": "module",
   "main": "./dist/index.mjs",

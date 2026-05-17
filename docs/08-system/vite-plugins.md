@@ -115,8 +115,8 @@ export default Login;
 **Без этого плагина:** при HMR Solid роняет приложение с ошибкой про невалидный компонент.
 
 > [!warning] Грабли при дебаге
-> `@capsuletech/shared-vite` отгружается консьюмеру **только через `dist/`** (см. `package.json#main`). Это значит:
-> 1. Правка в `src/plugins/HMRWrapping.ts` без `pnpm --filter @capsuletech/shared-vite build` ни на что не повлияет.
+> `@capsuletech/vite-builder` отгружается консьюмеру **только через `dist/`** (см. `package.json#main`). Это значит:
+> 1. Правка в `src/plugins/HMRWrapping.ts` без `pnpm --filter @capsuletech/vite-builder build` ни на что не повлияет.
 > 2. **После** ребилда нужно **полностью убить** dev-процесс (Ctrl+C). `r` в Vite-prompt и HMR-reload **не** перечитывают плагин-модули — они импортятся ровно один раз при старте сервера.
 >
 > Быстрый smoke-тест что плагин действительно подтянулся: поставить `console.log('[HMR] module loaded')` на верхнем уровне (вне `transform`). Если на старте лога нет — dev-процесс держит старую `dist` в памяти Node.

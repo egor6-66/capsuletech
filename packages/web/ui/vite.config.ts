@@ -11,7 +11,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
 
-import { libConfig } from '../../shared/lib-config/src';
+import { libConfig } from '../../builders/lib/src';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

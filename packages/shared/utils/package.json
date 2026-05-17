@@ -17,6 +17,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@capsuletech/shared-vite": "workspace:*"
+    "@capsuletech/vite-builder": "workspace:*"
   }
 }

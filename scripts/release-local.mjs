@@ -204,15 +204,15 @@ if (SHOULD_BUILD) {
   // shared-vite стартует одновременно с shared-compliance и падает на резолве
   // compliance/main (dist ещё не создан).
   const phases = [
-    { name: 'shared-compliance', filters: ['--filter', '@capsuletech/shared-compliance'] },
-    { name: 'shared-vite', filters: ['--filter', '@capsuletech/shared-vite'] },
+    { name: 'shared-compliance', filters: ['--filter', '@capsuletech/compliance'] },
+    { name: 'shared-vite', filters: ['--filter', '@capsuletech/vite-builder'] },
     {
       name: 'shared-* (rest) + web-* + cli',
       filters: [
         '--filter', '@capsuletech/shared-*',
-        '--filter', '!@capsuletech/shared-compliance',
-        '--filter', '!@capsuletech/shared-biome',
-        '--filter', '!@capsuletech/shared-vite',
+        '--filter', '!@capsuletech/compliance',
+        '--filter', '!@capsuletech/biome-config',
+        '--filter', '!@capsuletech/vite-builder',
         '--filter', '@capsuletech/web-*',
         '--filter', '@capsuletech/cli',
       ],

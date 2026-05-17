@@ -1,6 +1,6 @@
 import { copyFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { libConfig } from '../../shared/lib-config/src';
+import { libConfig } from '../../builders/lib/src';
 
 export default libConfig({
   entry: {

@@ -176,15 +176,15 @@ const setupAuth = () => {
 //   2. Все остальные shared-* (кроме compliance/vite/biome) + web-* + cli —
 //      используют готовый shared-vite/dist через libConfig.
 const phases = [
-  { name: 'shared-compliance', filters: ['--filter', '@capsuletech/shared-compliance'] },
-  { name: 'shared-vite', filters: ['--filter', '@capsuletech/shared-vite'] },
+  { name: 'shared-compliance', filters: ['--filter', '@capsuletech/compliance'] },
+  { name: 'shared-vite', filters: ['--filter', '@capsuletech/vite-builder'] },
   {
     name: 'shared-* (rest) + web-* + cli',
     filters: [
       '--filter', '@capsuletech/shared-*',
-      '--filter', '!@capsuletech/shared-biome',
-      '--filter', '!@capsuletech/shared-vite',
-      '--filter', '!@capsuletech/shared-compliance',
+      '--filter', '!@capsuletech/biome-config',
+      '--filter', '!@capsuletech/vite-builder',
+      '--filter', '!@capsuletech/compliance',
       '--filter', '@capsuletech/web-*',
       '--filter', '@capsuletech/cli',
     ],

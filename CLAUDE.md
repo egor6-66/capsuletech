@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Runtime:** Solid.js (fine-grained reactivity)
 - **Logic:** XState — единственный движок локальной FSM (transitions, entry/exit, store-context). UI-события (`onClick`/`onInput`/...) и `next()` диспетчатся в HCA-Proxy **сверху**, не через XState event-bus. См. ADR 001 + ADR 008.
 - **Router:** `@tanstack/solid-router` через синглтон `routerService`
-- **Build:** Vite 6 + кастомные плагины (`@capsuletech/shared-vite`)
+- **Build:** Vite 6 + кастомные плагины (`@capsuletech/vite-builder`)
 - **Monorepo:** Nx 22 + pnpm workspaces
 - **Styling:** Tailwind v4 + CVA + кастомный `createStyle`
 - **Lint/format:** Biome (расширяет `packages/system/biome/biome.json`)
@@ -42,7 +42,7 @@ pnpm desktop:build sandbox
 > [!important]
 > Vite привязан к **директории приложения** (`apps/<app>/`) — она же `workspaceRoot` для `getWorkspaceRoot()` в `@capsuletech/file-manager`. Запуск из корня репо ломает резолв `capsule.config.ts` и алиасы. Все CLI-команды дёргают через `cd apps/<app>` или скрипты приложения.
 
-Запуск sandbox через CLI на самом деле дёргает `createDevServer` из `@capsuletech/core/builder`, который читает `apps/sandbox/capsule.config.ts` и кормит конфиг в `@capsuletech/shared-vite`.
+Запуск sandbox через CLI на самом деле дёргает `createDevServer` из `@capsuletech/core/builder`, который читает `apps/sandbox/capsule.config.ts` и кормит конфиг в `@capsuletech/vite-builder`.
 
 ### Backend (Rust workspace `backend/`)
 
@@ -132,7 +132,7 @@ backend/
 
 Не «фиксить заодно», только если задача об этом:
 - Дублирование алиасов между `tsconfig.base.json` (`paths`) и `packages/core/src/builder/config.ts` (`resolve.alias`). Когда добавляется новый пакет — обновлять обе точки. Дедуп возможен (`tsconfigPaths` плагин уже подключён), но требует аккуратной проверки каждой записи — не cosmetic.
-- `packages/ui/vite.config.ts` импортирует `defineConfig` из `@capsuletech/shared-vite`, которого там нет (см. `pnpm nx build core` на старте сессии). Сборку core это не ломает, но `nx run-many -t build` для `ui/router/style` упадёт. Будет в отдельном проходе.
+- `packages/ui/vite.config.ts` импортирует `defineConfig` из `@capsuletech/vite-builder`, которого там нет (см. `pnpm nx build core` на старте сессии). Сборку core это не ломает, но `nx run-many -t build` для `ui/router/style` упадёт. Будет в отдельном проходе.
 
 ### Закрытые в коде
 - ✅ Копипаста между `ControllerWrapper` / `FeatureWrapper` — заменено на `createLogicWrapper(kind)` (ADR 002).

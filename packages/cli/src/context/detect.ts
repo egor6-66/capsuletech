@@ -6,7 +6,7 @@ const detectMode = (workspaceRoot: string | null): CliMode => {
   if (process.env.CAPSULE_MODE === 'development') return 'dev';
   if (process.env.CAPSULE_MODE === 'production') return 'prod';
   // Авто-детект: внутри capsule-репозитория есть исходники shared-vite.
-  if (workspaceRoot && existsSync(join(workspaceRoot, 'packages/shared/vite/package.json'))) {
+  if (workspaceRoot && existsSync(join(workspaceRoot, 'packages/builders/vite/package.json'))) {
     return 'dev';
   }
   return 'prod';

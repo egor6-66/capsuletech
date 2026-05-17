@@ -22,7 +22,7 @@
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
-    "@capsuletech/shared-vite": "workspace:*"
+    "@capsuletech/vite-builder": "workspace:*"
   },
   "publishConfig": {
     "access": "public",

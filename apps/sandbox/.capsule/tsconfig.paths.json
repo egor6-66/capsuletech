@@ -63,11 +63,11 @@
       "@capsuletech/shared-file-manager": [
         "packages/shared/file-manager/src/index.ts"
       ],
-      "@capsuletech/shared-compliance": [
-        "packages/shared/compliance/src/index.ts"
+      "@capsuletech/compliance": [
+        "packages/builders/compliance/src/index.ts"
       ],
-      "@capsuletech/shared-vite": [
-        "packages/shared/vite/src/index.ts"
+      "@capsuletech/vite-builder": [
+        "packages/builders/vite/src/index.ts"
       ],
       "@capsuletech/shared-zod": [
         "packages/shared/zod/src/index.ts"

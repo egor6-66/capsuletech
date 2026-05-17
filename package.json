@@ -4,7 +4,10 @@
   "license": "MIT",
   "private": true,
   "type": "module",
-  "workspaces": ["apps/*", "packages/**"],
+  "workspaces": [
+    "apps/*",
+    "packages/**"
+  ],
   "packageManager": "pnpm@9.0.0",
   "scripts": {
     "start:workspace": "node packages/cli/bin/capsule.mjs",
@@ -23,6 +26,8 @@
     "lint": "biome check --write .",
     "lint:fix": "biome check --apply  --unsafe .",
     "format": "biome format --write .",
+    "audit:exports": "node scripts/audit-exports.mjs",
+    "test": "pnpm -r --filter \"./packages/**\" --workspace-concurrency=1 test",
     "report": "node scripts/feature-report.mjs",
     "report:list": "node scripts/feature-report.mjs list",
     "report:all": "node scripts/feature-report.mjs all",
@@ -30,6 +35,7 @@
     "kill": "npx kill-port 2233 2250"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
     "@biomejs/biome": "^1.8.0",
     "@nx/devkit": "^22.7.0",
     "@nx/esbuild": "22.6.5",
@@ -37,11 +43,11 @@
     "@nx/storybook": "22.6.5",
     "@nx/web": "22.6.5",
     "@swc-node/register": "~1.11.1",
-    "@tauri-apps/cli": "^2.0.0",
     "@swc/core": "~1.15.5",
     "@swc/helpers": "~0.5.18",
     "@tanstack/router-cli": "^1.166.39",
     "@tanstack/router-vite-plugin": "^1.166.45",
+    "@tauri-apps/cli": "^2.0.0",
     "@types/inquirer": "^9.0.9",
     "@types/node": "20.19.9",
     "@vitest/ui": "~4.1.0",
@@ -50,6 +56,7 @@
     "jsdom": "~22.1.0",
     "nx": "22.6.5",
     "prettier": "~3.6.2",
+    "publint": "^0.3.21",
     "storybook": "^10",
     "storybook-solidjs-vite": "^10",
     "tailwindcss": "^4.2.4",
@@ -67,7 +74,7 @@
     "@babel/plugin-syntax-jsx": "^7.24.7",
     "@babel/traverse": "^7.25.6",
     "@babel/types": "^7.25.6",
-    "@capsuletech/shared-compliance": "workspace:*",
+    "@capsuletech/compliance": "workspace:*",
     "@capsuletech/shared-file-manager": "workspace:*",
     "@clack/prompts": "^1.3.0",
     "@kobalte/core": "^0.13.11",

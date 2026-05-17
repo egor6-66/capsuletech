@@ -9,12 +9,12 @@ const require = createRequire(import.meta.url);
 
 const getViteEntry = (root: string, mode: 'dev' | 'prod'): string => {
   if (mode === 'dev') {
-    return resolve(root, 'packages/shared/vite/dist/index.mjs');
+    return resolve(root, 'packages/builders/vite/dist/index.mjs');
   }
   try {
-    return require.resolve('@capsuletech/shared-vite');
+    return require.resolve('@capsuletech/vite-builder');
   } catch {
-    return resolve(root, 'node_modules/@capsuletech/shared-vite');
+    return resolve(root, 'node_modules/@capsuletech/vite-builder');
   }
 };
 

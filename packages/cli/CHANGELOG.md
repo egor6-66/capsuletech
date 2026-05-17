@@ -101,42 +101,42 @@ This was a version bump only for @capsuletech/cli to align it with other project
 ### 🧱 Updated Dependencies
 
 - Updated @capsuletech/file-manager to 0.0.48
-- Updated @capsuletech/shared-vite to 0.0.7
+- Updated @capsuletech/vite-builder to 0.0.7
 
 ## 0.0.47 (2026-05-12)
 
 ### 🧱 Updated Dependencies
 
 - Updated @capsuletech/file-manager to 0.0.47
-- Updated @capsuletech/shared-vite to 0.0.6
+- Updated @capsuletech/vite-builder to 0.0.6
 
 ## 0.0.46 (2026-05-12)
 
 ### 🧱 Updated Dependencies
 
 - Updated @capsuletech/file-manager to 0.0.46
-- Updated @capsuletech/shared-vite to 0.0.5
+- Updated @capsuletech/vite-builder to 0.0.5
 
 ## 0.0.45 (2026-05-12)
 
 ### 🧱 Updated Dependencies
 
 - Updated @capsuletech/file-manager to 0.0.45
-- Updated @capsuletech/shared-vite to 0.0.4
+- Updated @capsuletech/vite-builder to 0.0.4
 
 ## 0.0.44 (2026-05-12)
 
 ### 🧱 Updated Dependencies
 
 - Updated @capsuletech/file-manager to 0.0.44
-- Updated @capsuletech/shared-vite to 0.0.3
+- Updated @capsuletech/vite-builder to 0.0.3
 
 ## 0.0.43 (2026-05-12)
 
 ### 🧱 Updated Dependencies
 
 - Updated @capsuletech/file-manager to 0.0.43
-- Updated @capsuletech/shared-vite to 0.0.2
+- Updated @capsuletech/vite-builder to 0.0.2
 
 ## 0.0.42 (2026-05-12)
 

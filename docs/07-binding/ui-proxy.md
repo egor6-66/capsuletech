@@ -5,7 +5,7 @@ status: documented
 
 # 🪞 UiProxy — перехват UI-событий
 
-**Файл:** `packages/core/src/wrappers/ui/ui-kit/proxy.tsx`
+**Файл:** `packages/web/core/src/wrappers/ui/ui-kit/proxy.tsx`
 
 UiProxy — «магия», которая делает Entity stateless. Подменяет базовый UI-kit на обёртки, которые при наличии **собственного `meta`** регистрируются в store и автоматически отправляют события в Controller. Без `meta` — пропускаются как структурные.
 
@@ -14,15 +14,21 @@ UiProxy — «магия», которая делает Entity stateless. Под
 В `EntityWrapper`:
 
 ```tsx
-// packages/core/src/wrappers/ui/entity.tsx
+// packages/web/core/src/wrappers/ui/entity.tsx
 const ctx = useCtx();
 const Ui = ctx ? UiProxy(ctx, wrapperProps) : BaseUi;
-return <Component {...Ui} />;
+return (
+  <ShapeUiContext.Provider value={Ui}>
+    {Component(Ui, getShapes())}
+  </ShapeUiContext.Provider>
+);
 ```
 
 Если Entity рендерится **внутри** Controller/Feature (есть Context) — Entity получает Proxy-обёртки. Без Context — голый UI.
 
-## Politика регистрации (C — own meta)
+`ShapeUiContext.Provider` нужен, чтобы [[shape|Shape]]'ы внутри Entity получили **тот же** проксированный Ui для резолва `definition.as` (path-tracker).
+
+## Политика регистрации (C — own meta)
 
 > [!info]
 > Только элементы с **собственным** `meta={...}` на JSX-узле попадают в `store.components` и получают обработчики событий. Унаследованный `dynamicMeta` от Entity-уровня не влияет на регистрацию структурных обёрток (Field, Field.Label, Field.Content и т.п.).
@@ -35,17 +41,17 @@ if (!hasOwnMeta) {
   return <OriginalComponent {...mergedProps} />;
 }
 
-// иначе — registerComponent + event-bindings + name-derivation + class/disabled
+// иначе — registerComponent + event-bindings + name-derivation + class/disabled/type
 ```
 
 | Случай | Регистрируется? | Получает event-handlers? |
 |---|---|---|
 | `<Button meta={{tags:['submit']}}>` | ✅ да | ✅ да |
 | `<Field>` без своего meta | ❌ нет | ❌ нет |
-| `<Field meta={{tags:['form-root']}}>` (если бы захотел подписать структуру) | ✅ да | ✅ да |
+| `<Field meta={{tags:['form-root']}}>` | ✅ да | ✅ да |
 | `<Field.Label>Email</Field.Label>` | ❌ нет | ❌ нет |
 
-`meta` стало явным opt-in флагом «элемент участвует в HCA-потоке».
+`meta` — явный opt-in флаг «элемент участвует в HCA-потоке».
 
 ## Жизненный цикл регистрации (фикс [[007-uiproxy-cleanup|ADR 007]])
 
@@ -62,7 +68,7 @@ createEffect(() => {
 onCleanup(() => ctx.store.unregisterComponent(id));
 ```
 
-- `createUniqueId()` генерит **стабильный** id один раз на mount (не на каждый рендер).
+- `createUniqueId()` генерит **стабильный** id один раз на mount.
 - `createEffect` пере-регистрирует props при их изменении (зеркало store ↔ DOM).
 - `onCleanup` снимает запись из стора при unmount.
 
@@ -70,7 +76,7 @@ onCleanup(() => ctx.store.unregisterComponent(id));
 
 ## Деривация `name` (под капотом)
 
-`name` больше не пишется в JSX. Выводится из `meta.tags`:
+`name` не пишется в JSX. Выводится из `meta.tags`:
 
 ```ts
 const deriveName = (meta) =>
@@ -88,6 +94,32 @@ const deriveName = (meta) =>
 3. Используется в `getTargetData` → `target.name` в хэндлере.
 4. Используется в `dynamicProps.class` для адресной стилизации (`store.styles[name]`).
 
+## Деривация DOM `type` для input'а
+
+UiProxy подмешивает HTML-атрибут `type` нативному `<input>`, если в `meta.tags` есть один из «типовых» тегов. Маппинг закрытый:
+
+```ts
+const TAG_TO_INPUT_TYPE = {
+  password: 'password',
+  email:    'email',
+  phone:    'tel',
+  number:   'number',
+  text:     'text',
+};
+```
+
+| `meta.tags` | DOM `type` |
+|---|---|
+| `['email']` | `email` |
+| `['password','@inputs']` | `password` |
+| `['phone']` | `tel` |
+| `['otp']` | _не подмешивается_ (нет в маппинге) |
+
+> [!info]
+> Приоритет: явный `props.type` от автора Entity **побеждает** дериватив. Если автор написал `<Input meta={{tags:['email']}} type="text">`, type останется `text`.
+
+Это сделано для эргономики Entity: достаточно тега `email`/`password`, чтобы DOM получил правильную клавиатуру на мобильных и password-masking браузером. Никакого Controller-side state для типа не нужно.
+
 ## Перехватываемые события (см. [[009-event-interception-extension|ADR 009]])
 
 ```ts
@@ -101,7 +133,7 @@ const EVENT_HANDLERS = [
 ];
 ```
 
-`updateStore: true` означает: при срабатывании автообновляется `store.components[id]` значением `target` (для инпутов и селектов).
+`updateStore: true` — при срабатывании автообновляется `store.components[id]` значением `target` (для инпутов и селектов).
 
 ## Дедупликация на bubbling
 
@@ -125,17 +157,36 @@ return (e) => {
 
 ```ts
 {
-  name: el?.name || derivedName || finalProps.name,
-  value: el?.type === 'checkbox' ? el?.checked : (el?.value ?? finalProps.value),
-  type: el?.type,
+  name:        el?.name || derivedName || finalProps.name,
+  value:       el?.type === 'checkbox' ? el?.checked : (el?.value ?? finalProps.value),
+  type:        el?.type,
   meta:        parseMeta(el?.getAttribute?.('meta'), finalProps.meta),
   dynamicMeta: finalProps?.dynamicMeta,
+  payload:     finalProps?.payload,
   key:         e?.key,                                // для KeyboardEvent
   modifiers:   { ctrl, shift, alt, meta },
 }
 ```
 
-`meta` ищется сначала в DOM-атрибуте (если разработчик задал статически), потом в props — фикс старого бага с `typeof === 'object'` теперь корректный (`typeof === 'string' → JSON.parse`).
+`meta` ищется сначала в DOM-атрибуте (если разработчик задал статически), потом в props.
+
+### Двойная семантика `payload`
+
+`payload` — поле с **разной семантикой** в зависимости от уровня цепочки:
+
+- **На первом уровне** (прямой UI-click): JSX-declared payload автора Entity.
+  ```tsx
+  <Nav.Item meta={{tags:['nav']}} payload={{href:'/branches'}}>Branches</Nav.Item>
+  // → target.payload === { href: '/branches' }
+  ```
+- **При bubble через `next(arg)` в Controller**: [[controller-proxy|ControllerProxy]] перетирает `payload` аргументом `next(...)`. Feature получит то, что Controller передал наверх — независимо от того, что было на JSX'е.
+  ```ts
+  // Controller
+  onClick: ({ target, next }) => next({ from: target.payload.href, ts: Date.now() })
+  // Feature получит target.payload === { from: '/branches', ts: ... }
+  ```
+
+Это разделение даёт автору Entity способ прикрепить произвольные данные к элементу, не используя ad-hoc DOM-attribute, при этом не блокируя промежуточные слои переинтерпретировать payload по дороге.
 
 ## Two-tier meta
 
@@ -155,11 +206,19 @@ const dynamicProps = {
   get class()    { return `${props.class || ''} ${store.styles?.[name] || ''}`.trim(); },
   get disabled() { return store.loading || props.disabled; },
   get name()     { return deriveName(props.meta); },
+  get type()     { return props.type ?? deriveInputType(props.meta); },
   ...eventBindings,
 };
+
+const finalProps = mergeProps(
+  props,
+  dynamicProps,
+  () => ctx.store.props?.[id] ?? {},   // patch'и от Controller (store.setProps)
+  local,
+);
 ```
 
-Все getter'ы реактивны — Solid пересчитает их при изменении `store.styles`/`store.loading`/`props.meta`.
+Все getter'ы реактивны — Solid пересчитает их при изменении `store.styles` / `store.loading` / `props.meta`. Patch-источник передан **функцией**, чтобы `mergeProps` вызывал её на каждом чтении и пробрасывал реактивность от XState-store в потребителя.
 
 ## Async-ошибки
 
@@ -171,7 +230,6 @@ const dynamicProps = {
 
 ## Связанное
 
-- [[controller-proxy]]
-- [[lifecycle]]
-- [[tagging-system]]
+- [[controller-proxy]] · [[shape]]
+- [[lifecycle]] · [[tagging-system]]
 - [[007-uiproxy-cleanup|ADR 007]] · [[008-hybrid-fsm-api|ADR 008]] · [[009-event-interception-extension|ADR 009]]

@@ -10,9 +10,9 @@
     "release:prod": "node ../../scripts/release.mjs --group=cli --mode=prod"
   },
   "dependencies": {
-    "@capsuletech/shared-compliance": "workspace:*",
+    "@capsuletech/compliance": "workspace:*",
     "@capsuletech/shared-file-manager": "workspace:*",
-    "@capsuletech/shared-vite": "workspace:*",
+    "@capsuletech/vite-builder": "workspace:*",
     "@clack/prompts": "^1.3.0",
     "@nx/devkit": "^22.7.0",
     "@tailwindcss/vite": "^4.2.4",

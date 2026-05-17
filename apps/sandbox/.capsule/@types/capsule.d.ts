@@ -1,4 +1,4 @@
-import type { ICapsuleConfig } from '@capsuletech/shared-vite';
+import type { ICapsuleConfig } from '@capsuletech/vite-builder';
 import type { IAppConfig } from '@capsuletech/web-core';
 
 declare global {

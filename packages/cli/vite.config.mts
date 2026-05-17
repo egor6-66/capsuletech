@@ -1,8 +1,8 @@
 import * as path from 'node:path';
-import { libConfig } from '../shared/lib-config/src';
-// Деep-import minуя @capsuletech/shared-vite/dist — иначе nx graph хочет
-// собранный shared-vite ещё до запуска build target'ов.
-import { staticCopyPlugin } from '../shared/vite/src/plugins/staticCopy';
+import { libConfig } from '../builders/lib/src';
+// Deep-import минуя @capsuletech/vite-builder/dist — иначе nx graph хочет
+// собранный vite-builder ещё до запуска build target'ов.
+import { staticCopyPlugin } from '../builders/vite/src/plugins/staticCopy';
 
 export default libConfig({
   entry: {

@@ -3,98 +3,111 @@ tags: [hca, package, core]
 status: documented
 ---
 
-# @capsuletech/core
+# @capsuletech/web-core
 
-**Расположение:** `packages/core/`
-**Зависит от:** `@capsuletech/state`, `@capsuletech/router`, `@capsuletech/ui`, `@capsuletech/style`, `@capsuletech/profiler`, `@capsuletech/shared-vite`, `@capsuletech/file-manager`
+**Расположение:** `packages/web/core/`
+**Зависит от:** `@capsuletech/web-state`, `@capsuletech/web-router`, `@capsuletech/web-ui`, `@capsuletech/web-style`, `@capsuletech/web-query`, `@capsuletech/web-profiler`, `@capsuletech/shared-zod`, `@capsuletech/vite-builder`, `@capsuletech/shared-file-manager`
 
 Сердце фреймворка. Тут живут:
 
-- 5 wrapper-функций ([[layers|слои HCA]]),
+- 6 wrapper-функций ([[layers|слои HCA]] + `Shape`),
 - двойная Proxy-механика ([[ui-proxy]] + [[controller-proxy]]),
-- Builder-обёртки для запуска `@capsuletech/shared-vite`,
-- Provider'ы (`Base`).
+- path-tracker для [[shape]],
+- `createRoot` и `BaseProviders`.
 
 ## Карта файлов
 
 ```
-packages/core/src/
-├── index.ts                   главный barrel: wrappers, Providers, interfaces
-├── interfaces.ts              ICapsuleConfig
-├── index.css                  глобальные стили (импортируется в createRoot)
-├── wrappers/
-│   ├── index.ts               export Page/Widget/Entity/Controller/Feature
-│   ├── ctx.ts                 Solid Context — { state, store, controller, parent }
-│   ├── interfaces.ts
-│   ├── ui/
-│   │   ├── entity.tsx         EntityWrapper
-│   │   ├── widget.tsx         WidgetWrapper
-│   │   ├── page.tsx           PageWrapper (+Outlet)
-│   │   ├── interfaces.ts      IEntityWrapper, IWidgetWrapper, IPageWrapper
-│   │   └── ui-kit/
-│   │       ├── imports.tsx    lazy-импорты Button/Input/Card/Field/...
-│   │       ├── proxy.tsx      UiProxy
-│   │       └── index.tsx
-│   └── logic/
-│       ├── controller.tsx     ControllerWrapper
-│       ├── feature.tsx        FeatureWrapper (≈ копипаста ControllerWrapper)
-│       ├── interfaces.ts      IDefineStateSchema, IHandlerApi
-│       └── utils/
-│           ├── proxy.ts       ControllerProxy
-│           ├── helpers.ts     pickByTags / omitByTags / matchByTags
-│           └── index.ts
-├── builder/
-│   ├── index.ts               createDevServer / createPreviewServer / buildApp
-│   └── config.ts              buildConfig — собирает Vite-конфиг из плагинов и алиасов
-├── configs/
+packages/web/core/src/
+├── index.ts                       barrel: wrappers + Providers + interfaces
+├── interfaces.ts                  IAppConfig (для apps/<app>/capsule.app.ts)
+├── index.css                      (резерв — сами стили в @capsuletech/web-style)
+├── create/
 │   ├── index.ts
-│   └── defineWebConfig.ts     identity-функция (типизирует IConfig)
+│   └── createRoot.ts              render(Component, #root) + ensureTheme
 ├── providers/
 │   ├── index.ts
-│   └── base.tsx               Base — VitalsMonitoring + RouterProvider
-└── create/
-    ├── index.ts
-    ├── createRoot.ts          render(Component, #root)
-    └── createModuleTree.ts    runtime-аналог ExportGeneratorPlugin (через import.meta.glob)
+│   └── base.tsx                   BaseProviders — RouterProvider + (опц.) VitalsMonitoringProvider
+└── wrappers/
+    ├── index.ts                   реэкспорт Entity/Widget/Page + Controller/Feature/Shape + ShapeUiContext/useShapeUi
+    ├── ctx.ts                     Solid Context — { state, store, controller, parent }
+    ├── interfaces.ts              re-export ui/logic interfaces
+    ├── ui/
+    │   ├── entity.tsx · widget.tsx · page.tsx
+    │   ├── interfaces.ts          IEntityWrapper / IWidgetWrapper / IPageWrapper + глобальные slot-интерфейсы (Widgets/Entities/Controllers/Features/Shapes/CapsuleApi)
+    │   └── ui-kit/
+    │       ├── imports.tsx        lazy()-обёртки над @capsuletech/web-ui
+    │       └── proxy.tsx          UiProxy
+    └── logic/
+        ├── controller.tsx · feature.tsx (оба = createLogicWrapper(kind))
+        ├── interfaces.ts          IDefineStateSchema / IHandlerApi / IServices / ITarget / IStateApi
+        ├── utils/
+        │   ├── createLogicWrapper.tsx
+        │   └── proxy.ts           ControllerProxy
+        └── shape/
+            ├── wrapper.tsx · context.tsx · types.ts · ui-tracker.ts
 ```
 
 ## Точки входа
 
-```ts
-// @capsuletech (= @capsuletech/core)
-export { Page, Widget, Entity, Controller, Feature } from './wrappers';
-export * as Providers from './providers';
-export * from './interfaces';
+`package.json` экспортирует три подпути:
+
+```jsonc
+{
+  "exports": {
+    ".":          { "types": "./dist/index.d.ts",          "import": "./dist/index.mjs"          },
+    "./create":   { "types": "./dist/create/index.d.ts",   "import": "./dist/create.mjs"   },
+    "./providers":{ "types": "./dist/providers/index.d.ts","import": "./dist/providers.mjs"}
+  }
+}
 ```
 
-Дополнительные подпути (через ручные алиасы Vite, см. `builder/config.ts`):
-- `@capsuletech/core/builder` → `./builder/index.ts`
-- `@capsuletech/core/create` → `./create/index.ts`
+Что откуда:
+
+```ts
+// @capsuletech/web-core (главный barrel)
+import { Entity, Widget, Page, Controller, Feature, Shape, useShapeUi } from '@capsuletech/web-core';
+import type { IAppConfig, IDefineStateSchema, IHandlerApi /* ... */ } from '@capsuletech/web-core';
+
+// @capsuletech/web-core/create — для apps/<app>/.capsule/index.ts
+import { createRoot } from '@capsuletech/web-core/create';
+
+// @capsuletech/web-core/providers — для apps/<app>/.capsule/bootstrap.tsx
+import { BaseProviders } from '@capsuletech/web-core/providers';
+```
 
 ## Зависимости wrapper'ов друг от друга
 
 ```
 Page ────┐
-Widget ──┼─→ Ui (lazy from @capsuletech/ui)
+Widget ──┼─→ Ui (lazy from @capsuletech/web-ui)
 Entity ──┘   + UiProxy(ctx)
                 ↑
                 ctx ← Solid Context
                 ↑
 Controller, Feature ─→ создают ControllerProxy и кладут в Context
                        ↑
-                       useMachine(createState(...))  // @capsuletech/state
+                       useMachine(createState(...))  // @capsuletech/web-state
+Shape  ────→ читает proxied Ui из ShapeUiContext, который проставляет Entity
 ```
+
+## Глобальные slot-интерфейсы
+
+`wrappers/ui/interfaces.ts` объявляет пустые global-интерфейсы — `Widgets`, `Entities`, `Controllers`, `Features`, `Shapes`, `CapsuleApi`. Через `interface merging` их дополняет codegen (`.capsule/@types/slots.d.ts` от `ExportGeneratorPlugin`'а и `.capsule/@types/api.d.ts` от `EndpointsRegistryPlugin`). Это даёт типизацию слотов в Widget/Page/Entity и поля `services.api.<endpoint>` в Feature.
+
+Сами реестры рантайма (`globalThis.Widgets`/`Entities`/…) кладёт `apps/<app>/.capsule/bootstrap.tsx` через `Object.assign(globalThis, registry)`.
 
 ## Что **не** входит в core
 
-- API-клиенты — это уровень приложения (`apps/<app>/services/`).
-- Bridge между Solid и XState — это `@capsuletech/state`.
-- UI-компоненты — `@capsuletech/ui`.
+- API-клиенты — `@capsuletech/web-query` (Feature получает `services.api`).
+- Bridge между Solid и XState — `@capsuletech/web-state`.
+- UI-компоненты — `@capsuletech/web-ui`.
+- Темизация — `@capsuletech/web-style`.
+- Vite-плагины / builder — `@capsuletech/vite-builder`.
 
 ## Связанное
 
 - [[layers]]
-- [[ui-proxy]]
-- [[controller-proxy]]
-- [[state|@capsuletech/state]]
-- [[ui|@capsuletech/ui]]
+- [[ui-proxy]] · [[controller-proxy]] · [[shape]]
+- [[state|@capsuletech/web-state]]
+- [[ui|@capsuletech/web-ui]]

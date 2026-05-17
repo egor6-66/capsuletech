@@ -1,6 +1,6 @@
 {
   "$schema": "https://biomejs.dev",
-  "extends": ["./packages/shared/biome/biome.json"],
+  "extends": ["./packages/builders/biome/biome.json"],
   "files": {
     "ignore": ["dist", ".capsule", "node_modules", ".nx", "coverage"]
   }

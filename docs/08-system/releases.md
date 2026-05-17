@@ -176,7 +176,7 @@ pnpm release:web:nexus
 
 **`does not have a package.json file available in dist\packages\<name>\`** — у Capsule `dist/` лежит **внутри** каждого пакета, а Nx по дефолту ищет publishable artifact в `dist/<projectRoot>/`. Чинится через `targetDefaults["nx-release-publish"].options.packageRoot = "{projectRoot}"` в `nx.json` (уже стоит). Если воспроизводится — проверь что эта секция не уехала.
 
-**`task graph has a circular dependency`** на pre-version build — Nx видит ложный цикл `@capsuletech/shared-vite ↔ @capsuletech/compliance` (vite использует compliance в runtime, compliance использует vite в devDeps для собственной сборки). Решение: `preVersionCommand` в `nx.json` использует `pnpm --filter ... build`, а не `nx run-many` — pnpm сортирует только по runtime-deps и цикла не видит.
+**`task graph has a circular dependency`** на pre-version build — Nx видит ложный цикл `@capsuletech/vite-builder ↔ @capsuletech/compliance` (vite использует compliance в runtime, compliance использует vite в devDeps для собственной сборки). Решение: `preVersionCommand` в `nx.json` использует `pnpm --filter ... build`, а не `nx run-many` — pnpm сортирует только по runtime-deps и цикла не видит.
 
 **`401 Unauthorized`** — креды не подхватились. Проверь:
 - `cat .npmrc` (после падения, до cleanup'а — креды должны быть там)
@@ -194,5 +194,5 @@ pnpm release:web:nexus
 ## Связанное
 
 - [[cli|@capsuletech/cli]] — отдельная независимая группа, релизится своей командой.
-- [[vite-plugins]] — vite-плагины из `@capsuletech/shared-vite` ходят в составе web_base.
+- [[vite-plugins]] — vite-плагины из `@capsuletech/vite-builder` ходят в составе web_base.
 - Старый `scripts/publish.mjs` (без git-тегов, snapshot-versioning) остался для быстрой публикации в локальный verdaccio во время разработки — не путать с `release:*:verdaccio`.

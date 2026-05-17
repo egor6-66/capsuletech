@@ -40,6 +40,7 @@ type: index
 
 - [[ui-proxy|🪞 UiProxy — перехват UI-событий]]
 - [[controller-proxy|🧠 ControllerProxy — FSM + цепочка `next()`]]
+- [[shape|🧬 Shape — декларативные data-формы]]
 - [[tag-registry|🏷️ Реестр тегов и алиасов]]
 - [[overrides|🔁 Overrides — ремап имён методов]]
 
@@ -54,11 +55,11 @@ type: index
 
 ## 📦 Пакеты
 
-- [[core|@capsuletech/core]]
-- [[state|@capsuletech/state]]
-- [[router|@capsuletech/router]]
-- [[ui|@capsuletech/ui]]
-- [[style|@capsuletech/style]]
+- [[core|@capsuletech/web-core]]
+- [[state|@capsuletech/web-state]]
+- [[router|@capsuletech/web-router]]
+- [[ui|@capsuletech/web-ui]]
+- [[style|@capsuletech/web-style]]
 - [[compliance|@capsuletech/compliance]]
 - [[api-middleware|🌐 API middleware — endpoints + pipeline]]
 

@@ -1,13 +1,16 @@
 {
-  "name": "@capsuletech/shared-lib-config",
+  "name": "@capsuletech/vite-builder",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/shared/lib-config/src",
+  "sourceRoot": "packages/builders/vite/src",
   "projectType": "library",
   "tags": [],
+  "// targets": "to see all targets run: nx show project @capsuletech/vite-builder --web",
   "targets": {},
   "release": {
     "version": {
-      "manifestRootsToUpdate": ["{projectRoot}"],
+      "manifestRootsToUpdate": [
+        "{projectRoot}"
+      ],
       "currentVersionResolver": "git-tag",
       "fallbackCurrentVersionResolver": "disk"
     }

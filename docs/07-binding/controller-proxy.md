@@ -6,10 +6,10 @@ status: documented
 # 🧠 ControllerProxy — FSM + цепочка `next()`
 
 **Файлы:**
-- `packages/core/src/wrappers/logic/utils/proxy.ts` — сам Proxy
-- `packages/core/src/wrappers/logic/utils/createLogicWrapper.tsx` — фабрика, которая собирает машину + Proxy и кладёт в Context
-- `packages/state/src/create.ts` — `createState(schema)` строит XState-машину
-- `packages/state/src/bridge.ts` — `createBridge(state, send)` — store-фасад
+- `packages/web/core/src/wrappers/logic/utils/proxy.ts` — сам Proxy
+- `packages/web/core/src/wrappers/logic/utils/createLogicWrapper.tsx` — фабрика, которая собирает машину + Proxy и кладёт в Context
+- `packages/web/state/src/create.ts` — `createState(schema)` строит XState-машину
+- `packages/web/state/src/bridge.ts` — `createBridge(state, send)` — store-фасад
 
 ControllerProxy — поведенческая часть Controller/Feature. Текущая реализация — гибрид по [[001-xstate-as-canonical-fsm|ADR 001]] + [[008-hybrid-fsm-api|ADR 008]]: XState владеет локальной FSM (transitions, entry/exit, store-context), а dispatch UI-событий и `next()` живут в Proxy.
 
@@ -24,11 +24,11 @@ Proxy спрашивает у XState текущий стейт через `state
 
 ## API хэндлера
 
-Каждый метод (`onClick`, `onInput`, `onInit`, `onExit`, кастомные) получает:
+Каждый метод (`onClick`, `onInput`, `onInit`, `onExit`, `onMount`, кастомные) получает:
 
 ```ts
 {
-  target,    // ITarget — DOM-данные + meta + dynamicMeta + key/modifiers
+  target,    // ITarget — DOM-данные + meta + dynamicMeta + payload + key/modifiers
   context,   // store.ctx (XState context на момент вызова)
   next,      // делегирование родителю — см. ниже
   store,     // bridge: get-аккессоры + мутации + pick/omit/match/matchEntry
@@ -36,7 +36,7 @@ Proxy спрашивает у XState текущий стейт через `state
 }
 ```
 
-Тип `IHandlerApi` зафиксирован в `packages/core/src/wrappers/logic/interfaces.ts`.
+Тип `IHandlerApi` зафиксирован в `packages/web/core/src/wrappers/logic/interfaces.ts`.
 
 ## Резолв метода
 
@@ -89,10 +89,11 @@ const next = async (payload = null) => {
 - `await` возвращает результат родительского хэндлера (натуральный promise-flow).
 - Тихий no-op, если родителя нет (`return null`).
 - [[overrides]] ремапит имя метода на родителе.
+- `payload` поверх target — см. секцию "Двойная семантика `payload`" в [[ui-proxy|UiProxy]].
 
-## Lifecycle (onInit / onExit)
+## Lifecycle: onInit / onExit
 
-`packages/core/src/wrappers/logic/utils/createLogicWrapper.tsx` навешивает реактивный эффект:
+`packages/web/core/src/wrappers/logic/utils/createLogicWrapper.tsx` навешивает реактивный эффект:
 
 ```ts
 let prevState: string | undefined;
@@ -110,17 +111,52 @@ createEffect(() => {
 
 В `lifecycleApi()` приходит та же структура `IHandlerApi`, но `target = {}` (нет триггерящего события) и `next = async () => null` (lifecycle не пузырится).
 
+## Lifecycle: onMount (top-level)
+
+`schema.onMount` — отдельный top-level хук, **фаерящий реактивно** при каждой регистрации компонента в `store.components`:
+
+```ts
+createEffect(() => {
+  void store.components;                                    // подписка на components
+  schema.onMount?.(lifecycleApi());
+});
+```
+
+Семантически отличается от `states[X].onInit`:
+
+| | `onInit` (в state) | `onMount` (top-level) |
+|---|---|---|
+| Когда фаерит | Вход в стейт FSM | Регистрация / анрегистрация компонента в store |
+| Сколько раз | По одному разу на каждый transition в state | На mount Controller'а + на каждый `registerComponent` (включая lazy-детей) |
+| Аргумент `target` | `{}` | `{}` |
+| Типичный паттерн | reset формы, запустить запрос на entry | пере-синхронизировать derived-state по тегам |
+
+**Зачем именно реактивно**, а не один раз на mount: дети могут регистрироваться **позже** первого тика рендера — `lazy()` из registry, TanStack lazy-routes, Suspense-fallback'и. Если читать `store.pick(['nav'])` на первом тике, реестр часто ещё пуст. `onMount` ловит каждую новую регистрацию.
+
+Пример — пересинхронизировать active-state с router'ом:
+
+```ts
+onMount: ({ store }) => {
+  const items = store.pick(['nav']);
+  store.setProps(...computePatch(items, router.current()));
+}
+```
+
+> [!warning]
+> Callback **обязан** быть идемпотентным. Несколько вызовов с одним и тем же набором компонентов должны давать тот же эффект. Иначе при появлении lazy-ребёнка получите N патчей вместо одного.
+
+XState `assign({components: ...})` создаёт новый ref на каждый `REGISTER_COMPONENT` — поэтому подписка через чтение `store.components` срабатывает на каждую регистрацию, а не на reference-equality.
+
 ## Резервные методы Proxy
 
 | Имя | Что |
 |---|---|
 | `controller.store` | возвращает bridge напрямую |
-| `controller.destroy` | вызывается из `onCleanup` враппера |
+| `controller.destroy` | no-op (зарезервировано для будущей очистки) |
 
 ## Связанное
 
-- [[ui-proxy]]
-- [[lifecycle]]
-- [[overrides]]
-- [[state|@capsuletech/state]]
+- [[ui-proxy]] · [[shape]]
+- [[lifecycle]] · [[overrides]]
+- [[state|@capsuletech/web-state]]
 - [[001-xstate-as-canonical-fsm|ADR 001]] · [[008-hybrid-fsm-api|ADR 008]]

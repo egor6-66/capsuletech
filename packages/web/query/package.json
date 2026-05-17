@@ -25,7 +25,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@capsuletech/shared-vite": "workspace:*"
+    "@capsuletech/vite-builder": "workspace:*"
   },
   "publishConfig": {
     "access": "public",
