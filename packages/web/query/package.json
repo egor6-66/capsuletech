@@ -9,13 +9,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
+    },
+    "./app-config": {
+      "types": "./dist/app-config.d.ts",
+      "import": "./dist/app-config.mjs",
+      "default": "./dist/app-config.mjs"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@capsuletech/shared-zod": "workspace:*"
@@ -25,6 +33,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@capsuletech/lib-builder": "workspace:*",
     "@capsuletech/vite-builder": "workspace:*"
   },
   "publishConfig": {

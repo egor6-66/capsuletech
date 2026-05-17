@@ -31,6 +31,23 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Сырая HTTP-ошибка от `defaultFetcher` (или совместимого fetcher'а). Несёт
+ * `status` и оригинальный `Response`. Конвертируется в типизированные ошибки
+ * (`UnauthorizedError`, `ServerError`, ...) мидлварой `statusMapper`.
+ *
+ * Раньше эта роль выполнялась через `Object.assign(new Error(...), { status,
+ * response })` — нетипизированный `{ status?: number }`-каст в нескольких
+ * местах. Класс делает контракт явным.
+ */
+export class HttpError extends ApiError {
+  readonly response: Response;
+  constructor(status: number, response: Response, opts: { cause?: unknown } = {}) {
+    super(`HTTP ${status} ${response.statusText}`, { code: 'http', status, ...opts });
+    this.response = response;
+  }
+}
+
 export class UnauthorizedError extends ApiError {
   constructor(opts: { payload?: unknown; cause?: unknown } = {}) {
     super('Unauthorized', { code: 'unauthorized', status: 401, ...opts });

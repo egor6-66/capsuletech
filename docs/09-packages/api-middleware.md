@@ -90,10 +90,10 @@ export default defineAppConfig({
 **Встроенные middleware:**
 - `mw.cookies()` — attach cookies to requests.
 - `mw.auth(config)` — add `Authorization: Bearer <token>` header.
-- `mw.statusMapper()` — convert HTTP status + body → typed errors (UnauthorizedError, NotFoundError, etc).
-- `mw.on401(callback)` — trigger callback on 401 (e.g. redirect to login).
+- `mw.statusMapper()` — конвертит сырую `HttpError` (бросает `defaultFetcher` на non-2xx) в типизированные `UnauthorizedError`/`ForbiddenError`/`NotFoundError`/`ConflictError`/`ServerError`. Должен стоять первым.
+- `mw.on401(callback)` — trigger callback on 401 (e.g. redirect to login). Должен идти **после** `statusMapper`.
 - `mw.log()` — console.log requests/responses (dev).
-- `mw.retry(config)` — retry failed requests (exponential backoff).
+- `mw.retry(config)` — exponential-backoff retry; по умолчанию ретраит `ServerError` и сетевые ошибки (`NetworkError`/`TimeoutError`). `shouldRetry(err, attempt)` — кастомный фильтр.
 
 ### Per-endpoint middleware
 
@@ -166,6 +166,7 @@ export default Feature((services) => ({
 - `NetworkError` — сетевая ошибка.
 - `TimeoutError` — timeout.
 - `ValidationError` — Zod валидация упала на request или response.
+- `HttpError` — сырая HTTP-ошибка с `.status` и `.response`. Обычно её не видно в Feature: `statusMapper` конвертирует её в одну из ошибок выше. Если `statusMapper` не подключён — Feature может ловить `HttpError` напрямую.
 
 Каждая ошибка имеет поля:
 - `message: string`

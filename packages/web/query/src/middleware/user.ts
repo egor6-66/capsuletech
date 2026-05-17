@@ -2,6 +2,7 @@ import {
   ApiError,
   ConflictError,
   ForbiddenError,
+  HttpError,
   NotFoundError,
   ServerError,
   UnauthorizedError,
@@ -39,15 +40,30 @@ export const auth = (opts: {
 };
 
 /**
- * Конвертит «сырые» HTTP-ошибки от `QueryClient` (Error с `.status`) в
- * типизированные `ApiError`. Размещается ПЕРВЫМ в пользовательском списке —
- * остальные `on401`/`onForbidden` уже ловят типизированный.
+ * Конвертит сырую `HttpError` от `defaultFetcher` (или любую другую с .status)
+ * в типизированные `UnauthorizedError`/`ForbiddenError`/`NotFoundError`/
+ * `ConflictError`/`ServerError`. Размещается ПЕРВЫМ в пользовательском списке —
+ * остальные `on401`/`onForbidden` уже ловят типизированный класс.
+ *
+ * Уже типизированные ошибки (всё, что extends ApiError, кроме сырой HttpError)
+ * — pass-through.
  */
 export const statusMapper = (): Middleware => async (ctx, next) => {
   try {
     await next();
   } catch (err) {
+    if (err instanceof HttpError) {
+      const { status } = err;
+      if (status === 401) throw new UnauthorizedError({ cause: err });
+      if (status === 403) throw new ForbiddenError({ cause: err });
+      if (status === 404) throw new NotFoundError({ cause: err });
+      if (status === 409) throw new ConflictError({ cause: err });
+      if (status >= 500) throw new ServerError(status, { cause: err });
+      throw err;
+    }
     if (err instanceof ApiError) throw err;
+    // Backward-compat для кастомных fetcher'ов, которые бросают «голый» Error
+    // с прикрученным `.status` (паттерн до HttpError-класса).
     const status = (err as { status?: number } | undefined)?.status;
     if (typeof status !== 'number') throw err;
     if (status === 401) throw new UnauthorizedError({ cause: err });

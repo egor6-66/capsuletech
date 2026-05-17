@@ -1,10 +1,12 @@
+import { HttpError } from './errors';
 import type { Fetcher } from './types';
 
 /**
  * Дефолтный HTTP-fetcher на нативном `fetch`. JSON-сериализует body,
  * JSON-парсит response при `Content-Type: application/json`, иначе отдаёт
- * `text()`/`blob()` в зависимости от типа. Бросает Error с `.status` и
- * `.response` на non-2xx.
+ * `text()`/`blob()` в зависимости от типа. Бросает `HttpError` с `.status` и
+ * `.response` на non-2xx — `statusMapper` mw конвертит его в типизированные
+ * `UnauthorizedError`/`ServerError`/...
  */
 export const defaultFetcher: Fetcher = async (req) => {
   const init: RequestInit = {
@@ -26,9 +28,7 @@ export const defaultFetcher: Fetcher = async (req) => {
   const res = await fetch(req.resolvedUrl, init);
 
   if (!res.ok) {
-    const error = new Error(`HTTP ${res.status} ${res.statusText}`);
-    Object.assign(error, { status: res.status, response: res });
-    throw error;
+    throw new HttpError(res.status, res);
   }
 
   const ct = res.headers.get('content-type') ?? '';

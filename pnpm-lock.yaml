@@ -523,6 +523,9 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../../builders/lib
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite

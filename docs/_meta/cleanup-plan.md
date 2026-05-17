@@ -25,11 +25,11 @@ status: living-doc
 | [packages/builders/lib](#packagesbuilderslib) | ✅ | — | ✅ |
 | [packages/builders/compliance](#packagesbuilderscompliance) | ✅ | — | ✅ |
 | [packages/builders/biome](#packagesbuildersbiome) | ✅ | — | n/a (config-only) |
-| [packages/web/core](#packagesweb-core) | ✅ | ✅ | ✅ (open items blocked on web-router/web-query) |
+| [packages/web/core](#packagesweb-core) | ✅ | ✅ | ✅ (P1 #3 закрыто web-router; P2 #10 закрыто web-query) |
 | [packages/web/state](#packagesweb-state) | ✅ | 🟡 (README — Nx-стаб) | ✅ |
 | [packages/web/router](#packagesweb-router) | ✅ | ✅ | ✅ |
-| [packages/web/query](#packagesweb-query) | — | — | — **← next** |
-| [packages/web/ui](#packagesweb-ui) | — | — | — |
+| [packages/web/query](#packagesweb-query) | ✅ | ✅ | ✅ |
+| [packages/web/ui](#packagesweb-ui) | — | — | — **← next** |
 | [packages/web/style](#packagesweb-style) | — | — | — |
 | [packages/web/profiler](#packagesweb-profiler) | — | — | — |
 | packages/shared/* | — | — | — |
@@ -447,6 +447,62 @@ TanStack `Register` — отдельный refactor.
 
 ---
 
+## packages/web/query
+
+Что это: декларативный HTTP-слой Capsule. `defineEndpoint` + `createApi` +
+koa-style middleware-pipeline. Feature видит typed-proxy `services.api.user.get({
+id })` — без fetch/кэш/error-mapping в коде. Подпуть `./app-config` экспортирует
+`IAppConfig` (раньше жил в web-core, что давало инверсию зависимости).
+
+### Файловая карта
+
+```
+packages/web/query/src/
+├── index.ts                 barrel
+├── app-config.ts            IAppConfig (новый entry: '@capsuletech/web-query/app-config')
+├── createApi.ts             createApi + setApiClient/getApiClient + MwToolbox
+├── client.ts                QueryClient (cache + dedupe + interceptors)
+├── cache.ts                 QueryCache (Map + prefix-invalidate)
+├── endpoint.ts              defineEndpoint (zod + Endpoint phantom-типы)
+├── fetcher.ts               defaultFetcher (нативный fetch → HttpError на non-2xx)
+├── errors.ts                ApiError + Http/Unauthorized/.../Validation/Network/...
+├── pipeline.ts              compose (koa) + ApiContext
+├── middleware/
+│   ├── core.ts              validateInput/buildRequest/httpTransport/validateResponse/mapDomain
+│   ├── user.ts              cookies/auth/statusMapper/on401/log/retry
+│   └── index.ts             barrel
+├── types.ts                 QueryClient / Fetch / Mutate options + interceptors
+└── __tests__/               147 тестов в 9 файлах (node-env)
+```
+
+### ✅ Сделано (PR #26)
+
+- **Phase A — характеризационные тесты.** 147 в 9 файлах:
+  `cache.test.ts`, `errors.test.ts`, `pipeline.test.ts`, `fetcher.test.ts`
+  (с globalThis.fetch stub), `endpoint.test.ts`, `middleware-core.test.ts`,
+  `middleware-user.test.ts`, `client.test.ts`, `createApi.test.ts`.
+- **Phase B — `IAppConfig` переехал** из web-core в `web-query/app-config`
+  (закрыт P2 #10 в web-core). Развязка инверсии: web-core больше не тащит
+  web-query типов ради одного интерфейса. `CapsuleApi`-global declaration
+  тоже переехала в web-query (родной дом — это типизация `getApiClient`).
+  `getApiClient(): CapsuleApi | undefined` (раньше `<T = unknown>` cast hack).
+  vite.config.mts → `@capsuletech/lib-builder` workspace alias + multi-entry
+  `{ index, app-config }`. types/capsule.d.ts + CLI template обновлены.
+- **Phase C — `HttpError` class.** Заменяет `Object.assign(new Error, { status,
+  response })` каст в fetcher.ts (Q-5). `statusMapper` теперь сначала маппит
+  `instanceof HttpError`, бэквард-compat ветка для bare-Error-с-.status
+  оставлена для кастомных фетчеров. README с Nx-стаба переписан, CHANGELOG
+  схлопнут, doc'и `api-middleware.md` / `core.md` синхронизированы (HttpError,
+  retry, IAppConfig в новом подпуте).
+
+### 🟡 Осталось
+
+#### P2 — `tsconfig.json` extends-only (cross-package)
+
+Та же ситуация, что и в web-core/state/router. Делать одним кросс-проходом.
+
+---
+
 ## Handoff — следующему агенту
 
 ### Где ты работаешь
@@ -473,6 +529,7 @@ TanStack `Register` — отдельный refactor.
 | #22 (`refactor/web-core-engine-split`) | web-core Phase E — engine/wrappers split, flat layout |
 | #23 (`refactor/web-state-stabilization`) | web-state — 72 теста, schema-type unification (Phase F) |
 | #24 (`refactor/web-router-typing`) | web-router — 9 тестов, generic TRouteTree, разблокировал P1 #3 в web-core (BaseProviders) |
+| #26 (`refactor/web-query-stabilization`) | web-query — 147 тестов, IAppConfig переехал из web-core (P2 #10), HttpError class |
 
 ### Working pattern (что сработало — повторяй)
 

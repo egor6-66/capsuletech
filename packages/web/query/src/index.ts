@@ -16,6 +16,7 @@ export type {
 
 export {
   ApiError,
+  HttpError,
   UnauthorizedError,
   ForbiddenError,
   NotFoundError,

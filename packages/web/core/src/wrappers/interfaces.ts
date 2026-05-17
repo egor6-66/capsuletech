@@ -13,7 +13,6 @@ import type {
   IBridge,
 } from '@capsuletech/web-state';
 import type { ICapsuleRouter } from '@capsuletech/web-router';
-import type { ApiConfig, MwToolbox } from '@capsuletech/web-query';
 import type { Component, JSX, JSXElement } from 'solid-js';
 import type {
   Animate,
@@ -59,11 +58,9 @@ declare global {
   interface Controllers {}
   interface Features {}
   interface Shapes {}
-  /**
-   * Typed-proxy для `services.api` в Feature'ах. `EndpointsRegistryPlugin`
-   * сливает в него `InferApi<Endpoints>` через `.capsule/@types/api.d.ts`.
-   */
-  interface CapsuleApi {}
+  // CapsuleApi живёт в @capsuletech/web-query/createApi.ts — родной дом
+  // (это типизация getApiClient). web-core видит её через interface-merging,
+  // потому что зависит от web-query (для value-import getApiClient).
 }
 
 type Wrapper<T extends (...args: any[]) => JSX.Element> = (component: T) => Component<any>;
@@ -235,9 +232,3 @@ export type {
   IShapeWrapper,
   ShapeItem,
 } from './shape/types';
-
-// Backward-compat noop: некоторые шаблоны / IDE-метаданные ожидают,
-// что ApiConfig/MwToolbox типы экспортируются отсюда. Реальный источник —
-// @capsuletech/web-query, но мы держим re-export ради устойчивости импортов
-// в `apps/<app>/capsule.app.ts`.
-export type { ApiConfig, MwToolbox };

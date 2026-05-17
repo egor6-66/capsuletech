@@ -3,6 +3,22 @@ import type { Endpoint, InferInput, InferOutput } from './endpoint';
 import * as builtinMw from './middleware';
 import { compose, type ApiContext, type Middleware } from './pipeline';
 
+/**
+ * Typed-proxy `services.api` для Feature. Сливается через TS-interface-merging
+ * с `apps/<app>/.capsule/@types/api.d.ts` (генерируется EndpointsRegistryPlugin'ом
+ * из реального `Endpoints`-реестра приложения). Без плагина — пустой interface,
+ * что соответствует "API не настроен"-кейсу: TS не пропустит `api.user.get(...)`
+ * без декларации эндпоинтов.
+ *
+ * Раньше декларация жила в `web-core/wrappers/interfaces.ts`. Перенесена сюда
+ * — это родной дом `CapsuleApi`-типа (нужен `getApiClient(): CapsuleApi`).
+ * web-core всё равно видит её через interface-merging, потому что web-core
+ * depends on web-query.
+ */
+declare global {
+  interface CapsuleApi {}
+}
+
 /** Карта user-facing middleware-факторий — приходит в `api({ mw })`-callback. */
 export type MwToolbox = {
   cookies: typeof builtinMw.cookies;
@@ -130,12 +146,31 @@ export const createApi = <R extends EndpointsRegistry>(
   return buildNode(endpoints, [], client, globalMw) as InferApi<R>;
 };
 
+// Module-level singleton — выставляется в generated `app-config.gen.ts` через
+// `setApiClient(createApi(appConfig.api, endpoints))`. Per-app: каждый bundle
+// имеет свой module-graph → свой singleton (изоляция между apps в одном процессе
+// гарантируется build-time изоляцией).
 let _api: unknown;
 
-/** Bootstrap-helper: вызывается из generated `app-config.gen.ts`. */
+/**
+ * Bootstrap-helper: вызывается из generated `app-config.gen.ts`. Принимает
+ * `unknown` (а не `CapsuleApi`), потому что результат `createApi()` —
+ * runtime-собранный proxy с реальной структурой, выводимой только из
+ * generated `Endpoints` типа в app-уровне.
+ */
 export const setApiClient = (api: unknown): void => {
   _api = api;
 };
 
-/** Используется `createLogicWrapper` для инжекта `services.api` в Feature. */
-export const getApiClient = <T = unknown>(): T | undefined => _api as T | undefined;
+/**
+ * Используется `createLogicWrapper` для инжекта `services.api` в Feature.
+ *
+ * Возвращает глобальный `CapsuleApi` (interface-merged через
+ * `apps/<app>/.capsule/@types/api.d.ts` плагином `EndpointsRegistryPlugin`).
+ * До инициализации (`setApiClient(...)` ещё не вызывался) — `undefined`.
+ *
+ * Без EndpointsRegistryPlugin'а `CapsuleApi` — пустой `interface {}`, что
+ * соответствует "API не настроен"-кейсу: TS не врёт, дёргать `api.user.get`
+ * без декларации эндпоинтов невозможно.
+ */
+export const getApiClient = (): CapsuleApi | undefined => _api as CapsuleApi | undefined;

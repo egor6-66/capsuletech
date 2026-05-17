@@ -5,7 +5,7 @@
 // their types inside `capsule.config.ts` / `capsule.app.ts`.
 
 import type { ICapsuleConfig } from '@capsuletech/shared-vite';
-import type { IAppConfig } from '@capsuletech/web-core';
+import type { IAppConfig } from '@capsuletech/web-query/app-config';
 
 declare global {
   function defineCapsuleConfig(config: ICapsuleConfig): ICapsuleConfig;

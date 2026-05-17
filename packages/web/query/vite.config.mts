@@ -1,6 +1,9 @@
-import { libConfig } from '../../builders/lib/src';
+import { libConfig } from '@capsuletech/lib-builder';
 
 export default libConfig({
-  entry: 'src/index.ts',
+  entry: {
+    index: 'src/index.ts',
+    'app-config': 'src/app-config.ts',
+  },
   name: 'CapsuleQuery',
 });

@@ -20,7 +20,7 @@ status: documented
 ```
 packages/web/core/src/
 ├── index.ts                       barrel: wrappers + Providers + interfaces
-├── interfaces.ts                  IAppConfig (для apps/<app>/capsule.app.ts)
+├── interfaces.ts                  re-export wrapper-интерфейсов (IAppConfig переехал в @capsuletech/web-query/app-config)
 ├── index.css                      (резерв — сами стили в @capsuletech/web-style)
 ├── create/
 │   ├── index.ts
@@ -67,7 +67,10 @@ packages/web/core/src/
 ```ts
 // @capsuletech/web-core (главный barrel)
 import { Entity, Widget, Page, Controller, Feature, Shape, useShapeUi } from '@capsuletech/web-core';
-import type { IAppConfig, IDefineStateSchema, IHandlerApi /* ... */ } from '@capsuletech/web-core';
+import type { IDefineStateSchema, IHandlerApi /* ... */ } from '@capsuletech/web-core';
+
+// IAppConfig живёт в @capsuletech/web-query (см. capsule.app.ts):
+import type { IAppConfig } from '@capsuletech/web-query/app-config';
 
 // @capsuletech/web-core/create — для apps/<app>/.capsule/index.ts
 import { createRoot } from '@capsuletech/web-core/create';
