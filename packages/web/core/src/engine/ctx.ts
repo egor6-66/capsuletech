@@ -3,7 +3,7 @@ import { createContext, useContext } from 'solid-js';
 
 /**
  * Controller-proxy facade: имена методов → async-handlers, плюс системные поля.
- * Тип отражает Proxy-таргет из `wrappers/logic/utils/proxy.ts`. Method-сигнатуры
+ * Тип отражает Proxy-таргет из `engine/controller-proxy.ts`. Method-сигнатуры
  * у user-controller'ов динамические (schema-driven), поэтому index-signature
  * остаётся `any` — без него Proxy-based dispatch не типизируется без массивов
  * generic-параметров на каждый Controller.

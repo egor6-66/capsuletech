@@ -1,8 +1,7 @@
 import { Outlet } from '@tanstack/solid-router';
-
-import type { IPageWrapper } from '../interfaces';
-import { getGlobalRegistry } from '../registry';
-import { Ui } from './ui-kit';
+import { getGlobalRegistry } from '../engine/registry';
+import { Ui } from '../ui-kit';
+import type { IPageWrapper } from './interfaces';
 
 export const PageWrapper: IPageWrapper = (Component) => {
   return function Page() {
