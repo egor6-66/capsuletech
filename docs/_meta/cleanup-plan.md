@@ -27,8 +27,8 @@ status: living-doc
 | [packages/builders/biome](#packagesbuildersbiome) | ✅ | — | n/a (config-only) |
 | [packages/web/core](#packagesweb-core) | ✅ | ✅ | ✅ (open items blocked on web-router/web-query) |
 | [packages/web/state](#packagesweb-state) | ✅ | 🟡 (README — Nx-стаб) | ✅ |
-| [packages/web/router](#packagesweb-router) | — | — | — **← next** |
-| [packages/web/query](#packagesweb-query) | — | — | — |
+| [packages/web/router](#packagesweb-router) | ✅ | ✅ | ✅ |
+| [packages/web/query](#packagesweb-query) | — | — | — **← next** |
 | [packages/web/ui](#packagesweb-ui) | — | — | — |
 | [packages/web/style](#packagesweb-style) | — | — | — |
 | [packages/web/profiler](#packagesweb-profiler) | — | — | — |
@@ -240,11 +240,12 @@ packages/web/core/src/
 
 ### 🟡 Осталось
 
-#### P1 #3 — Типизация `BaseProviders.routeTree` (blocked)
+#### ✅ P1 #3 — Типизация `BaseProviders.routeTree`
 
-[packages/web/core/src/providers/base.tsx](packages/web/core/src/providers/base.tsx) —
-`routeTree?: any`. Чтобы убрать `any`, нужно сначала вытащить generic-тип
-`TRouteTree` из `@capsuletech/web-router`. **Блокируется проходом по web-router.**
+Закрыто в проходе по web-router (PR #24, commit Phase B). `BaseProviders` стал
+function-generic над `TRouteTree extends AnyRoute` (default = `AnyRoute`,
+эквивалент прежнему `routeTree?: any`). `AnyRoute` re-export'нут из
+`@capsuletech/web-router`, чтобы web-core не лез в `@tanstack/router-core` напрямую.
 
 #### P2 #4 (partial) — Типизация `ctx.ts`
 
@@ -386,19 +387,63 @@ This library was generated with [Nx](https://nx.dev).
 
 ---
 
-## packages/web/router → next
+## packages/web/router
 
-**Почему следующий:** разблокирует P1 #3 в web-core (типизация
-`BaseProviders.routeTree`). Пакет небольшой — singleton `routerService` поверх
-`@tanstack/solid-router`. Аудит ещё не делался.
+Что это: тонкая обёртка над `@tanstack/solid-router` — factory `createRouter`,
+Solid-контекст `RouterContext` + хук `useRouter`, ре-экспорт `RouterProvider`.
+Скрывает детали TanStack за стабильным `ICapsuleRouter` API (`goTo` / `back` /
+`current` / `raw`).
 
-Ожидаемые точки внимания (предварительно, по памяти контекста):
-- ADR 003 уже сделал переход к Context-based router'у — но типизация публичного
-  API могла остаться рыхлой.
-- `current()` возвращает `pathname` — проверить, что generic-тип `TRouteTree`
-  пробрасывается до апп-кода через `createRouter`.
-- Connectors с web-core (`useRouter` импортируется в `engine/logic-wrapper.tsx`)
-  — проверить, нет ли circular между web-core ↔ web-router в типах.
+### Файловая карта (актуальная — после прохода Phase A)
+
+```
+packages/web/router/src/
+├── index.ts         barrel
+├── service.ts       createRouter() — value-импортит @tanstack/solid-router
+├── types.ts         wrap() + ICapsuleRouter / ICreateRouterOpts / ICapsuleRouterContext
+├── context.ts       RouterContext + useRouter()
+└── __tests__/       wrap (7) + useRouter (2) — node-env, без jsdom
+```
+
+### ✅ Сделано (PR #24)
+
+- **Phase A — характеризационные тесты + extract `wrap` в types.ts** (9 тестов).
+  `wrap()` живёт в отдельном модуле без value-импорта `@tanstack/solid-router`,
+  чтобы покрытие шло в node-env (`@tanstack/solid-router` тянет client-only
+  Solid API типа `CatchBoundary` — падает на сервере).
+- **Phase A — generic `TRouteTree`** пробрасывается через
+  `ICreateRouterOpts<T>` → `createRouter<T>(...)` → `ICapsuleRouter<T>`.
+  `back()` теперь дёргает `raw.history.back()` (single-source-of-truth от
+  TanStack, готовит к SSR). `goTo()` — снят двойной `as any`, оставлен один
+  `as never` на TanStack-navigate.
+- **Phase B — типизация `BaseProviders.routeTree`** в web-core (закрыт P1 #3).
+  `AnyRoute` re-export'нут из web-router → web-core не лезет в
+  `@tanstack/router-core` напрямую. `<RouterProvider router={raw}>` без `as any`.
+- **Phase C — docs.** README заменён с Nx-стаба на короткий указатель,
+  `docs/09-packages/router.md` переписан под текущий пакет (имя
+  `@capsuletech/web-router`, `BaseProviders` вместо `Providers.Base`, generic
+  TRouteTree, объяснение wrap-в-types).
+- **Phase D — конфиг-полиш.** `vite.config.mts` импортит `@capsuletech/lib-builder`
+  через workspace-alias (раньше — `'../../builders/lib/src'`); явно объявлен
+  в devDependencies (раньше silently hoisted). 14 пустых bump-only CHANGELOG-записей
+  схлопнуты.
+
+### 🟡 Осталось
+
+#### P2 — `tsconfig.json` extends-only (cross-package)
+
+Та же ситуация, что и в web-core P2 #8 / web-state. Нужен `include/exclude/
+rootDir/outDir`, чтобы `tsc --noEmit` не сканировал всё монорепо. Делать
+имеет смысл одним проходом по всем трём пакетам (web-core / web-state /
+web-router), иначе рассинхрон.
+
+#### P2 — `useRouter()` теряет generic `TRouteTree`
+
+`useRouter()` возвращает `ICapsuleRouter` без generic'а — у хука нет источника
+инференса. Если потребитель хочет типизированный `raw.navigate({to})` —
+использует `capsuleRouter` из `createRouter` напрямую или явно указывает тип
+переменной. Альтернатива (`useRouter<T>()`) требует module-augmentation паттерна
+TanStack `Register` — отдельный refactor.
 
 ---
 
@@ -427,6 +472,7 @@ This library was generated with [Nx](https://nx.dev).
 | #21 (`refactor/web-core-stabilization`) | web-core Phase A+B+C+D — 74 теста, registry-унификация, createRoot options |
 | #22 (`refactor/web-core-engine-split`) | web-core Phase E — engine/wrappers split, flat layout |
 | #23 (`refactor/web-state-stabilization`) | web-state — 72 теста, schema-type unification (Phase F) |
+| #24 (`refactor/web-router-typing`) | web-router — 9 тестов, generic TRouteTree, разблокировал P1 #3 в web-core (BaseProviders) |
 
 ### Working pattern (что сработало — повторяй)
 
