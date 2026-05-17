@@ -7,9 +7,7 @@
   "scripts": {
     "build": "vite build"
   },
-  "devDependencies": {
-    "@capsuletech/shared-vite": "workspace:*"
-  },
+  "devDependencies": {},
   "publishConfig": {
     "access": "public",
     "packageManager": "pnpm"

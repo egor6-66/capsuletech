@@ -1,4 +1,4 @@
-import { libConfig } from '@capsuletech/shared-vite';
+import { libConfig } from '../lib-config/src';
 
 export default libConfig({
   entry: 'src/index.ts',

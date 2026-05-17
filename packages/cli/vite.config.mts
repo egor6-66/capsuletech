@@ -1,5 +1,8 @@
 import * as path from 'node:path';
-import { libConfig, plugins } from '@capsuletech/shared-vite';
+import { libConfig } from '../shared/lib-config/src';
+// Деep-import minуя @capsuletech/shared-vite/dist — иначе nx graph хочет
+// собранный shared-vite ещё до запуска build target'ов.
+import { staticCopyPlugin } from '../shared/vite/src/plugins/staticCopy';
 
 export default libConfig({
   entry: {
@@ -26,7 +29,7 @@ export default libConfig({
     'string-width',
   ],
   plugins: [
-    plugins.staticCopyPlugin([
+    staticCopyPlugin([
       {
         src: path.resolve(__dirname, 'src/templates'),
         dest: path.resolve(__dirname, 'dist/templates'),

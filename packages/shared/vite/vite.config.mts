@@ -1,5 +1,6 @@
-import { libConfig } from './src/defines/libConfig';
-import { staticCopyPlugin } from './src/plugins';
+import { libConfig } from '../lib-config/src/libConfig';
+// Деep-import minуя barrel — иначе esbuild потянет CompliancePlugin → shared-compliance/dist.
+import { staticCopyPlugin } from './src/plugins/staticCopy';
 import path from 'node:path';
 
 export default libConfig({
@@ -21,6 +22,9 @@ export default libConfig({
   // (file-manager заинлайнен в utils/generateFromTemplates — убран из deps.)
   bundleDependencies: [
     /^@capsuletech\/shared-compliance/,
+    // shared-lib-config содержит libConfig — переэкспортируется наружу как
+    // часть runtime API `@capsuletech/shared-vite`, поэтому inline'им в dist.
+    /^@capsuletech\/shared-lib-config/,
     /^@babel\//,
     /^babel-/,
     /babel-plugin/,

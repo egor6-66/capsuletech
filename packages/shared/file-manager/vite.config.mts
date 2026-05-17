@@ -1,4 +1,4 @@
-import { libConfig } from '../vite/src/defines/libConfig.ts';
+import { libConfig } from '../lib-config/src/libConfig';
 
 export default libConfig({
   entry: 'src/index.ts',

@@ -10,6 +10,7 @@
   "dependencies": {
     "@babel/parser": "^7.29.3",
     "@capsuletech/shared-compliance": "workspace:*",
+    "@capsuletech/shared-lib-config": "workspace:*",
     "vite-plugin-solid": "^2.11.12"
   },
   "devDependencies": {

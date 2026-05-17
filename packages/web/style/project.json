@@ -4,9 +4,6 @@
   "sourceRoot": "packages/web/style/src",
   "projectType": "library",
   "tags": [],
-  "implicitDependencies": [
-    "@capsuletech/shared-vite"
-  ],
   "targets": {},
   "release": {
     "version": {

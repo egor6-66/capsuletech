@@ -1,9 +1,17 @@
 {
-  "name": "@capsuletech/shared-file-manager",
+  "name": "@capsuletech/shared-lib-config",
   "version": "0.1.1",
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": ["dist"],
   "scripts": {
     "build": "vite build"
   },
@@ -12,15 +20,5 @@
   "publishConfig": {
     "access": "public",
     "packageManager": "pnpm"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.mjs"
-    }
-  },
-  "files": [
-    "dist"
-  ]
+  }
 }

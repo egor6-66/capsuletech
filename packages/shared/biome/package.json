@@ -4,9 +4,7 @@
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "vite build"
-  },
+  "scripts": {},
   "devDependencies": {},
   "publishConfig": {
     "access": "public",

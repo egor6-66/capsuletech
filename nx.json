@@ -91,7 +91,8 @@
           "@capsuletech/cli",
           "@capsuletech/shared-file-manager",
           "@capsuletech/shared-vite",
-          "@capsuletech/shared-compliance"
+          "@capsuletech/shared-compliance",
+          "@capsuletech/shared-lib-config"
         ],
         "projectsRelationship": "fixed",
         "releaseTagPattern": "cli@{version}",

@@ -55,21 +55,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # The pre-build below is order-sensitive because the dep graph is hidden
-      # inside vite.config.mts imports (which package.json doesn't know about):
-      #   1. shared-compliance — pulls libConfig from shared-vite/SRC, no dist deps.
-      #   2. shared-vite — its plugins/compliance.ts imports compliance/DIST.
-      #   3. everything else — their vite.config.mts imports shared-vite/DIST.
-      # nx run-many can't discover this from package.json, hence the explicit
-      # ordering. Once nx-project.json files declare these deps we can collapse.
-      - name: Build shared-compliance
-        run: pnpm --filter @capsuletech/shared-compliance build
-
-      - name: Build shared-vite
-        run: pnpm --filter @capsuletech/shared-vite build
-
-      - name: Build remaining workspace packages
-        run: pnpm nx run-many -t build
+      - name: Build CLI bootstrap chain
+        # Только пакеты которые транзитивно нужны capsule CLI и apps build.
+        # nx сам разруливает порядок через source-imports (lib-config → compliance
+        # → file-manager → shared-vite). Остальные web-* пакеты apps подхватывают
+        # через tsconfig source-alias в dev/build режиме — их dist на CI не нужен.
+        run: pnpm nx run-many -t build --projects="@capsuletech/shared-lib-config,@capsuletech/shared-compliance,@capsuletech/shared-file-manager,@capsuletech/shared-vite"
 
       - name: Build app frontend
         working-directory: apps/${{ inputs.app }}

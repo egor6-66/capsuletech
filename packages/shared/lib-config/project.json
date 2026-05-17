@@ -1,15 +1,13 @@
 {
-  "name": "@capsuletech/web-renderer",
+  "name": "@capsuletech/shared-lib-config",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/web/renderer/src",
+  "sourceRoot": "packages/shared/lib-config/src",
   "projectType": "library",
   "tags": [],
   "targets": {},
   "release": {
     "version": {
-      "manifestRootsToUpdate": [
-        "{projectRoot}"
-      ],
+      "manifestRootsToUpdate": ["{projectRoot}"],
       "currentVersionResolver": "git-tag",
       "fallbackCurrentVersionResolver": "disk"
     }

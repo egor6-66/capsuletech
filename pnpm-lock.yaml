@@ -373,17 +373,11 @@ importers:
 
   packages/shared/biome: {}
 
-  packages/shared/compliance:
-    devDependencies:
-      '@capsuletech/shared-vite':
-        specifier: workspace:*
-        version: link:../vite
+  packages/shared/compliance: {}
 
-  packages/shared/file-manager:
-    devDependencies:
-      '@capsuletech/shared-vite':
-        specifier: workspace:*
-        version: link:../vite
+  packages/shared/file-manager: {}
+
+  packages/shared/lib-config: {}
 
   packages/shared/utils:
     devDependencies:
@@ -399,6 +393,9 @@ importers:
       '@capsuletech/shared-compliance':
         specifier: workspace:*
         version: link:../compliance
+      '@capsuletech/shared-lib-config':
+        specifier: workspace:*
+        version: link:../lib-config
       solid-js:
         specifier: ^1.9.0
         version: 1.9.0
