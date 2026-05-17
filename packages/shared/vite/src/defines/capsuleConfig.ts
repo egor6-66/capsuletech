@@ -65,7 +65,12 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
       rollupOptions: {
         input: join(capsuleRoot, 'index.html'),
       },
-      outDir: 'dist',
+      // outDir — `apps/<app>/dist/` (не `.capsule/dist/`). Vite-root указан в
+      // `.capsule/`, но артефакт должен лежать рядом с `src/`, как ожидает
+      // и пользователь `capsule build`, и `scripts/desktop.mjs` (default
+      // `--dist=apps/<app>/dist`). Vite предупредит «outDir is outside of
+      // root» — это намеренно.
+      outDir: join(root, 'dist'),
       emptyOutDir: true,
     },
     optimizeDeps: {
