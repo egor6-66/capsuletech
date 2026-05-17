@@ -1,5 +1,6 @@
 import { createEffect, createUniqueId, mergeProps, onCleanup, splitProps } from 'solid-js';
-import type { ICtx } from '../../ctx';
+import { Ui as UI } from '../ui-kit';
+import type { ICtx } from './ctx';
 import {
   type AnyEvent,
   TAG_TO_INPUT_TYPE,
@@ -7,7 +8,6 @@ import {
   deriveName,
   getTargetData,
 } from './derivation';
-import * as UI from './imports';
 
 export { TAG_TO_INPUT_TYPE, deriveInputType, deriveName, getTargetData };
 

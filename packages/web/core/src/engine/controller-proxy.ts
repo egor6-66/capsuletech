@@ -1,5 +1,5 @@
-import type { ICtx } from '../../ctx';
-import type { IDefineStateSchema, IStateApi, ITarget } from '../interfaces';
+import type { IDefineStateSchema, IStateApi, ITarget } from '../wrappers/interfaces';
+import type { ICtx } from './ctx';
 
 interface IControllerProxyParams {
   schema: IDefineStateSchema;

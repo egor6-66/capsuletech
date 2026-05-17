@@ -1,7 +1,7 @@
 import { Outlet } from '@tanstack/solid-router';
-import type { IWidgetWrapper } from '../interfaces';
-import { getGlobalRegistry } from '../registry';
-import { Ui } from './ui-kit';
+import { getGlobalRegistry } from '../engine/registry';
+import { Ui } from '../ui-kit';
+import type { IWidgetWrapper } from './interfaces';
 
 export const WidgetWrapper: IWidgetWrapper = (Component) => {
   return function Widget() {

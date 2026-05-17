@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IDefineStateSchema, ITarget } from '../../interfaces';
-import { ControllerProxy } from '../proxy';
+import type { IDefineStateSchema, ITarget } from '../../wrappers/interfaces';
+import { ControllerProxy } from '../controller-proxy';
 
 /**
  * ControllerProxy — диспетчер вызовов `controller.<method>(target, ctx)`.

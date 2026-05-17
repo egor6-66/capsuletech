@@ -3,15 +3,15 @@ import { useRouter } from '@capsuletech/web-router';
 import { createBridge, createState } from '@capsuletech/web-state';
 import { useMachine } from '@xstate/solid';
 import { Suspense, createEffect, onCleanup } from 'solid-js';
-import { Context, useCtx } from '../../ctx';
 import type {
   IDefineStateSchema,
   IHandlerApi,
   IServices,
   IStateApi,
   IWrapperProps,
-} from '../interfaces';
-import { ControllerProxy } from './proxy';
+} from '../wrappers/interfaces';
+import { ControllerProxy } from './controller-proxy';
+import { Context, useCtx } from './ctx';
 
 type Kind = 'controller' | 'feature';
 

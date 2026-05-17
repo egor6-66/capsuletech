@@ -1,8 +1,9 @@
-import { useCtx } from '../ctx';
-import type { IEntityWrapper } from '../interfaces';
-import { ShapeUiContext } from '../logic/shape';
-import { getGlobalRegistry } from '../registry';
-import { Ui as BaseUi, UiProxy } from './ui-kit';
+import { useCtx } from '../engine/ctx';
+import { getGlobalRegistry } from '../engine/registry';
+import { UiProxy } from '../engine/ui-proxy';
+import { Ui as BaseUi } from '../ui-kit';
+import type { IEntityWrapper } from './interfaces';
+import { ShapeUiContext } from './shape';
 
 export const EntityWrapper: IEntityWrapper = (Component) => {
   return function Entity(wrapperProps) {
