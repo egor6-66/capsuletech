@@ -29,11 +29,14 @@ status: living-doc
 | [packages/web/state](#packagesweb-state) | ✅ | 🟡 (README — Nx-стаб) | ✅ |
 | [packages/web/router](#packagesweb-router) | ✅ | ✅ | ✅ |
 | [packages/web/query](#packagesweb-query) | ✅ | ✅ | ✅ |
-| [packages/web/ui](#packagesweb-ui) | — | — | — **← next** |
-| [packages/web/style](#packagesweb-style) | — | — | — |
+| packages/web/ui | ✅ | ✅ | ✅ (periphery only, no components touched — PR #28) |
+| packages/web/editor | ✅ | ✅ | ✅ (consolidated 3 packages: manifests + editor-state + inspector → web-editor with subpaths — PR #29) |
+| packages/web/renderer | ✅ | ✅ | ✅ (periphery — PR #29) |
+| [packages/web/style](#packagesweb-style) | — | — | — **← next** |
 | [packages/web/profiler](#packagesweb-profiler) | — | — | — |
+| [packages/web/dnd](#packagesweb-dnd) | — | — | — |
 | packages/shared/* | — | — | — |
-| packages/system/* | — | — | — |
+| packages/system/* | — | — | — (folder больше нет; всё в packages/builders/) |
 
 ---
 
