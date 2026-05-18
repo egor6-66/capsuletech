@@ -1,0 +1,12 @@
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+if [ "$branch" = "main" ]; then
+  echo ""
+  echo "  Direct commits to 'main' are blocked."
+  echo "  Use a feature branch:"
+  echo "      git checkout -b feat/<name>"
+  echo ""
+  echo "  Bypass (emergency only):  git commit --no-verify"
+  echo ""
+  exit 1
+fi
