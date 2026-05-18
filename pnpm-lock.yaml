@@ -478,6 +478,16 @@ importers:
       solid-js:
         specifier: ^1.9.5
         version: 1.9.12
+    devDependencies:
+      '@testing-library/jest-dom':
+        specifier: ^6.9.1
+        version: 6.9.1
+      jsdom:
+        specifier: ~22.1.0
+        version: 22.1.0
+      vite-plugin-solid:
+        specifier: ^2.11.12
+        version: 2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0))
 
   packages/web/dnd:
     dependencies:

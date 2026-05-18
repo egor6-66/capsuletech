@@ -21,7 +21,7 @@ export const EntityWrapper: IEntityWrapper = (Component) => {
       );
     }
 
-    const Ui = ctx ? UiProxy(ctx, wrapperProps) : BaseUi;
+    const Ui = ctx ? UiProxy(BaseUi, ctx, wrapperProps) : BaseUi;
     // ShapeUiContext.Provider даёт Shape'ам доступ к проксированному Ui —
     // это нужно для резолва `definition.as` (path-tracker) в правильный
     // wrapped-компонент с UiProxy-event-binding'ом.
