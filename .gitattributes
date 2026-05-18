@@ -1,0 +1,35 @@
+# Default: let git auto-detect text vs binary, normalize text to LF in repo.
+# Working-tree line endings stay whatever the OS prefers (CRLF on Windows
+# checkouts is fine — they get converted back to LF on commit).
+* text=auto eol=lf
+
+# Windows-specific scripts must keep CRLF or they break.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Lockfiles: treat as opaque blob, do not attempt normalization
+# (avoids spurious diffs when contributors are on different OSes).
+pnpm-lock.yaml -text
+
+# Binary assets — explicit so git never tries text-processing them.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.svg   text
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.eot   binary
+*.msi   binary
+*.exe   binary
+*.dll   binary
+*.pdb   binary
+*.zip   binary
+*.gz    binary
+*.tar   binary
+*.pdf   binary
