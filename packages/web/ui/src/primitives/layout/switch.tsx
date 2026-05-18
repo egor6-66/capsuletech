@@ -2,9 +2,10 @@ import { type ICapsuleRouter, RouterContext } from '@capsuletech/web-router';
 import { type JSX, Match, Switch, useContext } from 'solid-js';
 import { Animate, type AnimateVariant } from '../wrappers/animate';
 import { Dashboard } from './dashboard';
+import { HolyGrail } from './holy-grail';
 import type { ILayoutProps, LayoutSlotMap } from './interfaces';
+import { Standard } from './standard';
 import { normalizeSlot } from './utils';
-import { layoutSlots } from './variants';
 
 /**
  * Оборачивает контент main-слота в `<Animate>` если `animated` задан.
@@ -59,21 +60,12 @@ export const LayoutSwitch = (props: ILayoutProps) => {
 
       {/* standard */}
       <Match when={props.variant === 'standard'}>
-        {(() => {
-          const s = props.slots as LayoutSlotMap['standard'];
-          const header = normalizeSlot(s.header)!;
-          const main = normalizeSlot(s.main)!;
-          const footer = normalizeSlot(s.footer)!;
-          return (
-            <>
-              <header class={layoutSlots.header}>{header.children}</header>
-              <main class={layoutSlots.main}>
-                {animateMain(main.children, props.animated, router)}
-              </main>
-              <footer class={layoutSlots.footer}>{footer.children}</footer>
-            </>
-          );
-        })()}
+        <Standard
+          slots={props.slots as LayoutSlotMap['standard']}
+          animated={props.animated}
+          router={router}
+          animateMain={animateMain}
+        />
       </Match>
 
       {/* dashboard */}
@@ -86,43 +78,14 @@ export const LayoutSwitch = (props: ILayoutProps) => {
         />
       </Match>
 
-      {/* holy-grail — CSS Grid с named areas */}
+      {/* holy-grail */}
       <Match when={props.variant === 'holy-grail'}>
-        {(() => {
-          const s = props.slots as LayoutSlotMap['holy-grail'];
-          const header = normalizeSlot(s.header)!;
-          const left = normalizeSlot(s.left)!;
-          const main = normalizeSlot(s.main)!;
-          const right = normalizeSlot(s.right)!;
-          const footer = normalizeSlot(s.footer)!;
-          // grid-template-areas заданы inline-стилем, чтобы не зависеть от
-          // Tailwind underscore→space-конверсии в произвольных значениях.
-          return (
-            <div
-              class={layoutSlots.holyGrailGrid}
-              style={{
-                'grid-template-areas':
-                  "'header header header' 'left main right' 'footer footer footer'",
-              }}
-            >
-              <header class={layoutSlots.header} style={{ 'grid-area': 'header' }}>
-                {header.children}
-              </header>
-              <aside class={layoutSlots.holyGrailLeft} style={{ 'grid-area': 'left' }}>
-                {left.children}
-              </aside>
-              <main class={layoutSlots.main} style={{ 'grid-area': 'main' }}>
-                {animateMain(main.children, props.animated, router)}
-              </main>
-              <aside class={layoutSlots.holyGrailRight} style={{ 'grid-area': 'right' }}>
-                {right.children}
-              </aside>
-              <footer class={layoutSlots.footer} style={{ 'grid-area': 'footer' }}>
-                {footer.children}
-              </footer>
-            </div>
-          );
-        })()}
+        <HolyGrail
+          slots={props.slots as LayoutSlotMap['holy-grail']}
+          animated={props.animated}
+          router={router}
+          animateMain={animateMain}
+        />
       </Match>
     </Switch>
   );

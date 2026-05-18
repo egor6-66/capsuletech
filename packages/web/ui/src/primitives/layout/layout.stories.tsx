@@ -84,6 +84,25 @@ export const Standard: Story = {
   ),
 };
 
+/**
+ * Standard в режиме resize: header/main/footer заданы объектами
+ * `{children, resizable: true}` — все три становятся corvu Panel'ями
+ * в одном вертикальном Resizable, между ними появляются drag-handles.
+ */
+export const StandardResizable: Story = {
+  name: 'standard · resizable',
+  render: () => (
+    <Layout
+      variant="standard"
+      slots={{
+        header: { children: <MockHeader />, resizable: true, initialSize: 0.15, minSize: 0.08 },
+        main: { children: <MockMain />, resizable: true },
+        footer: { children: <MockFooter />, resizable: true, initialSize: 0.12, minSize: 0.06 },
+      }}
+    />
+  ),
+};
+
 export const Dashboard: Story = {
   name: 'dashboard',
   render: () => (
@@ -165,6 +184,69 @@ export const HolyGrail: Story = {
         main: <MockMain />,
         right: <MockRightBar />,
         footer: <MockFooter />,
+      }}
+    />
+  ),
+};
+
+/**
+ * Holy-grail с горизонтальным resize: только средняя строка (left/main/right)
+ * становится `<Resizable orientation="horizontal">`. Header и footer остаются
+ * фиксированными — они задаются JSX-формой без `resizable`.
+ */
+export const HolyGrailHorizontal: Story = {
+  name: 'holy-grail · horizontal resize',
+  render: () => (
+    <Layout
+      variant="holy-grail"
+      slots={{
+        header: <MockHeader />,
+        left: { children: <MockLeftBar />, resizable: true, initialSize: 0.2, minSize: 0.12 },
+        main: { children: <MockMain />, resizable: true },
+        right: { children: <MockRightBar />, resizable: true, initialSize: 0.22, minSize: 0.15 },
+        footer: <MockFooter />,
+      }}
+    />
+  ),
+};
+
+/**
+ * Holy-grail с вертикальным resize: header и footer заданы объектной формой
+ * с `resizable: true`, средняя строка остаётся flex-разметкой с фиксированными
+ * боковинами.
+ */
+export const HolyGrailVertical: Story = {
+  name: 'holy-grail · vertical resize',
+  render: () => (
+    <Layout
+      variant="holy-grail"
+      slots={{
+        header: { children: <MockHeader />, resizable: true, initialSize: 0.15, minSize: 0.08 },
+        left: <MockLeftBar />,
+        main: <MockMain />,
+        right: <MockRightBar />,
+        footer: { children: <MockFooter />, resizable: true, initialSize: 0.1, minSize: 0.06 },
+      }}
+    />
+  ),
+};
+
+/**
+ * Holy-grail с resize на обеих осях: nested Resizable — внешний vertical,
+ * внутренний horizontal (для middle-row). Drag handles появляются и между
+ * header/middle/footer, и между left/main/right.
+ */
+export const HolyGrailBothAxes: Story = {
+  name: 'holy-grail · both axes',
+  render: () => (
+    <Layout
+      variant="holy-grail"
+      slots={{
+        header: { children: <MockHeader />, resizable: true, initialSize: 0.12, minSize: 0.08 },
+        left: { children: <MockLeftBar />, resizable: true, initialSize: 0.2, minSize: 0.12 },
+        main: { children: <MockMain />, resizable: true },
+        right: { children: <MockRightBar />, resizable: true, initialSize: 0.22, minSize: 0.15 },
+        footer: { children: <MockFooter />, resizable: true, initialSize: 0.08, minSize: 0.05 },
       }}
     />
   ),
