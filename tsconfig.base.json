@@ -26,9 +26,16 @@
       "@capsuletech/web-state": ["packages/web/state/src/index.ts"],
       "@capsuletech/web-renderer": ["packages/web/renderer/src/index.ts"],
       "@capsuletech/web-dnd": ["packages/web/dnd/src/index.ts"],
-      "@capsuletech/web-manifests": ["packages/web/manifests/src/index.ts"],
-      "@capsuletech/web-editor-state": ["packages/web/editor-state/src/index.ts"],
-      "@capsuletech/web-inspector": ["packages/web/inspector/src/index.ts"],
+      "@capsuletech/web-editor": ["packages/web/editor/src/index.ts"],
+      "@capsuletech/web-editor/manifests": [
+        "packages/web/editor/src/manifests/index.ts"
+      ],
+      "@capsuletech/web-editor/state": [
+        "packages/web/editor/src/state/index.ts"
+      ],
+      "@capsuletech/web-editor/inspector": [
+        "packages/web/editor/src/inspector/index.ts"
+      ],
       "@capsuletech/web-profiler": ["packages/web/profiler/src/index.ts"],
       "@capsuletech/web-query": ["packages/web/query/src/index.ts"],
       "@capsuletech/web-router": ["packages/web/router/src/index.ts"],

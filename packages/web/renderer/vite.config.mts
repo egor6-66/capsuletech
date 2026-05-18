@@ -1,4 +1,4 @@
-import { libConfig } from '../../builders/lib/src';
+import { libConfig } from '@capsuletech/lib-builder';
 
 export default libConfig({
   entry: 'src/index.ts',

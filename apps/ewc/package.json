@@ -15,8 +15,6 @@
     "@capsuletech/web-profiler": "workspace:*",
     "@capsuletech/web-query": "workspace:*",
     "@capsuletech/web-renderer": "workspace:*",
-    "@capsuletech/web-inspector": "workspace:*",
-    "@capsuletech/web-manifests": "workspace:*",
     "@capsuletech/shared-zod": "workspace:*"
   }
 }

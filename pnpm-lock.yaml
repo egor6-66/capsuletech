@@ -264,12 +264,6 @@ importers:
       '@capsuletech/web-core':
         specifier: workspace:*
         version: link:../../packages/web/core
-      '@capsuletech/web-inspector':
-        specifier: workspace:*
-        version: link:../../packages/web/inspector
-      '@capsuletech/web-manifests':
-        specifier: workspace:*
-        version: link:../../packages/web/manifests
       '@capsuletech/web-profiler':
         specifier: workspace:*
         version: link:../../packages/web/profiler
@@ -465,38 +459,21 @@ importers:
         specifier: workspace:*
         version: link:../../builders/vite
 
-  packages/web/editor-state:
-    dependencies:
-      '@capsuletech/web-manifests':
-        specifier: workspace:*
-        version: link:../manifests
-      solid-js:
-        specifier: ^1.9.0
-        version: 1.9.0
-    devDependencies:
-      '@capsuletech/vite-builder':
-        specifier: workspace:*
-        version: link:../../builders/vite
-
-  packages/web/inspector:
-    dependencies:
-      solid-js:
-        specifier: ^1.9.0
-        version: 1.9.0
-    devDependencies:
-      '@capsuletech/vite-builder':
-        specifier: workspace:*
-        version: link:../../builders/vite
-
-  packages/web/manifests:
+  packages/web/editor:
     dependencies:
       '@capsuletech/shared-zod':
         specifier: workspace:*
         version: link:../../shared/zod
+      lucide-solid:
+        specifier: ^0.460.0
+        version: 0.460.0(solid-js@1.9.12)
       solid-js:
         specifier: ^1.9.0
-        version: 1.9.0
+        version: 1.9.12
     devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../../builders/lib
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite
@@ -536,6 +513,9 @@ importers:
         specifier: ^1.9.0
         version: 1.9.0
     devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../../builders/lib
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite

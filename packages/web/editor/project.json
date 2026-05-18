@@ -1,7 +1,7 @@
 {
-  "name": "@capsuletech/web-inspector",
+  "name": "@capsuletech/web-editor",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/web/inspector/src",
+  "sourceRoot": "packages/web/editor/src",
   "projectType": "library",
   "tags": [],
   "targets": {},

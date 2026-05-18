@@ -1,5 +1,5 @@
 {
-  "name": "@capsuletech/web-renderer",
+  "name": "@capsuletech/web-editor",
   "version": "0.1.1",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -9,6 +9,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
+    },
+    "./manifests": {
+      "types": "./dist/manifests/index.d.ts",
+      "import": "./dist/manifests.mjs",
+      "default": "./dist/manifests.mjs"
+    },
+    "./state": {
+      "types": "./dist/state/index.d.ts",
+      "import": "./dist/state.mjs",
+      "default": "./dist/state.mjs"
+    },
+    "./inspector": {
+      "types": "./dist/inspector/index.d.ts",
+      "import": "./dist/inspector.mjs",
+      "default": "./dist/inspector.mjs"
     }
   },
   "files": [
@@ -18,7 +33,10 @@
     "build": "vite build",
     "dev": "vite build --watch"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@capsuletech/shared-zod": "workspace:*",
+    "lucide-solid": "^0.460.0"
+  },
   "peerDependencies": {
     "solid-js": "^1.9.0"
   },

@@ -15,8 +15,7 @@
     "@capsuletech/web-profiler": "<%= cap %>",
     "@capsuletech/web-query": "<%= cap %>",
     "@capsuletech/web-renderer": "<%= cap %>",
-    "@capsuletech/web-inspector": "<%= cap %>",
-    "@capsuletech/web-manifests": "<%= cap %>",
+    "@capsuletech/web-editor": "<%= cap %>",
     "@capsuletech/shared-zod": "<%= cap %>"
   }
 }
