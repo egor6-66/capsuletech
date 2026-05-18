@@ -1,11 +1,20 @@
 import { type Metric, onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
+/**
+ * @deprecated Use `IRating` from `@capsuletech/web-profiler/core`. Kept for legacy
+ * Dashboard rendering only; will be removed when Dashboard rewrite lands (Phase 2c).
+ */
 export interface MetricRating {
   label: 'GOOD' | 'NEEDS_IMPROVEMENT' | 'POOR' | 'INFO';
   color: string;
   unit: string;
 }
 
+/**
+ * @deprecated Legacy string-keyed rating used by the old Dashboard. Use
+ * `getRating(id, value)` from `@capsuletech/web-profiler/core` instead.
+ * @internal
+ */
 export function getRating(metricName: string, value: number): MetricRating {
   // Web Vitals thresholds
   // https://web.dev/vitals/
@@ -62,6 +71,10 @@ export function getRating(metricName: string, value: number): MetricRating {
   return { label: 'INFO', color: '#3498db', unit: '' };
 }
 
+/**
+ * @deprecated Use `webVitalsCollector()` from `@capsuletech/web-profiler/collectors`.
+ * @internal
+ */
 export function setupWebVitalsTracking(onMetric: (metric: Metric) => void) {
   onCLS(onMetric, { reportAllChanges: true });
   onLCP(onMetric, { reportAllChanges: true });
@@ -70,6 +83,10 @@ export function setupWebVitalsTracking(onMetric: (metric: Metric) => void) {
   onINP(onMetric, { reportAllChanges: true });
 }
 
+/**
+ * @deprecated Use `networkCollector()` from `@capsuletech/web-profiler/collectors`.
+ * @internal
+ */
 export function getNetworkMetrics() {
   const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
 
@@ -88,20 +105,30 @@ export function getNetworkMetrics() {
   };
 }
 
+/**
+ * @deprecated Use `memoryCollector()` from `@capsuletech/web-profiler/collectors`.
+ * @internal
+ */
 export function getMemoryMetrics(): number | null {
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const mem = (performance as any).memory;
   if (!mem) return null;
   return Math.round(mem.usedJSHeapSize / 1024 / 1024);
 }
 
+/**
+ * @deprecated Use `connectionCollector()` from `@capsuletech/web-profiler/collectors`.
+ * @internal
+ */
 export function getConnectionType(): string {
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const connection = (navigator as any).connection;
   if (!connection) return 'unknown';
   return connection.effectiveType || 'unknown';
 }
 
+/**
+ * @deprecated Use `navigationCollector()` from `@capsuletech/web-profiler/collectors`.
+ * @internal
+ */
 export function getDomReadyTime(): number | null {
   const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
   if (!navEntry) return null;

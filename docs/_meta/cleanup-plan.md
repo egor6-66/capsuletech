@@ -27,7 +27,7 @@ status: living-doc
 | [packages/builders/biome](#packagesbuildersbiome) | ✅ | — | n/a (config-only) |
 | [packages/web/core](#packagesweb-core) | ✅ | ✅ | ✅ (P1 #3 закрыто web-router; P2 #10 закрыто web-query) |
 | [packages/web/state](#packagesweb-state) | ✅ | 🟡 (README — Nx-стаб) | ✅ |
-| [packages/web/router](#packagesweb-router) | ✅ | ✅ | ✅ |
+| [packages/web/router](#packagesweb-router) | ✅ | ✅ | ✅ (post-PR #24: ADR 014 — goTo opts + generic context, peerDeps fix) |
 | [packages/web/query](#packagesweb-query) | ✅ | ✅ (review 2026-05-18) | 🟡 (P1 ✅ 5/5, P2 0/6, P3 0/8) |
 | packages/web/ui | ✅ | ✅ | ✅ (periphery only, no components touched — PR #28) |
 | packages/web/editor | ✅ | ✅ | ✅ (consolidated 3 packages: manifests + editor-state + inspector → web-editor with subpaths — PR #29) |
@@ -448,6 +448,26 @@ packages/web/router/src/
   в devDependencies (раньше silently hoisted). 14 пустых bump-only CHANGELOG-записей
   схлопнуты.
 
+### ✅ Сделано (post-PR #24, 2026-05-18)
+
+- **P0 peerDeps** — `@tanstack/solid-router` и `@tanstack/router-core` добавлены
+  в `peerDependencies`; `router-core` так же в `devDependencies` чтобы
+  `vite-plugin-dts` находил типы. Заодно подтянут `solid-js` peerDep с
+  `^1.9.0` → `^1.9.5` (синхрон с web-core; убирает параллельный solid-js
+  resolution-граф в lockfile). Бонусом закрыты pre-existing TS2307 warnings.
+- **P1 ADR 014 — `goTo` options-объект.** `goTo(path, opts?)` где
+  `opts = { params?, search?, hash?, replace? }`, прямой проброс в
+  `raw.navigate({ to, ...opts })`. Покрыто 6 новыми тестами (всего 13).
+  Breaking-ish, но real-impact ноль — в репо 2-arg форма `goTo(path, params)`
+  не использовалась.
+- **P1 ADR 014 — generic `ICapsuleRouterContext<TUser = {}>`.**
+  `isAuthenticated?: boolean` удалён из default-shape; index signature
+  `[k: string]: unknown` оставлен как backwards-compat предохранитель.
+  App пишет `ICapsuleRouterContext<{ isAuthenticated: boolean }>`.
+- **Docs**: AI-anchor [[web-router]] + user-doc [[router]] актуализированы
+  под новый API; ADR [[014-router-api-extension]] описывает решение,
+  альтернативы, migration guide.
+
 ### 🟡 Осталось
 
 #### P2 — `tsconfig.json` extends-only (cross-package)
@@ -464,6 +484,27 @@ web-router), иначе рассинхрон.
 использует `capsuleRouter` из `createRouter` напрямую или явно указывает тип
 переменной. Альтернатива (`useRouter<T>()`) требует module-augmentation паттерна
 TanStack `Register` — отдельный refactor.
+
+#### P2 — `current()` отдаёт только pathname
+
+Search/hash берутся через escape hatch `router.raw.state.location.{search,hash}`.
+Возможные направления: добавить `location(): { pathname, search, hash }` или
+опцию `current({ search: true })`. Нужен ADR (расширение публичного API).
+
+#### P3 — Cross-package: web-core тоже импортит TanStack напрямую
+
+`packages/web/core/src/{ui-kit/imports.tsx,wrappers/page.tsx,wrappers/widget.tsx}`
+делают value-импорт `@tanstack/solid-router` (`Link`, `Outlet`), но в
+`peerDependencies` web-core нет TanStack. Та же проблема что закрыта в
+web-router — закрывать отдельным PR в web-core.
+
+#### P3 — Шаблон `__root.tsx` зашит на `isAuthenticated`
+
+`packages/{builders/vite,cli}/src/.../templates/__root.tsx.template` объявляют
+`MyRouterContext { isAuthenticated: boolean }` как пример. Работает (apps
+наследуют через index signature `ICapsuleRouterContext<TUser>`), но желательно
+переписать на нейтральный example вроде `MyRouterContext {}` + комментарий
+«объявите свои app-уровневые поля». Cosmetic, follow-up.
 
 ---
 

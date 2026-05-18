@@ -1,12 +1,37 @@
 import type { AnyRoute, AnyRouter, RouterCore } from '@tanstack/router-core';
 
 /**
- * Контекст роутера на старте — пробрасывается в каждый route как `match.context`.
- * Используется для guards (например, `beforeLoad` с проверкой `isAuthenticated`).
+ * Initial-context роутера — пробрасывается в каждый TanStack-route как
+ * `match.context`. Используется guard'ами (`beforeLoad`, `loader`).
+ *
+ * Generic `TUser` — application-specific shape (`{ isAuthenticated, tenant, ... }`).
+ * Default `{}` — пустой context. Index signature `[k: string]: unknown` — это
+ * backwards-compat предохранитель: TanStack пробрасывает context в guard'ы как
+ * loose record, и без index signature TS ругается на «лишние» поля при
+ * расширении на стороне app.
+ *
+ * См. [[014-router-api-extension|ADR 014]] — generic вместо зашитого
+ * `isAuthenticated?: boolean`.
  */
-export interface ICapsuleRouterContext {
-  isAuthenticated?: boolean;
+// biome-ignore lint/complexity/noBannedTypes: empty-object default for structural intersection — `Record<string, never>` would forbid the `[k]: unknown` index signature below, breaking TanStack guard typing.
+export type ICapsuleRouterContext<TUser extends object = {}> = TUser & {
   [k: string]: unknown;
+};
+
+/**
+ * Опции навигации для `ICapsuleRouter.goTo`. Прямо мапятся в `raw.navigate({...})`
+ * TanStack. См. [[014-router-api-extension|ADR 014]] — переход от
+ * 2-аргументного `goTo(path, params)` к options-объекту.
+ */
+export interface IGoToOpts {
+  /** Path-параметры маршрута (`:id` → `{ id: '...' }`). */
+  params?: Record<string, unknown>;
+  /** Query-параметры (`?tag=urgent&sort=date`). */
+  search?: Record<string, unknown>;
+  /** Anchor (`#section-1`). Без ведущего `#`. */
+  hash?: string;
+  /** `history.replaceState` вместо `pushState`. */
+  replace?: boolean;
 }
 
 /**
@@ -18,7 +43,7 @@ export interface ICapsuleRouterContext {
  * что эквивалентно прежнему `AnyRouter` контракту.
  */
 export interface ICapsuleRouter<TRouteTree extends AnyRoute = AnyRoute> {
-  goTo(path: string, params?: Record<string, unknown>): void;
+  goTo(path: string, opts?: IGoToOpts): void;
   back(): void;
   current(): string;
   /** Escape hatch для случаев, когда нужны API-возможности TanStack напрямую. */
@@ -44,8 +69,8 @@ export const wrap = <TRouteTree extends AnyRoute = AnyRoute>(
   raw: AnyRouter,
 ): ICapsuleRouter<TRouteTree> => ({
   raw: raw as RouterCore<TRouteTree, any, any, any, any>,
-  goTo: (path, params) => {
-    raw.navigate({ to: path, params } as never);
+  goTo: (path, opts) => {
+    raw.navigate({ to: path, ...opts } as never);
   },
   back: () => {
     raw.history.back();

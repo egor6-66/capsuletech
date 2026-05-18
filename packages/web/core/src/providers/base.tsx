@@ -13,16 +13,21 @@ interface IBaseProviderProps<TRouteTree extends AnyRoute = AnyRoute> {
   /** Initial-context роутера (для guards в TanStack-роутах). */
   routerContext?: ICapsuleRouterContext;
   /**
-   * Включить Vitals-мониторинг (Web Vitals + Dashboard). По умолчанию выключен,
+   * Включить Vitals-мониторинг (Web Vitals + 4 doп. coll.). По умолчанию выключен,
    * чтобы прод-бандлы apps/<app> не тянули overhead профайлера без необходимости.
    *
    *  - `true` — оборачивает дерево в `VitalsMonitoringProvider` с дашбордом.
    *  - `false` / `undefined` — без обёртки.
    *
-   * Для тонкой настройки (например, `showDashboard={false}` под staging-сборку)
-   * — пока обращаемся к `<VitalsMonitoringProvider>` напрямую из приложения.
+   * Для тонкой настройки (collectors / reporters / showDashboard=false) —
+   * используй `<ProfilerProvider>` из `@capsuletech/web-profiler/providers` напрямую.
    */
   vitals?: boolean;
+  /**
+   * Показывать ли встроенный Dashboard-оверлей. Игнорируется если `vitals !== true`.
+   * Default — `true` (вместе с `vitals`).
+   */
+  showDashboard?: boolean;
   children?: any;
 }
 
@@ -54,7 +59,9 @@ export function BaseProviders<TRouteTree extends AnyRoute = AnyRoute>(
 
   return (
     <Show when={props.vitals} fallback={tree}>
-      <VitalsMonitoringProvider>{tree}</VitalsMonitoringProvider>
+      <VitalsMonitoringProvider showDashboard={props.showDashboard !== false}>
+        {tree}
+      </VitalsMonitoringProvider>
     </Show>
   );
 }
