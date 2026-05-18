@@ -129,10 +129,7 @@ describe('wrapComponent — own meta path', () => {
   it('input event: updateStore=true → store.update called', () => {
     const ctx = mkCtx() as any;
     const Wrapped = wrapComponent(ctx, {}, StubInput);
-    cleanup = render(
-      () => <Wrapped meta={{ tags: ['email'] }} />,
-      container,
-    );
+    cleanup = render(() => <Wrapped meta={{ tags: ['email'] }} />, container);
     const inp = container.querySelector('[data-testid="inp"]') as HTMLInputElement;
     inp.value = 'foo@bar';
     inp.dispatchEvent(new Event('input', { bubbles: true }));
@@ -143,10 +140,7 @@ describe('wrapComponent — own meta path', () => {
   it('click event: updateStore=false → store.update NOT called', () => {
     const ctx = mkCtx() as any;
     const Wrapped = wrapComponent(ctx, {}, StubButton);
-    cleanup = render(
-      () => <Wrapped meta={{ tags: ['submit'] }}>Go</Wrapped>,
-      container,
-    );
+    cleanup = render(() => <Wrapped meta={{ tags: ['submit'] }}>Go</Wrapped>, container);
     const btn = container.querySelector('[data-testid="btn"]') as HTMLButtonElement;
     btn.click();
     expect(ctx.controller.onClick).toHaveBeenCalledOnce();
@@ -195,11 +189,9 @@ describe('wrapComponent — event bubble dedupe', () => {
 describe('wrapComponent — Proxy subcomponent (Field.Label-like)', () => {
   it('sub-component access returns wrapped component', () => {
     const ctx = mkCtx() as any;
+    // biome-ignore lint/a11y/noLabelWithoutControl: test stub for sub-component access; not a real form label
     const Label = (p: any) => <label {...p}>{p.children}</label>;
-    const Field = Object.assign(
-      (p: any) => <fieldset {...p}>{p.children}</fieldset>,
-      { Label },
-    );
+    const Field = Object.assign((p: any) => <fieldset {...p}>{p.children}</fieldset>, { Label });
     const WrappedField = wrapComponent(ctx, {}, Field);
     const WrappedLabel = (WrappedField as any).Label;
 

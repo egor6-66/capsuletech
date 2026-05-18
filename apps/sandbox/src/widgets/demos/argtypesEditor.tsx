@@ -74,6 +74,7 @@ interface IArgFieldProps {
 
 const ArgField = (props: IArgFieldProps) => (
   <div class="flex flex-col gap-1">
+    {/* biome-ignore lint/a11y/noLabelWithoutControl: demo widget — control is rendered in sibling Show branches below, not nested. Storybook-only, not a production a11y concern. */}
     <label class="text-xs uppercase tracking-wide opacity-60">{props.name}</label>
     <Show when={props.argType.control.type === 'select'}>
       <select
@@ -221,9 +222,7 @@ const ArgtypesEditor = Widget(() => {
             Props · #{selectedId().slice(-4)}
           </div>
           <Show when={selected()} keyed>
-            {(node) => (
-              <ArgForm schema={buttonSchema} args={node.args} onChange={updateSelected} />
-            )}
+            {(node) => <ArgForm schema={buttonSchema} args={node.args} onChange={updateSelected} />}
           </Show>
         </div>
       </div>
