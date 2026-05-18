@@ -23,6 +23,7 @@ status: index
 | 010 | Политика регистрации компонентов: own-meta opt-in (политика C) | 🛠️ implemented | 2026-05-10 |
 | 011 | Деривация `name` из `meta.tags` (`name` под капотом) | 🛠️ implemented | 2026-05-10 |
 | 012 | Дедупликация UI-событий через event-marker (anti-bubbling) | 🛠️ implemented | 2026-05-10 |
+| [[013-explicit-define-app-config\|013]] | `defineAppConfig` через explicit import (закрывает S-8) | 🛠️ implemented | 2026-05-18 |
 
 > [!info]
 > Status:

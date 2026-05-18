@@ -106,13 +106,20 @@ exit-путях (`child.on('exit')`, `SIGINT`, `SIGTERM`, `uncaughtException`)
 `cleanedUp` + existsSync-проверка), так что повторные срабатывания
 hooks безопасны.
 
-### 🟡 S-8 — `unplugin-auto-import` + bare globals = хрупкий контракт
+### ⚠ S-8 — `unplugin-auto-import` + bare globals (частично закрыто)
 
-`defineAppConfig`, `Page`, `Widget`, `Entity`, `Controller`, `Feature`, `Shape`
-инжектятся через auto-import + transform-hack. Любая ошибка в этой цепочке
-(см. S-1) даёт `ReferenceError`'ы в неожиданных местах. **Архитектурный риск,
-не баг.** Альтернатива: явные импорты `defineAppConfig` (identity-функция в
-рантайме). Wrapper'ы оставить через auto-import — там идиоматично.
+`defineAppConfig` теперь экспортируется как identity-функция из
+`@capsuletech/web-query/app-config`; CLI-шаблон для новых apps генерит
+explicit import. См. [[013-explicit-define-app-config|ADR 013]].
+
+Wrapper'ы (`Page` / `Widget` / `Entity` / `Controller` / `Feature` / `Shape`)
+сознательно ОСТАЮТСЯ через auto-import — они идиоматичны для слой-файлов и
+не участвуют в Vite-transform трюке (S-1-класс багов для них невозможен).
+
+Legacy-bridge для `defineAppConfig` (globalThis-инжект + `AppConfigPlugin.transform`)
+оставлен в коде, чтобы существующие apps (`sandbox` / `agent` / `ewc`) не
+ломались. Когда они мигрируют на explicit-import — можно будет окончательно
+убрать legacy и закрыть S-8.
 
 ---
 

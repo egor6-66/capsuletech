@@ -27,6 +27,8 @@ type: index
   - [[007-uiproxy-cleanup|🛠️ ADR 007 — Cleanup в UiProxy]]
   - [[008-hybrid-fsm-api|🛠️ ADR 008 — Гибридная FSM-схема (XState + next())]]
   - [[009-event-interception-extension|🛠️ ADR 009 — Расширение перехватов событий]]
+  - [[010-builders-split|🛠️ ADR 010 — Build-time пакеты в `packages/builders/`]]
+  - [[013-explicit-define-app-config|🛠️ ADR 013 — `defineAppConfig` через explicit import]]
 
 ## 🧩 Слои
 

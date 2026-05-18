@@ -30,3 +30,28 @@ export interface IAppConfig {
    */
   api?: (ctx: { mw: MwToolbox }) => ApiConfig;
 }
+
+/**
+ * Identity-функция для `apps/<app>/capsule.app.ts`. Просто возвращает
+ * аргумент — нужна только для типизации (контекст TS подхватит `IAppConfig`
+ * и даст автокомплит для `meta.tags` / `aliases` / `api`).
+ *
+ * Раньше `defineAppConfig` существовал в двух местах:
+ *  1. `globalThis.defineAppConfig = identity` инжект в Node-CLI (для jiti-load);
+ *  2. `AppConfigPlugin.transform` — regex-replace `defineAppConfig(x)` → `((__x__)=>__x__)`
+ *     в Vite-бандле (для браузера, где globalThis-инжекта нет).
+ *
+ * Оба механизма работают, но это хрупкий контракт (S-8 в cleanup-plan):
+ * любой sneak-edge case (e.g. Windows path-mismatch в transform → ловит не
+ * каждый файл → ReferenceError в браузере; S-1 уже починен) валит сборку.
+ *
+ * Эта identity-функция — рекомендованный путь forward (см. ADR 011).
+ * Новые apps в CLI-шаблоне импортят её явно:
+ *
+ *     import { defineAppConfig } from '@capsuletech/web-query/app-config';
+ *     export default defineAppConfig({ ... });
+ *
+ * Существующие apps (sandbox/agent/ewc) с `globalThis.defineAppConfig` —
+ * продолжают работать без правок благодаря legacy-bridge.
+ */
+export const defineAppConfig = <T extends IAppConfig>(config: T): T => config;
