@@ -1,8 +1,8 @@
-import { For, type JSX, Show } from 'solid-js';
+import { For, Show } from 'solid-js';
 import { getRating } from '../utils';
 
 interface DashboardProps {
-  metrics: Record<string, number>;
+  metrics: Record<string, number | string>;
 }
 
 export function Dashboard(props: DashboardProps) {
