@@ -111,8 +111,8 @@ importers:
         specifier: ^21.0.0
         version: 21.0.0
       vite-plugin-dts:
-        specifier: ~4.5.0
-        version: 4.5.4(@types/node@20.19.9)(rollup@4.60.4)(typescript@5.9.3)(vite@6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0))
+        specifier: ~5.0.0
+        version: 5.0.0(@microsoft/api-extractor@7.58.7(@types/node@20.19.9))(@vue/language-core@2.2.0(typescript@5.9.3))(esbuild@0.27.7)(rollup@4.60.4)(typescript@5.9.3)(vite@6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0))
       vite-plugin-solid:
         specifier: ^2.11.12
         version: 2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0))
@@ -6166,6 +6166,36 @@ packages:
       '@vueuse/core':
         optional: true
 
+  unplugin-dts@1.0.0:
+    resolution: {integrity: sha512-qz+U1lCscwq+t8Mkaxy5Esa7IQ5wWV18b4mnioOXSdnPaNiJ0+qgE3I+KL6UkXYZWxxGo2qdGone8LEQ52Sfkw==}
+    peerDependencies:
+      '@microsoft/api-extractor': '>=7'
+      '@rspack/core': ^1
+      '@vue/language-core': ~3.1.5
+      esbuild: '*'
+      rolldown: '*'
+      rollup: '>=3'
+      typescript: '>=4'
+      vite: '>=3'
+      webpack: ^4 || ^5
+    peerDependenciesMeta:
+      '@microsoft/api-extractor':
+        optional: true
+      '@rspack/core':
+        optional: true
+      '@vue/language-core':
+        optional: true
+      esbuild:
+        optional: true
+      rolldown:
+        optional: true
+      rollup:
+        optional: true
+      vite:
+        optional: true
+      webpack:
+        optional: true
+
   unplugin-utils@0.3.1:
     resolution: {integrity: sha512-5lWVjgi6vuHhJ526bI4nlCOmkCIF3nnfXkCMDeMJrtdvxTs6ZFCM8oNufGTsDbKv/tJ/xj8RpvXjRuPBZJuJog==}
     engines: {node: '>=20.19.0'}
@@ -6245,12 +6275,17 @@ packages:
     resolution: {integrity: sha512-ZZKSmDAEFOijERBLkmYfJ+vmk3w+7hOLYDNkRCuRuMJGEmqYNCNLyBBFwWKVMhfwaEF3WOd0Zlw86U/WC/+nYw==}
     engines: {'0': node >=0.6.0}
 
-  vite-plugin-dts@4.5.4:
-    resolution: {integrity: sha512-d4sOM8M/8z7vRXHHq/ebbblfaxENjogAAekcfcDCCwAyvGqnPrc7f4NZbvItS+g4WTgerW0xDwSz5qz11JT3vg==}
+  vite-plugin-dts@5.0.0:
+    resolution: {integrity: sha512-VLNAUttBq7pLxxL/m/ztjd5zj5yiviiC7ijfPFVLK5c45FLcibvieBsdjSka3a4ag1qdrAF9K3OysH4/lW+rPQ==}
     peerDependencies:
-      typescript: '*'
-      vite: '*'
+      '@microsoft/api-extractor': '>=7'
+      rollup: '>=3'
+      vite: '>=3'
     peerDependenciesMeta:
+      '@microsoft/api-extractor':
+        optional: true
+      rollup:
+        optional: true
       vite:
         optional: true
 
@@ -7777,6 +7812,7 @@ snapshots:
       '@rushstack/node-core-library': 5.23.1(@types/node@20.19.9)
     transitivePeerDependencies:
       - '@types/node'
+    optional: true
 
   '@microsoft/api-extractor@7.58.7(@types/node@20.19.9)':
     dependencies:
@@ -7795,6 +7831,7 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - '@types/node'
+    optional: true
 
   '@microsoft/tsdoc-config@0.18.1':
     dependencies:
@@ -7802,8 +7839,10 @@ snapshots:
       ajv: 8.18.0
       jju: 1.4.0
       resolve: 1.22.12
+    optional: true
 
-  '@microsoft/tsdoc@0.16.0': {}
+  '@microsoft/tsdoc@0.16.0':
+    optional: true
 
   '@motionone/animation@10.18.0':
     dependencies:
@@ -8431,15 +8470,18 @@ snapshots:
       semver: 7.7.4
     optionalDependencies:
       '@types/node': 20.19.9
+    optional: true
 
   '@rushstack/problem-matcher@0.2.1(@types/node@20.19.9)':
     optionalDependencies:
       '@types/node': 20.19.9
+    optional: true
 
   '@rushstack/rig-package@0.7.3':
     dependencies:
       jju: 1.4.0
       resolve: 1.22.12
+    optional: true
 
   '@rushstack/terminal@0.24.0(@types/node@20.19.9)':
     dependencies:
@@ -8448,6 +8490,7 @@ snapshots:
       supports-color: 8.1.1
     optionalDependencies:
       '@types/node': 20.19.9
+    optional: true
 
   '@rushstack/ts-command-line@5.3.9(@types/node@20.19.9)':
     dependencies:
@@ -8457,6 +8500,7 @@ snapshots:
       string-argv: 0.3.2
     transitivePeerDependencies:
       - '@types/node'
+    optional: true
 
   '@sec-ant/readable-stream@0.4.1': {}
 
@@ -9053,7 +9097,8 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@types/argparse@1.0.38': {}
+  '@types/argparse@1.0.38':
+    optional: true
 
   '@types/aria-query@5.0.4': {}
 
@@ -9393,16 +9438,19 @@ snapshots:
       entities: 7.0.1
       estree-walker: 2.0.2
       source-map-js: 1.2.1
+    optional: true
 
   '@vue/compiler-dom@3.5.34':
     dependencies:
       '@vue/compiler-core': 3.5.34
       '@vue/shared': 3.5.34
+    optional: true
 
   '@vue/compiler-vue2@2.7.16':
     dependencies:
       de-indent: 1.0.2
       he: 1.2.0
+    optional: true
 
   '@vue/language-core@2.2.0(typescript@5.9.3)':
     dependencies:
@@ -9416,8 +9464,10 @@ snapshots:
       path-browserify: 1.0.1
     optionalDependencies:
       typescript: 5.9.3
+    optional: true
 
-  '@vue/shared@3.5.34': {}
+  '@vue/shared@3.5.34':
+    optional: true
 
   '@webcontainer/env@1.1.1': {}
 
@@ -9475,10 +9525,12 @@ snapshots:
   ajv-draft-04@1.0.0(ajv@8.18.0):
     optionalDependencies:
       ajv: 8.18.0
+    optional: true
 
   ajv-formats@3.0.1(ajv@8.18.0):
     optionalDependencies:
       ajv: 8.18.0
+    optional: true
 
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
@@ -9512,7 +9564,8 @@ snapshots:
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
 
-  alien-signals@0.4.14: {}
+  alien-signals@0.4.14:
+    optional: true
 
   ansi-colors@4.1.3: {}
 
@@ -10041,7 +10094,8 @@ snapshots:
 
   dayjs@1.11.18: {}
 
-  de-indent@1.0.2: {}
+  de-indent@1.0.2:
+    optional: true
 
   debounce-fn@6.0.0:
     dependencies:
@@ -10185,7 +10239,8 @@ snapshots:
 
   entities@6.0.1: {}
 
-  entities@7.0.1: {}
+  entities@7.0.1:
+    optional: true
 
   env-paths@3.0.0: {}
 
@@ -10544,6 +10599,7 @@ snapshots:
       graceful-fs: 4.2.11
       jsonfile: 6.2.1
       universalify: 2.0.1
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -10777,7 +10833,8 @@ snapshots:
       parent-module: 1.0.1
       resolve-from: 4.0.0
 
-  import-lazy@4.0.0: {}
+  import-lazy@4.0.0:
+    optional: true
 
   imurmurhash@0.1.4: {}
 
@@ -10920,7 +10977,8 @@ snapshots:
 
   jiti@2.7.0: {}
 
-  jju@1.4.0: {}
+  jju@1.4.0:
+    optional: true
 
   js-tokens@4.0.0: {}
 
@@ -10996,6 +11054,7 @@ snapshots:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
+    optional: true
 
   jsonparse@1.3.1: {}
 
@@ -11244,6 +11303,7 @@ snapshots:
   minimatch@10.2.3:
     dependencies:
       brace-expansion: 5.0.6
+    optional: true
 
   minimatch@10.2.4:
     dependencies:
@@ -11264,6 +11324,7 @@ snapshots:
   minimatch@9.0.9:
     dependencies:
       brace-expansion: 2.1.0
+    optional: true
 
   minimist@1.2.8: {}
 
@@ -11286,7 +11347,8 @@ snapshots:
 
   ms@2.1.3: {}
 
-  muggle-string@0.4.1: {}
+  muggle-string@0.4.1:
+    optional: true
 
   murmurhash-js@1.0.0: {}
 
@@ -12480,7 +12542,8 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
-  string-argv@0.3.2: {}
+  string-argv@0.3.2:
+    optional: true
 
   string-width@4.2.3:
     dependencies:
@@ -12538,6 +12601,7 @@ snapshots:
   supports-color@8.1.1:
     dependencies:
       has-flag: 4.0.0
+    optional: true
 
   supports-hyperlinks@3.2.0:
     dependencies:
@@ -12779,7 +12843,8 @@ snapshots:
 
   universalify@0.2.0: {}
 
-  universalify@2.0.1: {}
+  universalify@2.0.1:
+    optional: true
 
   unix-crypt-td-js@1.1.4: {}
 
@@ -12793,6 +12858,26 @@ snapshots:
       unimport: 5.7.0
       unplugin: 2.3.11
       unplugin-utils: 0.3.1
+
+  unplugin-dts@1.0.0(@microsoft/api-extractor@7.58.7(@types/node@20.19.9))(@vue/language-core@2.2.0(typescript@5.9.3))(esbuild@0.27.7)(rollup@4.60.4)(typescript@5.9.3)(vite@6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0)):
+    dependencies:
+      '@rollup/pluginutils': 5.3.0(rollup@4.60.4)
+      '@volar/typescript': 2.4.28
+      compare-versions: 6.1.1
+      debug: 4.4.3
+      kolorist: 1.8.0
+      local-pkg: 1.1.2
+      magic-string: 0.30.21
+      typescript: 5.9.3
+      unplugin: 2.3.11
+    optionalDependencies:
+      '@microsoft/api-extractor': 7.58.7(@types/node@20.19.9)
+      '@vue/language-core': 2.2.0(typescript@5.9.3)
+      esbuild: 0.27.7
+      rollup: 4.60.4
+      vite: 6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0)
+    transitivePeerDependencies:
+      - supports-color
 
   unplugin-utils@0.3.1:
     dependencies:
@@ -12918,24 +13003,21 @@ snapshots:
       core-util-is: 1.0.2
       extsprintf: 1.3.0
 
-  vite-plugin-dts@4.5.4(@types/node@20.19.9)(rollup@4.60.4)(typescript@5.9.3)(vite@6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0)):
+  vite-plugin-dts@5.0.0(@microsoft/api-extractor@7.58.7(@types/node@20.19.9))(@vue/language-core@2.2.0(typescript@5.9.3))(esbuild@0.27.7)(rollup@4.60.4)(typescript@5.9.3)(vite@6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0)):
     dependencies:
-      '@microsoft/api-extractor': 7.58.7(@types/node@20.19.9)
-      '@rollup/pluginutils': 5.3.0(rollup@4.60.4)
-      '@volar/typescript': 2.4.28
-      '@vue/language-core': 2.2.0(typescript@5.9.3)
-      compare-versions: 6.1.1
-      debug: 4.4.3
-      kolorist: 1.8.0
-      local-pkg: 1.1.2
-      magic-string: 0.30.21
-      typescript: 5.9.3
+      unplugin-dts: 1.0.0(@microsoft/api-extractor@7.58.7(@types/node@20.19.9))(@vue/language-core@2.2.0(typescript@5.9.3))(esbuild@0.27.7)(rollup@4.60.4)(typescript@5.9.3)(vite@6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0))
     optionalDependencies:
+      '@microsoft/api-extractor': 7.58.7(@types/node@20.19.9)
+      rollup: 4.60.4
       vite: 6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0)
     transitivePeerDependencies:
-      - '@types/node'
-      - rollup
+      - '@rspack/core'
+      - '@vue/language-core'
+      - esbuild
+      - rolldown
       - supports-color
+      - typescript
+      - webpack
 
   vite-plugin-solid@2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@6.4.2(@types/node@20.19.9)(jiti@2.4.2)(lightningcss@1.32.0)(yaml@2.9.0)):
     dependencies:
