@@ -1,0 +1,65 @@
+# Dependabot config — opens weekly PRs for npm + github-actions updates.
+# Grouping is aggressive on purpose: each ecosystem family lands in ONE PR
+# per week, so the review queue stays small. Major bumps stay separate by
+# default (groups only catch minor + patch unless update-types says otherwise).
+
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels: ["deps"]
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      # Bundle ecosystem families so 10 @nx/* updates → 1 PR, not 10.
+      nx:
+        patterns:
+          - "@nx/*"
+          - "nx"
+      babel:
+        patterns:
+          - "@babel/*"
+          - "babel-plugin-*"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      solid:
+        patterns:
+          - "solid-js"
+          - "@solidjs/*"
+          - "vite-plugin-solid"
+      tauri:
+        patterns:
+          - "@tauri-apps/*"
+      storybook:
+        patterns:
+          - "storybook"
+          - "@storybook/*"
+          - "storybook-*"
+      types:
+        patterns:
+          - "@types/*"
+      # Catch-all for minor+patch on everything else (one PR per week).
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels: ["deps", "ci"]
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      actions:
+        patterns:
+          - "*"
