@@ -6,10 +6,12 @@ status: documented
 # 🧬 Shape — декларативные data-формы
 
 **Файлы:**
-- `packages/web/core/src/wrappers/logic/shape/wrapper.tsx` — фабрика
-- `packages/web/core/src/wrappers/logic/shape/ui-tracker.ts` — path-tracker для `definition.as`
-- `packages/web/core/src/wrappers/logic/shape/context.tsx` — `ShapeUiContext` (Entity → Shape проброс Ui)
-- `packages/web/core/src/wrappers/logic/shape/types.ts` — типы
+- `packages/web/core/src/wrappers/shape/wrapper.tsx` — фабрика
+- `packages/web/core/src/wrappers/shape/ui-tracker.ts` — path-tracker для `definition.as`
+- `packages/web/core/src/wrappers/shape/context.tsx` — `ShapeUiContext` (Entity → Shape проброс Ui)
+- `packages/web/core/src/wrappers/shape/types.ts` — типы
+
+> Раньше всё это жило в `wrappers/logic/shape/`; после Phase E (split engine/wrappers) — `wrappers/shape/`.
 
 Shape — wrapper для повторяющихся data-форм: nav-item'ы, чипы, поля табличной формы и т.п. Из одного описания (zod-схема + дефолты + маппинг `item → templateProps`) получается типизированный polymorphic-компонент, который рендерит список через `<For>` и резолвит template из проксированного Ui родительского Entity.
 
@@ -94,7 +96,7 @@ const Template = path ? resolveByPath(realUi, path) : defaultAs;
 Чтобы Shape мог достучаться до проксированного Ui, `EntityWrapper` оборачивает свой рендер в `ShapeUiContext.Provider value={Ui}`:
 
 ```tsx
-// packages/web/core/src/wrappers/ui/entity.tsx
+// packages/web/core/src/wrappers/entity.tsx
 const Ui = ctx ? UiProxy(ctx, wrapperProps) : BaseUi;
 return (
   <ShapeUiContext.Provider value={Ui}>

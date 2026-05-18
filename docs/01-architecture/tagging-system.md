@@ -28,7 +28,7 @@ status: documented
 
 ## Как меты попадают в обработчик
 
-В `getTargetData` (`packages/core/src/wrappers/ui/ui-kit/proxy.tsx`) на каждом событии собирается:
+В `getTargetData` (`packages/web/core/src/engine/ui-proxy.tsx`) на каждом событии собирается:
 
 ```ts
 {

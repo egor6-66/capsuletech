@@ -29,8 +29,8 @@ audience: claude
 | `packages/builders/vite/src/plugins/appConfig.ts` | Эмитит `.capsule/app-config.gen.ts` с `setApiClient(createApi(appConfig.api, endpoints))` |
 | `packages/builders/vite/src/plugins/constants.ts` | `DEFINE_FACTORIES = { '@capsuletech/web-query': ['defineEndpoint'] }` — auto-import конфиг |
 | `packages/builders/vite/src/defines/capsuleConfig.ts` | Регистрация плагинов (browser-stub для globalThis-фабрик `defineAppConfig` живёт в `AppConfigPlugin.transform`) |
-| `packages/web/core/src/wrappers/logic/utils/createLogicWrapper.tsx` | Инжект `services.api = getApiClient()` (только в Feature, не в Controller) |
-| `packages/web/core/src/wrappers/ui/interfaces.ts` | Пустой fallback `interface CapsuleApi {}` для interface-merging |
+| `packages/web/core/src/engine/logic-wrapper.tsx` | Инжект `services.api = getApiClient()` (только в Feature, не в Controller) |
+| `packages/web/query/src/createApi.ts` | `declare global { interface CapsuleApi {} }` — родной дом fallback'а под interface-merging (раньше жил в web-core/wrappers/ui/interfaces.ts) |
 
 ## Endpoint declaration syntax
 
@@ -161,7 +161,7 @@ Vite-плагин `EndpointsRegistryPlugin` следит за `apps/*/src/endpoi
 | Поменять structure-mapping endpoints/ → namespace | `packages/builders/vite/src/plugins/endpointsRegistry.ts > fileToLeaf` |
 | Поменять формат `app-config.gen.ts` | `packages/builders/vite/src/plugins/appConfig.ts > generateRuntimeFile` |
 | Добавить новый typed error | `packages/web/query/src/errors.ts` (extends `ApiError`) + маппинг в `statusMapper` |
-| Изменить inject в Feature | `packages/web/core/src/wrappers/logic/utils/createLogicWrapper.tsx > services` |
+| Изменить inject в Feature | `packages/web/core/src/engine/logic-wrapper.tsx > services` |
 
 ## Cross-links
 

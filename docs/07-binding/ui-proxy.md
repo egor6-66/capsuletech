@@ -5,7 +5,9 @@ status: documented
 
 # 🪞 UiProxy — перехват UI-событий
 
-**Файл:** `packages/web/core/src/wrappers/ui/ui-kit/proxy.tsx`
+**Файл:** `packages/web/core/src/engine/ui-proxy.tsx`
+
+> Раньше: `wrappers/ui/ui-kit/proxy.tsx`. После Phase E (engine/wrappers split) — `engine/ui-proxy.tsx`.
 
 UiProxy — «магия», которая делает Entity stateless. Подменяет базовый UI-kit на обёртки, которые при наличии **собственного `meta`** регистрируются в store и автоматически отправляют события в Controller. Без `meta` — пропускаются как структурные.
 
@@ -14,7 +16,7 @@ UiProxy — «магия», которая делает Entity stateless. Под
 В `EntityWrapper`:
 
 ```tsx
-// packages/web/core/src/wrappers/ui/entity.tsx
+// packages/web/core/src/wrappers/entity.tsx
 const ctx = useCtx();
 const Ui = ctx ? UiProxy(ctx, wrapperProps) : BaseUi;
 return (

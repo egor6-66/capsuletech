@@ -102,7 +102,7 @@ const Form = Controller(() => ({
 **Знает:** API, services, бизнес-правила.
 
 > [!info]
-> Сейчас `FeatureWrapper` и `ControllerWrapper` — почти полная копипаста (`packages/core/src/wrappers/logic/`). Семантическое различие: Feature — единственное место, где разрешены сетевые вызовы. См. [[002-controller-vs-feature|ADR 002]] — копипаста сворачивается в общий `createLogicWrapper`, дивергенция произойдёт по мере появления уникальных services у Feature.
+> `FeatureWrapper` и `ControllerWrapper` (`packages/web/core/src/wrappers/{feature,controller}.tsx`) — оба `createLogicWrapper(kind)` из `engine/logic-wrapper.tsx` (ADR 002, копипаста уже свернута). Семантическое различие: Feature получает `services.api` через `getApiClient()` дополнительно к `router`; Controller — только `router` (compliance запрещает IO в Controller'е).
 
 ```tsx
 const Auth = Feature(({ router }) => ({
@@ -175,11 +175,12 @@ const Login = Page(({ Layout }) => (
 
 | Слой | Wrapper | Файл |
 |---|---|---|
-| Entity | `EntityWrapper` | `packages/core/src/wrappers/ui/entity.tsx` |
-| Controller | `ControllerWrapper` | `packages/core/src/wrappers/logic/controller.tsx` |
-| Feature | `FeatureWrapper` | `packages/core/src/wrappers/logic/feature.tsx` |
-| Widget | `WidgetWrapper` | `packages/core/src/wrappers/ui/widget.tsx` |
-| Page | `PageWrapper` | `packages/core/src/wrappers/ui/page.tsx` |
+| Entity | `EntityWrapper` | `packages/web/core/src/wrappers/entity.tsx` |
+| Controller | `ControllerWrapper` | `packages/web/core/src/wrappers/controller.tsx` |
+| Feature | `FeatureWrapper` | `packages/web/core/src/wrappers/feature.tsx` |
+| Widget | `WidgetWrapper` | `packages/web/core/src/wrappers/widget.tsx` |
+| Page | `PageWrapper` | `packages/web/core/src/wrappers/page.tsx` |
+| Shape | `ShapeWrapper` | `packages/web/core/src/wrappers/shape/wrapper.tsx` |
 
 ## Связанное
 

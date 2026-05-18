@@ -20,33 +20,36 @@ status: documented
 ```
 packages/web/core/src/
 ├── index.ts                       barrel: wrappers + Providers + interfaces
-├── interfaces.ts                  re-export wrapper-интерфейсов (IAppConfig переехал в @capsuletech/web-query/app-config)
-├── index.css                      (резерв — сами стили в @capsuletech/web-style)
+├── interfaces.ts                  re-export ./wrappers/interfaces (IAppConfig переехал в @capsuletech/web-query/app-config)
 ├── create/
 │   ├── index.ts
-│   └── createRoot.ts              render(Component, #root) + ensureTheme
+│   └── createRoot.ts              render(Component, container) + ensureTheme
 ├── providers/
 │   ├── index.ts
-│   └── base.tsx                   BaseProviders — RouterProvider + (опц.) VitalsMonitoringProvider
+│   └── base.tsx                   BaseProviders<TRouteTree> — RouterProvider + (опц.) VitalsMonitoringProvider
+├── engine/                        внутренний runtime — НЕ публичный API
+│   ├── ctx.ts                     ICtx / IControllerHandle + Solid Context, useCtx
+│   ├── controller-proxy.ts        ControllerProxy (FSM dispatch + next-цепочка)
+│   ├── ui-proxy.tsx               UiProxy + EVENT_HANDLERS
+│   ├── logic-wrapper.tsx          createLogicWrapper('controller' | 'feature')
+│   ├── derivation.ts              deriveInputType / deriveClassName / ...
+│   └── registry.ts                getGlobalRegistry<K>(key) — единый для slot-registry
+├── ui-kit/
+│   ├── imports.tsx                lazy()-обёртки над @capsuletech/web-ui
+│   └── index.ts
 └── wrappers/
-    ├── index.ts                   реэкспорт Entity/Widget/Page + Controller/Feature/Shape + ShapeUiContext/useShapeUi
-    ├── ctx.ts                     Solid Context — { state, store, controller, parent }
-    ├── interfaces.ts              re-export ui/logic interfaces
-    ├── ui/
-    │   ├── entity.tsx · widget.tsx · page.tsx
-    │   ├── interfaces.ts          IEntityWrapper / IWidgetWrapper / IPageWrapper + глобальные slot-интерфейсы (Widgets/Entities/Controllers/Features/Shapes/CapsuleApi)
-    │   └── ui-kit/
-    │       ├── imports.tsx        lazy()-обёртки над @capsuletech/web-ui
-    │       └── proxy.tsx          UiProxy
-    └── logic/
-        ├── controller.tsx · feature.tsx (оба = createLogicWrapper(kind))
-        ├── interfaces.ts          IDefineStateSchema / IHandlerApi / IServices / ITarget / IStateApi
-        ├── utils/
-        │   ├── createLogicWrapper.tsx
-        │   └── proxy.ts           ControllerProxy
-        └── shape/
-            ├── wrapper.tsx · context.tsx · types.ts · ui-tracker.ts
+    ├── index.ts                   re-export Entity/Widget/Page/Controller/Feature/Shape + useShapeUi
+    ├── interfaces.ts              IEntityRenderer/IWidgetRenderer/IPageRenderer + IDefineStateSchema/IHandlerApi/IServices/ITarget + Widgets/Entities/Controllers/Features/Shapes (CapsuleApi живёт в @capsuletech/web-query)
+    ├── entity.tsx · widget.tsx · page.tsx
+    ├── controller.tsx · feature.tsx (оба = createLogicWrapper(kind))
+    └── shape/
+        ├── index.ts
+        ├── wrapper.tsx · context.tsx · ui-tracker.ts · types.ts
 ```
+
+> Структура — после Phase E (engine/wrappers split). Раньше было
+> `wrappers/{ui, logic}/...` с дублированием интерфейсов и шаппы внутри
+> `wrappers/logic/shape/`.
 
 ## Точки входа
 
@@ -96,7 +99,9 @@ Shape  ────→ читает proxied Ui из ShapeUiContext, которы
 
 ## Глобальные slot-интерфейсы
 
-`wrappers/ui/interfaces.ts` объявляет пустые global-интерфейсы — `Widgets`, `Entities`, `Controllers`, `Features`, `Shapes`, `CapsuleApi`. Через `interface merging` их дополняет codegen (`.capsule/@types/slots.d.ts` от `ExportGeneratorPlugin`'а и `.capsule/@types/api.d.ts` от `EndpointsRegistryPlugin`). Это даёт типизацию слотов в Widget/Page/Entity и поля `services.api.<endpoint>` в Feature.
+`wrappers/interfaces.ts` объявляет пустые global-интерфейсы — `Widgets`, `Entities`, `Controllers`, `Features`, `Shapes`. Через `interface merging` их дополняет codegen `.capsule/@types/slots.d.ts` от `ExportGeneratorPlugin`'а. Это даёт типизацию слотов в Widget/Page/Entity.
+
+Глобальный `CapsuleApi` (для типизации `services.api.<endpoint>` в Feature) живёт в `@capsuletech/web-query/src/createApi.ts` — родной дом, поскольку это возвращаемый тип `getApiClient()`. `EndpointsRegistryPlugin` сливает в него `InferApi<Endpoints>` через `.capsule/@types/api.d.ts`.
 
 Сами реестры рантайма (`globalThis.Widgets`/`Entities`/…) кладёт `apps/<app>/.capsule/bootstrap.tsx` через `Object.assign(globalThis, registry)`.
 

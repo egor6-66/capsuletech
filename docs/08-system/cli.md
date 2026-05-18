@@ -49,7 +49,7 @@ CAPSULE CLI
     └── 👀 (watch-preview)                → createPreviewServer
 ```
 
-Все три действия — реэкспорты из `@capsuletech/core/builder` (`packages/core/src/builder/index.ts`), которые читают `capsule.config.ts` через `jiti` и кормят его в `@capsuletech/vite-builder`.
+Все три действия делегируют в `@capsuletech/vite-builder` (`packages/builders/vite/src/defines/capsuleConfig.ts`), который читает `capsule.config.ts` через `jiti` и кормит его в Vite.
 
 ## capsule.config.ts
 

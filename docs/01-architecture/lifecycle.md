@@ -32,7 +32,7 @@ status: documented
 
 При рендере `Widget` для каждого Controller/Feature:
 
-1. `createLogicWrapper` (`packages/core/src/wrappers/logic/utils/createLogicWrapper.tsx`) делает:
+1. `createLogicWrapper` (`packages/web/core/src/engine/logic-wrapper.tsx`) делает:
    - `parent = useCtx()` — берёт Context от родителя в дереве (если есть);
    - `services = buildServices(kind)` — Controller получает `{ router }`, Feature будет получать больше по мере появления уникальных services (см. [[002-controller-vs-feature|ADR 002]]);
    - `schema = defineStateSchema(services)` — пользовательская схема;
@@ -45,7 +45,7 @@ status: documented
 
 3. Кладёт `{ controller, state, store, parent }` в Context.Provider.
 
-4. `EntityWrapper` (`packages/core/src/wrappers/ui/entity.tsx`) при рендере Entity:
+4. `EntityWrapper` (`packages/web/core/src/wrappers/entity.tsx`) при рендере Entity:
    - читает `ctx = useCtx()`;
    - оборачивает базовый UI-kit через `UiProxy(ctx, wrapperProps)` (или возвращает голый Ui, если ctx нет);
    - рендерит `<Component {...Ui} />`.
@@ -54,7 +54,7 @@ status: documented
 
 Когда внутри Entity рендерится `<Button meta={{ tags: ['submit'] }}>`:
 
-1. `UiProxy` (`packages/core/src/wrappers/ui/ui-kit/proxy.tsx`) перехватывает обращение к `Button` и оборачивает в `ComponentWrapper`.
+1. `UiProxy` (`packages/web/core/src/engine/ui-proxy.tsx`) перехватывает обращение к `Button` и оборачивает в `ComponentWrapper`.
 
 2. `ComponentWrapper` мержит wrapperProps + componentProps + добавляет `dynamicMeta = wrapperProps?.meta` — это даёт **two-tier meta** (см. [[ui-proxy|UiProxy]] и [[tagging-system]]).
 

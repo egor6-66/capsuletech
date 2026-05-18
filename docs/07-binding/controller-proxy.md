@@ -6,10 +6,13 @@ status: documented
 # 🧠 ControllerProxy — FSM + цепочка `next()`
 
 **Файлы:**
-- `packages/web/core/src/wrappers/logic/utils/proxy.ts` — сам Proxy
-- `packages/web/core/src/wrappers/logic/utils/createLogicWrapper.tsx` — фабрика, которая собирает машину + Proxy и кладёт в Context
+- `packages/web/core/src/engine/controller-proxy.ts` — сам Proxy
+- `packages/web/core/src/engine/logic-wrapper.tsx` — фабрика, которая собирает машину + Proxy и кладёт в Context
 - `packages/web/state/src/create.ts` — `createState(schema)` строит XState-машину
 - `packages/web/state/src/bridge.ts` — `createBridge(state, send)` — store-фасад
+
+> Раньше Proxy и фабрика жили в `wrappers/logic/utils/`; после Phase E
+> (изоляция runtime в `engine/`) — в `engine/`.
 
 ControllerProxy — поведенческая часть Controller/Feature. Текущая реализация — гибрид по [[001-xstate-as-canonical-fsm|ADR 001]] + [[008-hybrid-fsm-api|ADR 008]]: XState владеет локальной FSM (transitions, entry/exit, store-context), а dispatch UI-событий и `next()` живут в Proxy.
 
@@ -36,7 +39,7 @@ Proxy спрашивает у XState текущий стейт через `state
 }
 ```
 
-Тип `IHandlerApi` зафиксирован в `packages/web/core/src/wrappers/logic/interfaces.ts`.
+Тип `IHandlerApi` зафиксирован в `packages/web/core/src/wrappers/interfaces.ts` (общий файл для ui- и logic-типов после Phase E).
 
 ## Резолв метода
 
@@ -93,7 +96,7 @@ const next = async (payload = null) => {
 
 ## Lifecycle: onInit / onExit
 
-`packages/web/core/src/wrappers/logic/utils/createLogicWrapper.tsx` навешивает реактивный эффект:
+`packages/web/core/src/engine/logic-wrapper.tsx` навешивает реактивный эффект:
 
 ```ts
 let prevState: string | undefined;

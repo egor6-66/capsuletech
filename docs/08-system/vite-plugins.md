@@ -5,11 +5,11 @@ status: documented
 
 # 🛠️ Vite-плагины
 
-Все плагины живут в `packages/system/vite/src/plugins/` и подключаются в `packages/core/src/builder/config.ts`.
+Все плагины живут в `packages/builders/vite/src/plugins/` и подключаются в `packages/builders/vite/src/defines/capsuleConfig.ts` (раньше — `packages/system/vite/src/plugins/` + `packages/core/src/builder/config.ts`, до builders-consolidation, PR #20).
 
 ## ExportGeneratorPlugin
 
-**Файл:** `packages/system/vite/src/plugins/exportGenerator.ts`
+**Файл:** `packages/builders/vite/src/plugins/exportGenerator.ts`
 
 Следит за изменениями в `apps/<app>/src/{widgets,entities,controllers,features}/**` и поддерживает в актуальном состоянии файл-реестр:
 
@@ -48,7 +48,7 @@ export const Entities = {
 
 ## RouterPlugin
 
-**Файл:** `packages/system/vite/src/plugins/router/index.ts`
+**Файл:** `packages/builders/vite/src/plugins/router/index.ts`
 
 Двухсоставной плагин:
 
@@ -74,7 +74,7 @@ export const Entities = {
 
 ## CompliancePlugin
 
-**Файл:** `packages/system/vite/src/plugins/compliance.ts`
+**Файл:** `packages/builders/vite/src/plugins/compliance.ts`
 
 Тонкая обёртка над `@capsuletech/compliance.check()`. Запускается в `transform`-хуке (enforce: 'pre'), парсит файл через babel, ловит upward / horizontal / disallowed import + side-effect-fetch.
 
@@ -88,7 +88,7 @@ plugins.CompliancePlugin({ mode: 'error' });
 
 ## HMRWrappingPlugin
 
-**Файл:** `packages/system/vite/src/plugins/HMRWrapping.ts`
+**Файл:** `packages/builders/vite/src/plugins/HMRWrapping.ts`
 
 Pre-transform на babel-AST. Решает проблему: HMR в Solid требует `export default`, и не любит, когда экспортируется значение, а не компонент.
 
@@ -123,7 +123,7 @@ export default Login;
 
 ## Watcher (общий ресурс)
 
-**Файл:** `packages/system/vite/src/utils/watcher.ts`
+**Файл:** `packages/builders/vite/src/utils/watcher.ts`
 
 Singleton `WatcherManager` подписывает несколько плагинов на один `server.watcher` без дублирования. И ExportGenerator, и RouterPlugin используют его.
 
@@ -138,7 +138,7 @@ watcherManager.subscribe(watchPath, {
 
 ## Сборка конфига
 
-**Файл:** `packages/core/src/builder/config.ts`
+**Файл:** `packages/builders/vite/src/defines/capsuleConfig.ts`
 
 ```ts
 {

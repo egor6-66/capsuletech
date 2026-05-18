@@ -52,7 +52,7 @@ return (
 ## Как UI попадает в Entity
 
 ```
-@capsuletech/ui ──▶ @capsuletech/core/wrappers/ui/ui-kit/imports.tsx (lazy-импорты)
+@capsuletech/web-ui ──▶ @capsuletech/web-core/ui-kit/imports.tsx (lazy-импорты)
                 ──▶ Ui (объект всех компонентов)
                 ──▶ EntityWrapper.UiProxy(ctx, props)  // оборачивает
                 ──▶ <Component {...Ui} />              // Entity получает Field/Button/Input в props

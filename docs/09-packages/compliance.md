@@ -106,7 +106,7 @@ plugins.CompliancePlugin({
 });
 ```
 
-Подключён в `packages/core/src/builder/config.ts` (после `HMRWrappingPlugin`).
+Подключён в `packages/builders/vite/src/defines/capsuleConfig.ts` (после `HMRWrappingPlugin`).
 
 ### Режимы
 

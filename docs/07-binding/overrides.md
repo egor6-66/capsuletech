@@ -25,11 +25,11 @@ Controller.Form.onClick → next() → Feature.Auth.onClick
 
 ## Что это делает
 
-В `ControllerProxy` (`packages/core/src/wrappers/logic/utils/proxy.ts:79`):
+В `ControllerProxy` (`packages/web/core/src/engine/controller-proxy.ts:47`):
 
 ```ts
-const targetMethod = overrides?.[methodName] || methodName;
-return await parent.controller[targetMethod]?.(enrichedTarget, context);
+const targetMethod = overrides?.[methodName] ?? methodName;
+return (await parent.controller[targetMethod]?.(enrichedTarget, context)) ?? null;
 ```
 
 - Если в overrides есть запись для текущего метода — `next()` уйдёт в метод с другим именем.
