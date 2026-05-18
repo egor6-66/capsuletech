@@ -6,13 +6,14 @@ Performance monitoring and profiling utilities for SolidJS applications.
 
 ## Features
 
-- Web Vitals tracking (CLS / FCP / INP / LCP / TTFB) via `web-vitals` 5.x
-- Memory usage (`performance.memory`, Chromium-only)
-- Network / bundle size (`PerformanceObserver` on `resource` entries)
-- Connection type (`navigator.connection`)
-- DOM-ready timing
-- Optional visual Dashboard overlay
-- RAF-batched updates
+- Typed `MetricsBus` (no string keys, no `.includes()` matching)
+- 13 built-in collectors: Web Vitals (CLS/FCP/LCP/INP/TTFB), memory, network (transfer/decoded/inflight/failed), navigation, connection, long tasks, LoAF, event timing, FPS, DOM stats, errors, user timing, deep network (monkey-patch fetch/XHR/WS — opt-in)
+- 3 reporters: console, sendBeacon (on `visibilitychange='hidden'`/`pagehide`), callback
+- Public read+write API: `useProfiler()`, `usePerf()` (`mark/measure/count/gauge/time`)
+- Per-metric ring-buffer history (default 60 samples) for sparklines
+- SSR-safe (no-ops on the server)
+- RAF-batched updates, dedup on equal values
+- Backwards-compatible legacy `VitalsMonitoringProvider` shim
 
 ## Installation
 
@@ -22,72 +23,75 @@ pnpm add @capsuletech/web-profiler
 
 ## Usage
 
-### Canonical — via `BaseProviders` from `@capsuletech/web-core`
+### Quick start — new API
+
+```tsx
+import { ProfilerProvider } from '@capsuletech/web-profiler/providers';
+import { consoleReporter, beaconReporter } from '@capsuletech/web-profiler/reporters';
+
+export default function App() {
+  return (
+    <ProfilerProvider
+      collectors="all-except-deep"
+      reporters={[consoleReporter(), beaconReporter({ url: '/api/metrics' })]}
+    >
+      <YourApp />
+    </ProfilerProvider>
+  );
+}
+```
+
+### Read metrics anywhere in the tree
+
+```tsx
+import { useProfiler } from '@capsuletech/web-profiler/api';
+
+function Stats() {
+  const bus = useProfiler();
+  return <div>FPS: {bus.read('fps')?.value}</div>;
+}
+```
+
+### Custom metrics with `usePerf`
+
+```tsx
+import { usePerf } from '@capsuletech/web-profiler/api';
+
+function MyComponent() {
+  const perf = usePerf();
+  const handle = async () => {
+    perf.count('button.clicks');
+    const timer = perf.time('api.user.get');
+    await api.user.get();
+    timer.end();
+  };
+  return <button onClick={handle}>Buy</button>;
+}
+```
+
+### Legacy compat (still works)
 
 ```tsx
 import { BaseProviders } from '@capsuletech/web-core';
-
-export default function App() {
-  return (
-    <BaseProviders vitals>
-      <YourApp />
-    </BaseProviders>
-  );
-}
-```
-
-`vitals` defaults to `false` so production bundles of `apps/<app>` don't pull profiler overhead.
-
-### Direct — for fine-grained control (e.g. hide the dashboard)
-
-```tsx
+// or:
 import { VitalsMonitoringProvider } from '@capsuletech/web-profiler/providers';
-
-export default function App() {
-  return (
-    <VitalsMonitoringProvider showDashboard={false}>
-      <YourApp />
-    </VitalsMonitoringProvider>
-  );
-}
 ```
 
-### Writing custom metrics into the dashboard
-
-```tsx
-import { useVitalsContext } from '@capsuletech/web-profiler/providers';
-
-function MyComponent() {
-  const ctx = useVitalsContext();
-  ctx?.updateComponentMetric('🧩 My Metric', 42);
-}
-```
-
-> **Note:** the context currently exposes **only** `updateComponentMetric`. There is no read-API for accumulated metrics yet. A typed read-API + collector pattern is on the roadmap — see `docs/_meta/profiler.md`.
+`<BaseProviders vitals>` and `<VitalsMonitoringProvider>` are kept as thin deprecated shims over `<ProfilerProvider collectors="legacy">`. See `docs/09-packages/profiler.md` for details.
 
 ## Monitored metrics
 
-- **FCP** — First Contentful Paint
-- **LCP** — Largest Contentful Paint
-- **CLS** — Cumulative Layout Shift
-- **INP** — Interaction to Next Paint
-- **TTFB** — Time to First Byte
-- **Memory Usage** — JavaScript heap (Chromium only)
-- **Network Load** — total transferred resource bytes
-- **Total Bundle** — total decoded resource bytes
-- **Dom Ready** — `domContentLoadedEventEnd`
-- **Network** — `effectiveType` from `navigator.connection`
+Web Vitals (`lcp`/`fcp`/`cls`/`inp`/`ttfb`), runtime (`memory`/`fps`/`dom.nodes`/`dom.ready`), network (`network.transfer`/`network.decoded`, plus `network.inflight`/`network.requests`/`network.failed` with `networkDeep`), `connection`, jank (`longtask`/`loaf`/`event`), errors (`error.js`/`error.promise`), user timing (`custom.mark.${name}`/`custom.measure.${name}`), and arbitrary `custom.${name}` from `usePerf`.
 
-Each numeric metric gets a `good` / `needs-improvement` / `poor` rating via standard Web Vitals thresholds.
+Each numeric metric is rated via `getRating(id, value)` (Web Vitals thresholds + inverse rating for `fps`).
 
 ## Known limitations
 
-- Not SSR-safe (no `typeof window` guards yet)
-- Dashboard is `position: fixed; pointer-events: none` — not draggable / collapsible (yet)
-- Metric keys are display strings with emojis — string-matching via `.includes()` for ratings (planned: typed `MetricId`)
-- `useVitalsContext()` write-only — no read-API yet
+- `dom.listeners` not implemented (would require monkey-patch of `addEventListener`)
+- Legacy Dashboard is `position: fixed; pointer-events: none` — Phase 2c will rewrite it (draggable / collapsible / tabbed)
+- `networkDeep` monkey-patches `fetch`/`XHR`/`WebSocket` — opt-in; may conflict with other patching SDKs (Sentry, Datadog, GTM)
 
-See `docs/_meta/profiler.md` for the full gotcha list and roadmap.
+See `docs/_meta/profiler.md` for the full gotcha list, file:line refs, and roadmap.
 
 ## License
 

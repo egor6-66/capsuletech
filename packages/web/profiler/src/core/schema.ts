@@ -7,6 +7,9 @@ export type IBuiltinMetricId =
   | 'memory'
   | 'network.transfer'
   | 'network.decoded'
+  | 'network.inflight'
+  | 'network.requests'
+  | 'network.failed'
   | 'dom.ready'
   | 'connection'
   | 'longtask'
@@ -62,6 +65,11 @@ export interface IMetricsBus {
 }
 
 export interface ICollector {
+  readonly name: string;
+  init(bus: IMetricsBus): () => void;
+}
+
+export interface IReporter {
   readonly name: string;
   init(bus: IMetricsBus): () => void;
 }

@@ -1,5 +1,6 @@
 export { createMetricsBus } from './bus';
 export type { ICreateBusOpts } from './bus';
+export { hasPO, isBrowser, supportsEntryType } from './env';
 export { getRating } from './ratings';
 export { createRingBuffer } from './ringBuffer';
 export type { IRingBuffer } from './ringBuffer';
@@ -16,4 +17,5 @@ export type {
   IMetricsSnapshot,
   IRating,
   IRatingLabel,
+  IReporter,
 } from './schema';

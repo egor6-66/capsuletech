@@ -29,6 +29,16 @@
       "types": "./dist/collectors/index.d.ts",
       "import": "./dist/collectors.mjs",
       "default": "./dist/collectors.mjs"
+    },
+    "./reporters": {
+      "types": "./dist/reporters/index.d.ts",
+      "import": "./dist/reporters.mjs",
+      "default": "./dist/reporters.mjs"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "import": "./dist/api.mjs",
+      "default": "./dist/api.mjs"
     }
   },
   "files": [

@@ -7,23 +7,48 @@ type: guide
 # 📊 @capsuletech/web-profiler
 
 > [!info]
-> Performance-мониторинг для Solid-приложений: Web Vitals (CLS / FCP / INP / LCP / TTFB) + memory + network + connection-type + DOM-ready + визуальный Dashboard. Lightweight, оборачивает приложение одним провайдером. Под активной доработкой — см. [[#Known issues]] и [[#Roadmap]].
+> Performance-мониторинг для Solid-приложений. Типизированный `MetricsBus` + 13 коллекторов (Web Vitals, memory, network, long tasks, FPS, errors, user timing и т.д.) + reporters (console / sendBeacon / callback) + опциональный визуальный Dashboard. Подключается через `ProfilerProvider` (новый API) или через `BaseProviders vitals` (legacy, всё работает).
 
 > [!ai]
-> Для агентов и Claude-инстансов есть отдельная шпаргалка с контрактами и gotchas — [[../_meta/profiler|docs/_meta/profiler.md]]. Если правишь пакет — читай её.
+> Для агентов и Claude-инстансов — полный AI-anchor с контрактами и gotchas: [[../_meta/profiler|docs/_meta/profiler.md]]. Если правишь пакет — читай его.
 
 ## Структура
 
 ```
 packages/web/profiler/src/
-├── index.ts                 barrel: ./components + ./providers + ./utils + type MetricRating
+├── core/                    типы, MetricsBus, ring-buffer, getRating, env-guards
+│   ├── schema.ts            IMetricId, IMetricsBus, ICollector, IReporter, ...
+│   ├── bus.ts               createMetricsBus
+│   ├── ringBuffer.ts        createRingBuffer
+│   ├── ratings.ts           getRating(id, value)
+│   └── env.ts               isBrowser / hasPO / supportsEntryType
+├── collectors/              13 collectors, каждый init(bus) => cleanup
+│   ├── webVitals.ts         CLS/FCP/LCP/INP/TTFB
+│   ├── memory.ts            performance.memory polling
+│   ├── network.ts           getEntriesByType('resource') + PO
+│   ├── navigation.ts        DOM ready
+│   ├── connection.ts        navigator.connection
+│   ├── longTasks.ts         entryTypes ['longtask']
+│   ├── loaf.ts              entryTypes ['long-animation-frame']
+│   ├── eventTiming.ts       entryTypes ['event']
+│   ├── fps.ts               RAF-counter
+│   ├── domStats.ts          document.* count
+│   ├── errors.ts            window.onerror + unhandledrejection
+│   ├── userTiming.ts        entryTypes ['mark', 'measure']
+│   └── networkDeep.ts       monkey-patch fetch/XHR/WebSocket (opt-in)
+├── reporters/
+│   ├── console.ts           bus.subscribe → console.log
+│   ├── beacon.ts            navigator.sendBeacon on visibilitychange/pagehide
+│   └── callback.ts          bus.subscribe → user fn
 ├── providers/
-│   ├── index.ts             VitalsMonitoringProvider / useVitalsContext / VitalsMonitoringContext + типы
-│   └── vitalsMonitor.tsx    Solid Context-провайдер на createSignal, RAF-батчинг апдейтов
+│   ├── profiler.tsx         ProfilerProvider (новый API)
+│   └── vitalsMonitor.tsx    VitalsMonitoringProvider (legacy shim)
+├── api/
+│   ├── useProfiler.ts       ProfilerContext + useProfiler / useProfilerSafe
+│   └── usePerf.ts           createPerfApi + usePerf (mark/measure/count/gauge/time)
 ├── components/
-│   ├── index.ts             Dashboard
-│   └── dashboard.tsx        position:fixed overlay, inline-стили, pointer-events:none
-└── utils.ts                 web-vitals setup + memory / network / connection / dom-ready helpers + getRating
+│   └── dashboard.tsx        legacy overlay (будет переписан в Phase 2c)
+└── utils.ts                 @deprecated helpers (legacy)
 ```
 
 ## Точки входа
@@ -31,16 +56,20 @@ packages/web/profiler/src/
 ```jsonc
 {
   "exports": {
-    ".":             ".../dist/index.mjs",
-    "./providers":   ".../dist/providers.mjs",
-    "./components":  ".../dist/components.mjs"
+    ".":             ".../dist/index.mjs",          // всё
+    "./providers":   ".../dist/providers.mjs",      // ProfilerProvider + legacy
+    "./api":         ".../dist/api.mjs",            // useProfiler / usePerf
+    "./core":        ".../dist/core.mjs",           // createMetricsBus, типы
+    "./collectors":  ".../dist/collectors.mjs",
+    "./reporters":   ".../dist/reporters.mjs",
+    "./components":  ".../dist/components.mjs"      // legacy Dashboard
   }
 }
 ```
 
 ## Использование
 
-### Канонический путь — через `BaseProviders` из web-core
+### Минимальный путь — через `BaseProviders` из web-core
 
 ```tsx
 import { BaseProviders } from '@capsuletech/web-core';
@@ -54,111 +83,213 @@ export default function App() {
 }
 ```
 
-`vitals?: boolean` (default — `false`, чтобы прод-бандлы apps/<app> не тянули overhead профайлера без необходимости). При `true` — оборачивает дерево в `VitalsMonitoringProvider` и показывает Dashboard.
+`vitals?: boolean` (default — `false`, чтобы прод-бандлы не тянули профайлер). При `true` — внутри `<VitalsMonitoringProvider>` (legacy shim), 5 коллекторов + legacy Dashboard.
 
-> [!note]
-> `BaseProviders` пока не пробрасывает `showDashboard` — Dashboard всегда `on` при `vitals={true}`. Если нужно метрики **без** UI — используй прямой импорт ниже.
+### Новый API — `ProfilerProvider`
 
-### Прямой путь — для тонкой настройки
+Если нужны новые коллекторы (longTasks/fps/errors/...), reporters или read-API:
 
 ```tsx
-import { VitalsMonitoringProvider } from '@capsuletech/web-profiler/providers';
+import { ProfilerProvider } from '@capsuletech/web-profiler/providers';
+import { consoleReporter, beaconReporter } from '@capsuletech/web-profiler/reporters';
 
 export default function App() {
   return (
-    <VitalsMonitoringProvider showDashboard={false}>
+    <ProfilerProvider
+      collectors="all-except-deep"  // default: 12 collectors, без networkDeep
+      reporters={[
+        consoleReporter({ prefix: '[perf]' }),
+        beaconReporter({ url: '/api/metrics' }),
+      ]}
+    >
       <YourApp />
-    </VitalsMonitoringProvider>
+    </ProfilerProvider>
   );
 }
 ```
 
-`VitalsMonitoringProviderProps`:
-- `children: JSX.Element`
-- `showDashboard?: boolean` — default `true`
+`collectors`:
+- `'all'` — все 13 (включая `networkDeep`, который monkey-patch'ит fetch/XHR/WS)
+- `'all-except-deep'` (default) — 12 коллекторов без `networkDeep`
+- `'legacy'` — 5 коллекторов Phase 2a (используется legacy `VitalsMonitoringProvider` shim'ом)
+- `ICollector[]` — твой список, например `[webVitalsCollector(), fpsCollector(), errorsCollector()]`
 
-### Доступ к контексту
+`reporters?: IReporter[]` — список репортеров (см. ниже).
+
+Дополнительно: `bus?: IMetricsBus` (для тестов / DI), `historySize?: number` (default 60, размер ring-buffer истории).
+
+### Доступ к метрикам — `useProfiler()`
 
 ```tsx
-import { useVitalsContext } from '@capsuletech/web-profiler/providers';
+import { useProfiler } from '@capsuletech/web-profiler/api';
 
-function Component() {
-  const ctx = useVitalsContext();
-  ctx?.updateComponentMetric('🧩 My Metric', 42);
+function Stats() {
+  const bus = useProfiler();  // throws if outside <ProfilerProvider>
+  return (
+    <div>
+      <p>LCP: {bus.read('lcp')?.value} ms</p>
+      <p>FPS: {bus.read('fps')?.value}</p>
+      <p>Memory: {bus.read('memory')?.value} MB</p>
+    </div>
+  );
 }
 ```
 
-`IMonitoringContextType`:
-- `updateComponentMetric(name: string, value: number | string): void` — пишет произвольную метрику в дашборд.
+`useProfilerSafe()` — undefined-safe вариант (для опциональной зависимости).
 
-> [!warning]
-> **Read-API пока нет.** `useVitalsContext()` отдаёт **только** `updateComponentMetric`. Прочитать накопленные значения метрик из пользовательского кода в текущей версии нельзя. См. [[#Known issues]] и [[#Roadmap]].
+`IMetricsBus` API:
+- `bus.read(id)` → `{ value, ts } | undefined`
+- `bus.meta(id)` → `{ id, kind, label, unit } | undefined`
+- `bus.history(id)` → `readonly IMetricSample[]` (для sparkline)
+- `bus.ids()` → `readonly IMetricId[]`
+- `bus.subscribe(fn)` → unsubscribe (для своих reporter'ов)
+- `bus.snapshot()` → `Record<IMetricId, IMetricSample>` (для serialize)
+- `bus.write(id, value, meta?)` — обычно дёргается из collectors, но и user-кодом тоже можно
+
+### Custom-метрики — `usePerf()`
+
+```tsx
+import { usePerf } from '@capsuletech/web-profiler/api';
+
+function MyComponent() {
+  const perf = usePerf();
+
+  const handleClick = async () => {
+    perf.count('button.clicks');                    // counter, running total
+
+    const timer = perf.time('api.user.get');
+    const user = await api.user.get(id);
+    timer.end();                                     // → custom.api.user.get, kind=timing
+
+    perf.gauge('cart.items', cart.length, 'items'); // gauge, verbatim
+  };
+
+  return <button onClick={handleClick}>Buy</button>;
+}
+```
+
+Полный API:
+
+```ts
+interface IPerfApi {
+  mark(name: string): void;                                 // performance.mark
+  measure(name: string, start?: string, end?: string): number | undefined;
+  count(name: string, n?: number): void;                    // running total → counter
+  gauge(name: string, value: number, unit?: string): void;  // verbatim → gauge
+  time(name: string): { end(): number };                    // elapsed ms → timing
+}
+```
+
+Все custom-метрики пишутся как `custom.${name}` в bus.
+
+`mark`/`measure` идут через `performance.mark`/`performance.measure` — их подхватывает `userTimingCollector` и пишет в bus как `custom.mark.${name}` / `custom.measure.${name}`. Это даёт пересечение с DevTools Performance tab — твои marks видны там, и в профайлере одновременно.
+
+## Reporters
+
+Каждый reporter — `IReporter = { name, init(bus) => cleanup }`. Запускается через `<ProfilerProvider reporters={[...]}>`.
+
+### `consoleReporter`
+
+```ts
+consoleReporter({ prefix?: string; filter?: (id: string) => boolean })
+```
+
+Логирует каждый bus.write через `bus.subscribe`. По умолчанию `prefix = '[profiler]'`. `filter` — пред-фильтр по id (например `(id) => id.startsWith('error.')`).
+
+### `beaconReporter`
+
+```ts
+beaconReporter({
+  url: string;
+  on?: Array<'hidden' | 'pagehide'>;       // default обе
+  serializer?: (snapshot) => BodyInit;     // default JSON.stringify(snapshot)
+})
+```
+
+При `visibilitychange='hidden'` и/или `pagehide` шлёт `bus.snapshot()` через `navigator.sendBeacon`. Ошибки глушит (best-effort). Идеально для отправки метрик в свой analytics-endpoint при закрытии вкладки.
+
+### `callbackReporter`
+
+```ts
+callbackReporter((id, sample, meta) => { /* ... */ })
+```
+
+Тонкая обёртка над `bus.subscribe`. Используй когда нужно стримить метрики в произвольный sink (Sentry, Datadog, GA).
 
 ## Какие метрики собираются
 
-| Метрика | Источник | Update-частота |
-|---|---|---|
-| **CLS** — Cumulative Layout Shift | `web-vitals.onCLS` (reportAllChanges) | per-change |
-| **LCP** — Largest Contentful Paint | `web-vitals.onLCP` (reportAllChanges) | per-change |
-| **FCP** — First Contentful Paint | `web-vitals.onFCP` (reportAllChanges) | per-change |
-| **INP** — Interaction to Next Paint | `web-vitals.onINP` (reportAllChanges) | per-change |
-| **TTFB** — Time to First Byte | `web-vitals.onTTFB` | финальное |
-| **📡 Network Load** — суммарный transferSize ресурсов, MB | `PerformanceObserver('resource')` | initial + 2s + on new resource |
-| **📦 Total Bundle** — суммарный decoded/encoded body, MB | same | same |
-| **💻 Memory Usage** — used JS heap, MB | `performance.memory` (Chromium only) | `setInterval(2000)` |
-| **⏱️ Dom Ready** — `domContentLoadedEventEnd`, ms | `performance.getEntriesByType('navigation')` | one-shot at mount |
-| **🌐 Network** — `effectiveType` ('4g'/'3g'/...) | `navigator.connection` | one-shot at mount |
+С Phase 2b — 22 встроенных id'а + custom-namespace:
 
-Каждая числовая метрика получает рейтинг через `getRating(name, value)`:
+**Web Vitals:** `lcp`, `fcp`, `cls`, `inp`, `ttfb`.
+**Runtime:** `memory`, `fps`, `dom.nodes`, `dom.ready`.
+**Network:** `network.transfer`, `network.decoded`. С `networkDeep` — ещё `network.inflight` / `network.requests` / `network.failed`.
+**Connection:** `connection` (effectiveType — '4g'/'3g'/...).
+**Jank/responsiveness:** `longtask`, `loaf`, `event`.
+**Errors:** `error.js`, `error.promise`.
+**User Timing:** `custom.mark.${name}`, `custom.measure.${name}`.
+**Custom:** `custom.${name}` через `usePerf().count/gauge/time`.
 
-| Label | Значение |
+Каждой числовой метрике `getRating(id, value)` возвращает рейтинг:
+
+| Label | Цвет |
 |---|---|
-| `'GOOD'` | зелёный (`#10b981`) |
-| `'NEEDS_IMPROVEMENT'` | жёлтый (`#f59e0b`) |
-| `'POOR'` | красный (`#ef4444`) |
-| `'INFO'` | синий (`#3498db`) — для нечисловых / нераспознанных |
+| `'good'` | зелёный (`#10b981`) |
+| `'needs-improvement'` | жёлтый (`#f59e0b`) |
+| `'poor'` | красный (`#ef4444`) |
+| `'info'` | синий (`#3498db`) — для unknown id / string value |
 
-Пороги — стандартные Web Vitals (`web.dev/vitals`), для memory/network — захардкожены (см. [utils.ts:9](../../packages/web/profiler/src/utils.ts:9)).
+Пороги — стандартные Web Vitals (`web.dev/vitals`), для остальных — захардкожены в [core/ratings.ts](../../packages/web/profiler/src/core/ratings.ts). `fps` — единственная метрика с inverse-rating (higher-is-better).
+
+## networkDeep (opt-in)
+
+Monkey-patches `fetch`, `XMLHttpRequest.prototype.send`, `WebSocket`. Считает in-flight + total + failed запросов. Включается явно:
+
+```tsx
+<ProfilerProvider collectors="all">  {/* или */}
+<ProfilerProvider collectors={[webVitalsCollector(), networkDeepCollector()]}>
+```
+
+> [!warning]
+> `networkDeep` патчит глобалы — потенциальный конфликт с другими SDK что делают то же (Sentry, Datadog, GTM). Если используешь такие — либо отключи там, либо не включай `networkDeep`. Cleanup восстанавливает оригиналы при unmount.
 
 ## Dashboard
 
-`<Dashboard metrics={Record<string, number>} />` — фиксированный overlay справа сверху. Показывается, если в `metrics` хоть один ключ.
+Текущий Dashboard — legacy: фиксированный `position: fixed; pointer-events: none;`, inline-стили. Показывается через legacy `VitalsMonitoringProvider`/`BaseProviders vitals`. Phase 2c — переписать на draggable / collapsible / tabbed виджет с sparkline'ами поверх `bus.history(id)`.
 
-Текущие ограничения:
-- `position: fixed; top: 15px; right: 15px;` — позиция не настраивается
-- `pointer-events: none` — нельзя кликать / перетащить / свернуть
-- inline-стили, без интеграции с [[style|@capsuletech/web-style]]
-- `z-index: 10000`
+Если нужен полностью свой UI прямо сейчас — используй `useProfiler()` и собирай view сам, без подключения legacy провайдера:
 
-Если нужен полностью свой UI — импортируй и используй `useVitalsContext().updateComponentMetric(...)` чтобы писать туда метрики, либо подключай провайдер с `showDashboard={false}` и пиши собственный (read-API ограничено — см. ниже).
+```tsx
+<ProfilerProvider>
+  <YourApp />
+  <YourCustomDashboard />   {/* читает через useProfiler() */}
+</ProfilerProvider>
+```
 
 ## SSR
 
-Пакет **не SSR-safe** в текущей версии. `performance.memory`, `navigator.connection`, `PerformanceObserver`, `performance.getEntriesByType` вызываются без `typeof window` guard'ов. При SSR/prerender провайдер упадёт. Подключай только в client-only ветке (`Show when={isClient}` или динамический import).
+Все коллекторы и reporters внутри проверяют `isBrowser` / `hasPO` / `supportsEntryType` и no-op'ят в node-окружении. `ProfilerProvider` запускается через `onMount` — на сервере collectors не стартуют. Тем не менее: если делаешь явную предсборку — оборачивай в `<Show when={isClient}>` или используй `useProfilerSafe()`.
 
-## Known issues
+## Тесты
 
-Зафиксировано в [[../_meta/profiler#Gotchas]]. Кратко — что бьёт в глаза:
+В `src/__tests__/` — 29 vitest-тестов (`environment: 'node'`):
+- `bus.test.ts` (9) — write/read/history/meta/snapshot/subscribers
+- `ratings.test.ts` (5) — Web Vitals thresholds + inverse-rating для fps
+- `ringBuffer.test.ts` (4) — capacity/overwrite/last/edge cases
+- `perfApi.test.ts` (6) — count/gauge/time/mark/measure
+- `reporters.test.ts` (5) — callback + console (с моком)
 
-1. **Ключи метрик — display-строки с эмодзи** (`'📡 Network Load'`), а `getRating` матчит через `.includes()`. Любая локализация / опечатка молчаливо ломает рейтинг. Нет `MetricId`.
-2. **`updateComponentMetric(name, value: number | string)` — `string` не сохраняется** в storage, только проходит в Dashboard через текущий апдейт (и там же отшивается обратно через `typeof val === 'number'`). Мёртвая ветка для строковых пользовательских метрик.
-3. **`useVitalsContext()` возвращает только `updateComponentMetric`** — никакого read-API.
-4. **SSR небезопасно** — см. выше.
-5. **`BaseProviders.vitals`** — boolean, без проброса `showDashboard`. Тонкая настройка только через прямой импорт.
-6. **Web Vitals идут с `reportAllChanges: true`** — годится для live-dashboard, плохо для analytics-репортов (промежуточные значения).
-7. **Memory polling `setInterval(2000)`** без quiescence — постоянный re-render даже если значение стабильно.
+`pnpm --filter @capsuletech/web-profiler test`. Все зелёные.
 
 ## Roadmap
 
-Под моей ownership (зафиксировано 2026-05-18). План согласован:
-
-- **Фаза 1 (текущая):** документация. Этот файл + [[../_meta/profiler|AI-anchor]] + синхронизация README. Код не трогаем.
-- **Фаза 2 (refactor):** перепиcать на collector pattern — типизированная схема метрик, MetricsBus (Solid store, history через ring-buffer), reporters (console / sendBeacon / callback). Dashboard — draggable / collapsible / tabbed (Vitals / Runtime / Network / Errors / Custom).
-- **Фаза 3 (collectors):** Long Tasks + LoAF + Event Timing, FPS + DOM stats + errors, User Timing + публичное `profiler.count/gauge/time/mark/measure`, Network deep (monkey-patch fetch/XHR/WS, opt-in).
+- **Phase 1 ✅** docs + AI-anchor
+- **Phase 2a ✅** core + 5 collectors
+- **Phase 2b ✅** 8 новых collectors + reporters + ProfilerProvider + useProfiler/usePerf
+- **Phase 2c ⏳** Dashboard rewrite (draggable / tabbed / sparklines, интеграция с `@capsuletech/web-style`)
 
 Подробности — [[../_meta/profiler#Roadmap]].
 
 ## Связанное
 
-- [[core|@capsuletech/web-core]] — `BaseProviders.vitals` подключает провайдер.
+- [[core|@capsuletech/web-core]] — `BaseProviders.vitals` подключает legacy провайдер.
 - [[../_meta/profiler|profiler — AI anchor]] — для агентов: контракты, gotchas, чек-листы.

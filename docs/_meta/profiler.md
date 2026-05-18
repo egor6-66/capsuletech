@@ -12,36 +12,77 @@ audience: claude
 
 ## TL;DR
 
-`@capsuletech/web-profiler` — performance-мониторинг для Solid-приложений. Сейчас собирает Web Vitals (CLS / FCP / INP / LCP / TTFB через `web-vitals` 5.x), memory (`performance.memory`, Chromium-only), network/bundle (`PerformanceObserver` + `getEntriesByType('resource')`), connection (`navigator.connection`), DOM ready (`PerformanceNavigationTiming`). Выдаёт Solid Context + опциональный визуальный Dashboard-оверлей. Подключается приложением через `<VitalsMonitoringProvider>` напрямую либо через `<BaseProviders vitals>` из `@capsuletech/web-core`.
+`@capsuletech/web-profiler` — performance-мониторинг для Solid-приложений на collector-pattern. Типизированный `MetricsBus` собирает данные из подключённых коллекторов и раздаёт их (а) виджет-Dashboard'у, (б) reporters'ам (console / sendBeacon / callback), (в) user-коду через `useProfiler()` / `usePerf()`.
 
-Контракт «снаружи»: один провайдер оборачивает app → метрики сами начинают капать → Dashboard рисует overlay. Никаких хуков для чтения метрик из контекста потребитель пока **не имеет** (см. [[#Gotchas]]).
+С Phase 2b — 13 встроенных collector'ов: Web Vitals (CLS/FCP/INP/LCP/TTFB), memory, network (transfer/decoded/inflight/failed), navigation, connection, longTasks, loaf, eventTiming, fps, domStats, errors, userTiming, networkDeep (последний — opt-in, monkey-patch). Подключается через `<ProfilerProvider>` (новый API) или `<VitalsMonitoringProvider>` (legacy shim, всё ещё работает через `BaseProviders.vitals`).
+
+Контракт «снаружи»: либо `<ProfilerProvider>` оборачивает app → метрики капают в bus → `useProfiler()` отдаёт типизированный bus → `usePerf()` — обёртка с `mark/measure/count/gauge/time`. Либо legacy `<VitalsMonitoringProvider>` → 5 legacy-коллекторов + старый Dashboard. Никаких breaking changes.
 
 ## Где что лежит
 
-После Phase 2a (2026-05-18) внутри пакета — collector-pattern + типизированный `MetricsBus`. Снаружи API не изменилось: `VitalsMonitoringProvider` теперь thin orchestrator над bus'ом, сохраняет legacy Context-API.
+После Phase 2b (2026-05-18) внутри пакета — типизированный `MetricsBus`, 13 collector'ов, 3 reporters, новый `ProfilerProvider` + public `useProfiler()`/`usePerf()` API. Legacy `VitalsMonitoringProvider` теперь thin deprecated shim над `<ProfilerProvider collectors="legacy">`. Снаружи (BaseProviders.vitals) — ноль breaking changes.
 
+### Core
 | Файл | Что |
 |---|---|
-| `packages/web/profiler/src/index.ts` | Barrel — `./components` + `./providers` + `./core` + `./collectors` + type `MetricRating`. |
-| **`packages/web/profiler/src/core/schema.ts`** | Типы: `IMetricId` (union `IBuiltinMetricId | 'custom.${string}'`), `IMetricKind`, `IMetricMeta`, `IMetricSample`, `IRating`, `IMetricsBus`, `ICollector`. **Источник правды для контракта метрик.** |
-| **`packages/web/profiler/src/core/bus.ts`** | `createMetricsBus({ historySize? })` — Map-based bus с per-metric ring-buffer history, default-meta table по `id`, dedup-on-equal-value, subscribers. |
-| **`packages/web/profiler/src/core/ringBuffer.ts`** | `createRingBuffer<T>(capacity)` — `{ push, toArray, last, length, capacity }`. |
-| **`packages/web/profiler/src/core/ratings.ts`** | `getRating(id, value)` — таблица порогов по `IBuiltinMetricId`. Знает inverse-rating для `fps` (higher-is-better). Возвращает `'info'` для unknown/string. |
-| **`packages/web/profiler/src/collectors/_ssr.ts`** | `isBrowser`, `hasPO()`, `supportsEntryType(type)`. |
-| **`packages/web/profiler/src/collectors/webVitals.ts`** | `webVitalsCollector({ reportAllChanges? })`. Маппит `CLS/FCP/LCP/INP/TTFB` → `cls/fcp/lcp/inp/ttfb`. Disposed-flag gate. |
-| **`packages/web/profiler/src/collectors/memory.ts`** | `memoryCollector({ intervalMs? = 2000 })`. SSR + Chromium-only guard. |
-| **`packages/web/profiler/src/collectors/network.ts`** | `networkCollector({ secondPassDelayMs? = 2000 })` — initial pass + delayed pass + `PerformanceObserver('resource')`. Чистит и timeout, и observer. |
-| **`packages/web/profiler/src/collectors/navigation.ts`** | One-shot `dom.ready` из `getEntriesByType('navigation')`. |
-| **`packages/web/profiler/src/collectors/connection.ts`** | `connectionCollector()` — `navigator.connection.effectiveType` + listener на `change`. |
-| `packages/web/profiler/src/providers/vitalsMonitor.tsx` | Orchestrator: создаёт `bus`, инициализирует 5 коллекторов, subscribe → проецирует на legacy `Record<string, number\|string>` для старого Dashboard. Сохраняет legacy Context-API (`IMonitoringContextType` с `updateComponentMetric` + `bus` под `@internal`). |
-| `packages/web/profiler/src/providers/index.ts` | Реэкспорт `VitalsMonitoringProvider`, `useVitalsContext`, `VitalsMonitoringContext`, `IMonitoringContextType`, `VitalsMonitoringProviderProps`. |
-| `packages/web/profiler/src/components/dashboard.tsx` | Старый overlay. Принимает `Record<string, number\|string>` (раньше — только number). `pointer-events: none`, hardcoded colors — будет переписан в Phase 2c. |
-| `packages/web/profiler/src/utils.ts` | `setupWebVitalsTracking`, `getNetworkMetrics`, `getMemoryMetrics`, `getConnectionType`, `getDomReadyTime`, `getRating(name, value)`, `MetricRating` — все помечены `@deprecated` / `@internal`. Используются только legacy Dashboard. |
-| `packages/web/profiler/src/__tests__/` | `bus.test.ts` (9 tests), `ratings.test.ts` (5), `ringBuffer.test.ts` (4). Всего 18 — `pnpm test` зелёный. |
-| `packages/web/profiler/vite.config.mts` | `libConfig` с 5 entry: `index`, `providers`, `components`, `core`, `collectors`. |
-| `packages/web/profiler/vitest.config.ts` | `environment: 'node'`, по образцу web-state. |
-| `packages/web/profiler/package.json` | Subpath exports: `.`, `./providers`, `./components`, `./core`, `./collectors`. Dep: `web-vitals ^5.2.0`. PeerDep: `solid-js ^1.9.0`. |
-| `packages/web/core/src/providers/base.tsx` | `BaseProviders.vitals?: boolean` — без изменений. `VitalsMonitoringProvider` внутри теперь Phase-2a-shim, но контракт снаружи прежний. |
+| `src/core/schema.ts` | Типы: `IBuiltinMetricId` (22 встроенных), `ICustomMetricId` (`'custom.${string}'`), `IMetricId`, `IMetricKind`, `IMetricMeta`, `IMetricSample`, `IRating`, `IMetricsBus`, `ICollector`, `IReporter`, `IMetricsListener`, `IMetricsSnapshot`. **Источник правды для контракта.** |
+| `src/core/bus.ts` | `createMetricsBus({ historySize? })` — Map-based bus с per-metric ring-buffer history, default-meta таблица по `id`, dedup-on-equal-value, subscribers. |
+| `src/core/ringBuffer.ts` | `createRingBuffer<T>(capacity)`. |
+| `src/core/ratings.ts` | `getRating(id, value)` — lookup-table по `IBuiltinMetricId`. `HIGHER_IS_BETTER['fps']`. `'info'` для unknown/string. |
+| `src/core/env.ts` | `isBrowser`, `hasPO()`, `supportsEntryType(type)`. **Используется и collectors, и reporters'ами.** |
+| `src/core/index.ts` | Barrel. |
+
+### Collectors (13)
+| Файл | Что |
+|---|---|
+| `collectors/webVitals.ts` | CLS/FCP/LCP/INP/TTFB через `web-vitals` 5.x. `{ reportAllChanges? = true }`. Disposed-flag gate. |
+| `collectors/memory.ts` | `(performance as any).memory.usedJSHeapSize`, MB. `{ intervalMs? = 2000 }`. Chromium-only. |
+| `collectors/network.ts` | `getEntriesByType('resource')` → `network.transfer` / `network.decoded`. `{ secondPassDelayMs? = 2000 }`. |
+| `collectors/navigation.ts` | `getEntriesByType('navigation')[0].domContentLoadedEventEnd` → `dom.ready`. One-shot. |
+| `collectors/connection.ts` | `navigator.connection.effectiveType` → `connection` + listener на `'change'`. |
+| `collectors/longTasks.ts` | `entryTypes: ['longtask']`, threshold-фильтр (default 50ms) → `longtask`. |
+| `collectors/loaf.ts` | `entryTypes: ['long-animation-frame']`, threshold (default 50ms) → `loaf`. |
+| `collectors/eventTiming.ts` | `type: 'event', buffered: true, durationThreshold: 40` → `event`. |
+| `collectors/fps.ts` | RAF-counter + setInterval (default 1000ms) → `fps` (округлённый). Cleanup чистит и RAF, и interval. |
+| `collectors/domStats.ts` | `document.getElementsByTagName('*').length` каждые 5s → `dom.nodes`. `dom.listeners` пока не реализован (нужен monkey-patch addEventListener). |
+| `collectors/errors.ts` | `window.addEventListener('error' / 'unhandledrejection')` → `error.js` / `error.promise` (running counters). |
+| `collectors/userTiming.ts` | `entryTypes: ['mark', 'measure']` → `custom.mark.${name}` / `custom.measure.${name}` (per-name, kind=event/timing). |
+| `collectors/networkDeep.ts` | **opt-in.** Monkey-patches `fetch`, `XMLHttpRequest.prototype.send`, `WebSocket`. Counters: `network.inflight`, `network.requests`, `network.failed`. `{ patchFetch?, patchXHR?, patchWebSocket? }`. |
+| `collectors/_ssr.ts` | Реэкспорт из `core/env.ts` для legacy-импортов. |
+| `collectors/index.ts` | Barrel. |
+
+### Reporters (3)
+| Файл | Что |
+|---|---|
+| `reporters/console.ts` | `consoleReporter({ prefix?, filter? })`. Логирует каждый `bus.subscribe`-tick. |
+| `reporters/beacon.ts` | `beaconReporter({ url, on?: ('hidden' \| 'pagehide')[], serializer? })`. `navigator.sendBeacon` на `visibilitychange='hidden'` и/или `pagehide`. Best-effort, ошибки глушит. |
+| `reporters/callback.ts` | `callbackReporter(fn)` — generic-форма поверх `bus.subscribe`. |
+| `reporters/index.ts` | Barrel. |
+
+### Provider + Public API
+| Файл | Что |
+|---|---|
+| `providers/profiler.tsx` | `ProfilerProvider`: создаёт bus (или принимает `bus` prop), запускает выбранные `collectors` и `reporters` через `onMount`, чистит через `onCleanup`. `collectors`: `'all'` (с networkDeep) \| `'all-except-deep'` (default, 12 коллекторов) \| `'legacy'` (5) \| `ICollector[]`. Cleanup'ы каждого коллектора в `try/catch` — один битый не валит дерево. |
+| `api/useProfiler.ts` | `ProfilerContext = createContext<IMetricsBus \| undefined>(undefined)`. `useProfiler()` — **throws** если нет провайдера. `useProfilerSafe()` — undefined-safe. |
+| `api/usePerf.ts` | `createPerfApi(bus)` → `{ mark, measure, count, gauge, time }`. `usePerf()` = `createPerfApi(useProfiler())`. `count` хранит running total в локальном Map, пишет в bus как counter. `time(name)` возвращает `{ end() }` через `performance.now`/`Date.now` fallback. `mark`/`measure` — no-throw обёртки над Performance API (захватываются `userTimingCollector`'ом). |
+| `api/index.ts` | Barrel. |
+
+### Legacy + UI
+| Файл | Что |
+|---|---|
+| `providers/vitalsMonitor.tsx` | `VitalsMonitoringProvider` = `<ProfilerProvider collectors="legacy">` + `LegacyVitalsBridge` (подписывается на bus, проецирует на legacy display-keys для старого Dashboard, экспонирует `IMonitoringContextType.updateComponentMetric` через `VitalsMonitoringContext`). Все символы — `@deprecated`. |
+| `providers/index.ts` | Barrel: `ProfilerProvider` + legacy `VitalsMonitoringProvider` / `useVitalsContext` / `VitalsMonitoringContext` / `IMonitoringContextType`. |
+| `components/dashboard.tsx` | Старый overlay. Принимает `Record<string, number\|string>`. `pointer-events: none`, hardcoded colors — будет переписан в Phase 2c. |
+| `utils.ts` | Все helpers (`setupWebVitalsTracking`, `getRating` legacy, ...) — `@deprecated`/`@internal`. Используются только legacy Dashboard. |
+
+### Конфиг + тесты
+| Файл | Что |
+|---|---|
+| `src/__tests__/` | `bus.test.ts` (9), `ratings.test.ts` (5), `ringBuffer.test.ts` (4), `perfApi.test.ts` (6), `reporters.test.ts` (5). **29 тестов, все зелёные.** |
+| `vite.config.mts` | `libConfig` с 7 entry: `index`, `providers`, `components`, `core`, `collectors`, `reporters`, `api`. |
+| `vitest.config.ts` | `environment: 'node'`. |
+| `package.json` | Subpath exports: `.`, `./providers`, `./components`, `./core`, `./collectors`, `./reporters`, `./api`. Dep: `web-vitals ^5.2.0`. PeerDep: `solid-js ^1.9.0`. |
+| `packages/web/core/src/providers/base.tsx` | `BaseProviders.vitals?: boolean` — без изменений. Под капотом `VitalsMonitoringProvider` теперь shim над `ProfilerProvider`. |
 
 ## Точки входа
 
@@ -49,10 +90,12 @@ audience: claude
 {
   "exports": {
     ".":             ".../dist/index.mjs",          // всё сразу
-    "./providers":   ".../dist/providers.mjs",      // VitalsMonitoringProvider/Context (legacy)
-    "./components":  ".../dist/components.mjs",     // Dashboard (legacy overlay)
-    "./core":        ".../dist/core.mjs",           // createMetricsBus, getRating, createRingBuffer, типы
-    "./collectors":  ".../dist/collectors.mjs"      // webVitals/memory/network/navigation/connection
+    "./providers":   ".../dist/providers.mjs",      // ProfilerProvider + legacy VitalsMonitoringProvider
+    "./api":         ".../dist/api.mjs",            // useProfiler / useProfilerSafe / usePerf / createPerfApi
+    "./core":        ".../dist/core.mjs",           // createMetricsBus, getRating, createRingBuffer, env, типы
+    "./collectors":  ".../dist/collectors.mjs",     // 13 коллекторов
+    "./reporters":   ".../dist/reporters.mjs",      // console / beacon / callback
+    "./components":  ".../dist/components.mjs"      // legacy Dashboard
   }
 }
 ```
@@ -61,7 +104,42 @@ audience: claude
 
 ## Контракт API
 
-### Public (legacy, Phase 2a stable)
+### Public (Phase 2b — new API)
+
+```ts
+// providers/profiler.tsx
+type IProfilerCollectorsOpt = 'all' | 'all-except-deep' | 'legacy' | ICollector[];
+
+interface IProfilerProviderProps {
+  children: JSX.Element;
+  collectors?: IProfilerCollectorsOpt;   // default 'all-except-deep' (12 collectors, no networkDeep)
+  reporters?: IReporter[];
+  bus?: IMetricsBus;                     // inject (e.g. tests)
+  historySize?: number;                  // default 60
+}
+
+function ProfilerProvider(props): JSX.Element;
+
+// api/useProfiler.ts
+function useProfiler(): IMetricsBus;       // throws if outside <ProfilerProvider>
+function useProfilerSafe(): IMetricsBus | undefined;
+const ProfilerContext: Context<IMetricsBus | undefined>;
+
+// api/usePerf.ts
+interface IPerfApi {
+  mark(name: string): void;                                // → performance.mark → userTimingCollector
+  measure(name: string, start?: string, end?: string): number | undefined;
+  count(name: string, n?: number): void;                   // running total, kind=counter
+  gauge(name: string, value: number, unit?: string): void; // verbatim, kind=gauge
+  time(name: string): { end(): number };                   // returns elapsed ms, kind=timing
+}
+function createPerfApi(bus: IMetricsBus): IPerfApi;
+function usePerf(): IPerfApi;
+```
+
+Все custom-метрики из `usePerf` пишутся под id `custom.${name}`. Imeena Counter и `count` (`count('clicks')` → `custom.clicks` с running total — НЕ delta).
+
+### Public (legacy, Phase 2a stable, deprecated)
 
 ```ts
 interface VitalsMonitoringProviderProps {
@@ -108,24 +186,32 @@ function getRating(id: IMetricId, value: number | string): IRating;
 
 ## Что хранится в bus'е
 
-С Phase 2a — типизированный `IMetricId`. Все 5 первых collectors пишут в:
+С Phase 2b — 22 встроенных `IBuiltinMetricId` + `custom.${string}`. Сводка по коллекторам:
 
-| `IMetricId` | Источник | Update-частота | Legacy display-key (для старого Dashboard) |
+| `IMetricId` | Источник | Update-частота | Legacy display-key |
 |---|---|---|---|
-| `'cls'` | `web-vitals.onCLS({ reportAllChanges })` | per-change | `'CLS'` |
-| `'lcp'` | `web-vitals.onLCP({ reportAllChanges })` | per-change | `'LCP'` |
-| `'fcp'` | `web-vitals.onFCP({ reportAllChanges })` | per-change | `'FCP'` |
-| `'inp'` | `web-vitals.onINP({ reportAllChanges })` | per-change | `'INP'` |
-| `'ttfb'` | `web-vitals.onTTFB` | финальное | `'TTFB'` |
-| `'memory'` | `(performance as any).memory.usedJSHeapSize` (MB) | `setInterval(2000)` | `'💻 Memory Usage'` |
-| `'network.transfer'` | `getEntriesByType('resource')` → `transferSize` суммой (MB) | initial + 2s + PO | `'📡 Network Load'` |
-| `'network.decoded'` | `decodedBodySize \|\| encodedBodySize \|\| transferSize` суммой (MB) | same | `'📦 Total Bundle'` |
-| `'dom.ready'` | `getEntriesByType('navigation')[0].domContentLoadedEventEnd` (ms) | one-shot | `'⏱️ Dom Ready'` |
-| `'connection'` | `navigator.connection.effectiveType` ('4g'/...) | initial + `'change'` listener | `'🌐 Network'` |
+| `'cls'` / `'fcp'` / `'lcp'` / `'inp'` / `'ttfb'` | `web-vitals` 5.x | per-change (TTFB — final) | `CLS`/`FCP`/`LCP`/`INP`/`TTFB` |
+| `'memory'` | `performance.memory.usedJSHeapSize` (MB) | `setInterval(2000)` | `💻 Memory Usage` |
+| `'network.transfer'` / `'network.decoded'` | `getEntriesByType('resource')` (MB) | initial + 2s + PO | `📡 Network Load` / `📦 Total Bundle` |
+| `'network.inflight'` | monkey-patch fetch/XHR/WS (gauge) | per-request — only with `networkDeep` | — |
+| `'network.requests'` / `'network.failed'` | monkey-patch fetch/XHR/WS (counters) | per-request — only with `networkDeep` | — |
+| `'dom.ready'` | navigation entry (ms) | one-shot | `⏱️ Dom Ready` |
+| `'connection'` | `navigator.connection.effectiveType` | initial + listener | `🌐 Network` |
+| `'longtask'` | PO `'longtask'`, > 50ms (ms) | per-task | — |
+| `'loaf'` | PO `'long-animation-frame'`, > 50ms (ms) | per-frame | — |
+| `'event'` | PO `'event'`, > 40ms (ms) | per-event | — |
+| `'fps'` | RAF-counter (frames/sec) | каждую секунду | — |
+| `'dom.nodes'` | `getElementsByTagName('*').length` | каждые 5s | — |
+| `'dom.listeners'` | (не реализован) | — | — |
+| `'error.js'` / `'error.promise'` | `window.onerror` / `unhandledrejection` (counters) | per-error | — |
+| `'user.measure'` / `'user.mark'` | aggregate-id'ы (не используются коллектором) | — | — |
+| `'custom.mark.${name}'` | `performance.mark` через `userTimingCollector` | per-mark | — |
+| `'custom.measure.${name}'` | `performance.measure` через `userTimingCollector` | per-measure | — |
+| `'custom.${name}'` (произвольное) | `usePerf().count/gauge/time` | per-call | label из meta |
 
-Legacy-mapping `IMetricId → display-key` живёт в [vitalsMonitor.tsx — `LEGACY_LABEL`](packages/web/profiler/src/providers/vitalsMonitor.tsx). Когда Phase 2c (Dashboard rewrite) приземлится, legacy-mapping уйдёт.
+Legacy-mapping `IMetricId → display-key` живёт в [vitalsMonitor.tsx — `LEGACY_LABEL`](packages/web/profiler/src/providers/vitalsMonitor.tsx). Уйдёт когда Phase 2c приземлится.
 
-`getRating(id, value)` с Phase 2a — lookup по `IBuiltinMetricId` (`THRESHOLDS` table в [core/ratings.ts](packages/web/profiler/src/core/ratings.ts)), `HIGHER_IS_BETTER[id]` flag для fps. Не `.includes()`, не строки.
+`getRating(id, value)` — lookup-table по `IBuiltinMetricId` (`THRESHOLDS` в [core/ratings.ts](packages/web/profiler/src/core/ratings.ts)), `HIGHER_IS_BETTER` flag для fps. Возвращает `'info'` для unknown id / string value.
 
 ## Lifecycle и cleanup
 
@@ -156,13 +242,19 @@ Provider использует `onMount` (с Phase 2a, до этого был `cr
 - ✅ **SSR-guards** — все collectors проверяют `isBrowser`/`hasPO`/`supportsEntryType`. Provider тоже не упадёт: collectors сами no-op'нут.
 - ✅ **Memory polling dedup** — `bus.write` сравнивает по `===`, при стабильном значении listeners НЕ вызываются → нет re-render'ов.
 
-### Остаются (вынесено в Phase 2b/2c)
-- **`useVitalsContext()` может вернуть `undefined`.** Нет throw-guard'а. Phase 2b добавит `useProfiler()` с throw-вариантом.
-- **`useVitalsContext().bus` — `@internal`.** Прочитать метрики из user-кода через стабильное API пока нельзя — ждёт `useProfiler()` в Phase 2b.
-- **`BaseProviders.vitals` — boolean без проброса.** `showDashboard` хардкодом `true`. Тонкая настройка — только прямой импорт `VitalsMonitoringProvider`. Останется до Phase 2c.
-- **Web Vitals `reportAllChanges: true`** по умолчанию. Подходит для live-dashboard, плохо для analytics-reporter. `webVitalsCollector({ reportAllChanges: false })` доступен, но раздельных каналов (live vs final) пока нет. Phase 2b — reporters'ы.
-- **Никакой связи с HCA-слоями.** Profiler не подключён к `data-meta`, нет `usePerf` для Feature-сервиса. Phase 2b — `services.profiler` инжект.
-- **Dashboard всё ещё legacy** — `pointer-events: none`, inline-стили, hardcoded colors. Принимает `Record<string, number|string>` (расширено в Phase 2a), но визуально не изменился. Phase 2c — переписать на draggable/tabbed.
+### Закрыто в Phase 2b (2026-05-18)
+- ✅ **Public read+write API.** `useProfiler()` (throws), `useProfilerSafe()`, `usePerf()` — `mark/measure/count/gauge/time`.
+- ✅ **Reporters'ы** — `console` / `beacon` (sendBeacon on `visibilitychange='hidden'`/`pagehide`) / `callback`. Раздельный канал от UI.
+- ✅ **8 новых коллекторов** — longTasks, loaf, eventTiming, fps, domStats, errors, userTiming, networkDeep (opt-in).
+- ✅ **`web-vitals` opt-out** — `webVitalsCollector({ reportAllChanges: false })` даёт final-only. Live vs analytics — теперь раздельные каналы.
+- ✅ **Collector cleanup в `try/catch`** — один битый cleanup не валит дерево при unmount.
+
+### Остаётся (Phase 2c)
+- **`BaseProviders.vitals` — boolean без проброса.** `showDashboard` хардкодом `true`. Тонкая настройка — только прямой импорт `VitalsMonitoringProvider` или новый `ProfilerProvider`.
+- **Никакой связи с HCA-слоями.** Profiler не подключён к `data-meta`, нет `services.profiler` инжекта в Feature. Можно сделать через web-core в отдельной задаче.
+- **Dashboard всё ещё legacy** — `pointer-events: none`, inline-стили, hardcoded colors. Phase 2c — переписать на draggable/tabbed + sparklines из `bus.history(id)` ring-buffer'а.
+- **`dom.listeners` не реализован** — требует monkey-patch `addEventListener` (как `networkDeep`). Рассмотреть в Phase 2c или 3.
+- **`networkDeep` — monkey-patch globals**, потенциальный конфликт с другими SDK что патчат fetch/XHR (sentry, datadog). Opt-in. Документировать в user-doc'е если кто-то жалуется.
 
 ## Roadmap
 
@@ -170,21 +262,16 @@ Provider использует `onMount` (с Phase 2a, до этого был `cr
 
 **Фаза 1 ✅ (2026-05-18).** Доки + AI-anchor.
 
-**Фаза 2a ✅ (2026-05-18).** Foundations:
-- `core/schema.ts` — типизированный контракт.
-- `core/bus.ts` — `createMetricsBus` (Map + ring-buffer history + dedup + subscribers).
-- `core/ratings.ts` — lookup-table.
-- 5 collectors: `webVitals`, `memory`, `network`, `navigation`, `connection`.
-- Legacy provider теперь thin orchestrator над bus'ом, сохраняет старый Context-API через shim.
-- Subpath exports: `./core`, `./collectors`. 18 vitest-тестов (`bus`/`ratings`/`ringBuffer`) — зелёные.
+**Фаза 2a ✅ (2026-05-18).** Foundations: schema + bus + ringBuffer + ratings + 5 collectors (webVitals/memory/network/navigation/connection). Legacy provider — thin orchestrator над bus'ом.
 
-**Фаза 2b ⏳ (next).** Collectors expansion + public API:
-- Collectors: `longTasks`, `loaf`, `eventTiming`, `fps`, `domStats`, `errors`, `userTiming`, `networkDeep` (last — opt-in, monkey-patch).
-- `ProfilerProvider` — новый Provider с `collectors`/`reporters`/`showDashboard` props. По умолчанию — все collectors кроме networkDeep.
-- `reporters/{console,beacon,callback}` — каждый `init(bus, opts) => cleanup`.
-- `api/useProfiler` — public read+write API.
-- `api/usePerf` — `profiler.count/gauge/time/mark/measure`.
-- `VitalsMonitoringProvider` остаётся как deprecated shim над `ProfilerProvider`.
+**Фаза 2b ✅ (2026-05-18).** Collectors expansion + public API:
+- 8 новых collectors: `longTasks`, `loaf`, `eventTiming`, `fps`, `domStats`, `errors`, `userTiming`, `networkDeep` (opt-in).
+- 3 reporters: `console` / `beacon` / `callback`.
+- `ProfilerProvider` (collectors `'all'`/`'all-except-deep'`/`'legacy'`/`ICollector[]`, reporters, optional bus injection, historySize). Default — `'all-except-deep'`.
+- `useProfiler()` / `useProfilerSafe()` + `usePerf()` / `createPerfApi()` через subpath `./api`.
+- `VitalsMonitoringProvider` стал thin deprecated shim над `<ProfilerProvider collectors="legacy">` + `LegacyVitalsBridge`.
+- Move `_ssr.ts` → `core/env.ts` (shared между collectors и reporters).
+- 29 vitest-тестов: bus(9)/ratings(5)/ringBuffer(4)/perfApi(6)/reporters(5) — все зелёные.
 
 **Фаза 2c ⏳.** Dashboard rewrite:
 - `widget/dashboard.tsx` — draggable / collapsible / tabbed.

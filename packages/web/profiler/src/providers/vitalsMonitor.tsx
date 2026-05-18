@@ -7,18 +7,17 @@ import {
   onMount,
   useContext,
 } from 'solid-js';
+import { useProfiler } from '../api/useProfiler';
 import { Dashboard } from '../components';
-import {
-  connectionCollector,
-  memoryCollector,
-  navigationCollector,
-  networkCollector,
-  webVitalsCollector,
-} from '../collectors';
-import { createMetricsBus } from '../core/bus';
 import type { IMetricId, IMetricMeta, IMetricSample, IMetricsBus } from '../core/schema';
+import { ProfilerProvider } from './profiler';
 
-/** @deprecated use `useProfiler()` from `@capsuletech/web-profiler/api` (coming in Phase 2b). */
+/**
+ * @deprecated Use `useProfiler()` from `@capsuletech/web-profiler/api`. This
+ * context will be removed in 0.2.x. Kept as a thin shim over the new
+ * `ProfilerProvider` to keep existing consumers (and `BaseProviders.vitals`)
+ * working without changes.
+ */
 export interface IMonitoringContextType {
   updateComponentMetric: (name: string, value: number | string) => void;
   /** @internal */
@@ -52,10 +51,13 @@ function toLegacyKey(id: IMetricId, meta: IMetricMeta | undefined): string {
   return meta?.label ?? id;
 }
 
-export function VitalsMonitoringProvider(props: VitalsMonitoringProviderProps) {
-  const bus = createMetricsBus();
-  const showDashboard = () => props.showDashboard !== false;
+interface ILegacyBridgeProps {
+  children: JSX.Element;
+  showDashboard: boolean;
+}
 
+function LegacyVitalsBridge(props: ILegacyBridgeProps) {
+  const bus = useProfiler();
   const [displayMetrics, setDisplayMetrics] = createSignal<Record<string, number | string>>({});
   const displayRef: Record<string, number | string> = {};
   let rafId: number | null = null;
@@ -85,17 +87,8 @@ export function VitalsMonitoringProvider(props: VitalsMonitoringProviderProps) {
 
   onMount(() => {
     const unsubscribe = bus.subscribe(writeDisplay);
-    const cleanups = [
-      webVitalsCollector().init(bus),
-      memoryCollector().init(bus),
-      networkCollector().init(bus),
-      navigationCollector().init(bus),
-      connectionCollector().init(bus),
-    ];
-
     onCleanup(() => {
       unsubscribe();
-      for (const cleanup of cleanups) cleanup();
       if (rafId !== null && typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(rafId);
       }
@@ -110,8 +103,17 @@ export function VitalsMonitoringProvider(props: VitalsMonitoringProviderProps) {
   return (
     <VitalsMonitoringContext.Provider value={contextValue()}>
       {props.children}
-      {showDashboard() && <Dashboard metrics={displayMetrics()} />}
+      {props.showDashboard && <Dashboard metrics={displayMetrics()} />}
     </VitalsMonitoringContext.Provider>
+  );
+}
+
+export function VitalsMonitoringProvider(props: VitalsMonitoringProviderProps) {
+  const showDashboard = props.showDashboard !== false;
+  return (
+    <ProfilerProvider collectors="legacy">
+      <LegacyVitalsBridge showDashboard={showDashboard}>{props.children}</LegacyVitalsBridge>
+    </ProfilerProvider>
   );
 }
 
