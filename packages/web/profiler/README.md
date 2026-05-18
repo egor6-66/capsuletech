@@ -2,13 +2,17 @@
 
 Performance monitoring and profiling utilities for SolidJS applications.
 
+> Part of the [Capsule](https://github.com/egor6-66/capsule) framework. Full docs (humans): `docs/09-packages/profiler.md`. AI/agent anchor with contracts and gotchas: `docs/_meta/profiler.md`.
+
 ## Features
 
-- 🎯 Web Vitals tracking (CLS, FCP, INP, LCP, TTFB)
-- 📊 Real-time performance metrics dashboard
-- 💾 Memory usage monitoring
-- 📡 Network performance tracking
-- ⚡ Lightweight and non-intrusive
+- Web Vitals tracking (CLS / FCP / INP / LCP / TTFB) via `web-vitals` 5.x
+- Memory usage (`performance.memory`, Chromium-only)
+- Network / bundle size (`PerformanceObserver` on `resource` entries)
+- Connection type (`navigator.connection`)
+- DOM-ready timing
+- Optional visual Dashboard overlay
+- RAF-batched updates
 
 ## Installation
 
@@ -18,53 +22,73 @@ pnpm add @capsuletech/web-profiler
 
 ## Usage
 
-### VitalsMonitoringProvider
+### Canonical — via `BaseProviders` from `@capsuletech/web-core`
 
-Wrap your application with the provider to start collecting metrics:
+```tsx
+import { BaseProviders } from '@capsuletech/web-core';
+
+export default function App() {
+  return (
+    <BaseProviders vitals>
+      <YourApp />
+    </BaseProviders>
+  );
+}
+```
+
+`vitals` defaults to `false` so production bundles of `apps/<app>` don't pull profiler overhead.
+
+### Direct — for fine-grained control (e.g. hide the dashboard)
 
 ```tsx
 import { VitalsMonitoringProvider } from '@capsuletech/web-profiler/providers';
 
 export default function App() {
   return (
-    <VitalsMonitoringProvider>
-      <YourComponent />
+    <VitalsMonitoringProvider showDashboard={false}>
+      <YourApp />
     </VitalsMonitoringProvider>
   );
 }
 ```
 
-### Using Metrics in Components
-
-Access metrics from the context:
+### Writing custom metrics into the dashboard
 
 ```tsx
 import { useVitalsContext } from '@capsuletech/web-profiler/providers';
 
 function MyComponent() {
-  const context = useVitalsContext();
-  
-  return (
-    <div>
-      <p>Performance Metrics Available</p>
-    </div>
-  );
+  const ctx = useVitalsContext();
+  ctx?.updateComponentMetric('🧩 My Metric', 42);
 }
 ```
 
-## Monitored Metrics
+> **Note:** the context currently exposes **only** `updateComponentMetric`. There is no read-API for accumulated metrics yet. A typed read-API + collector pattern is on the roadmap — see `docs/_meta/profiler.md`.
 
-- **FCP** - First Contentful Paint
-- **LCP** - Largest Contentful Paint
-- **CLS** - Cumulative Layout Shift
-- **INP** - Interaction to Next Paint
-- **TTFB** - Time to First Byte
-- **Memory Usage** - JavaScript heap usage
-- **Network Load** - Total network data transferred
-- **Bundle Size** - Total resource bundle size
-- **Connection Type** - Network connection speed
+## Monitored metrics
+
+- **FCP** — First Contentful Paint
+- **LCP** — Largest Contentful Paint
+- **CLS** — Cumulative Layout Shift
+- **INP** — Interaction to Next Paint
+- **TTFB** — Time to First Byte
+- **Memory Usage** — JavaScript heap (Chromium only)
+- **Network Load** — total transferred resource bytes
+- **Total Bundle** — total decoded resource bytes
+- **Dom Ready** — `domContentLoadedEventEnd`
+- **Network** — `effectiveType` from `navigator.connection`
+
+Each numeric metric gets a `good` / `needs-improvement` / `poor` rating via standard Web Vitals thresholds.
+
+## Known limitations
+
+- Not SSR-safe (no `typeof window` guards yet)
+- Dashboard is `position: fixed; pointer-events: none` — not draggable / collapsible (yet)
+- Metric keys are display strings with emojis — string-matching via `.includes()` for ratings (planned: typed `MetricId`)
+- `useVitalsContext()` write-only — no read-API yet
+
+See `docs/_meta/profiler.md` for the full gotcha list and roadmap.
 
 ## License
 
 MIT
-
