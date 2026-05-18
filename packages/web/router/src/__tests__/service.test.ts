@@ -35,22 +35,64 @@ describe('wrap — shape', () => {
 });
 
 describe('wrap — goTo', () => {
-  it('delegates to raw.navigate with { to, params }', () => {
-    const { raw, navigate } = mkRaw();
-    wrap(raw).goTo('/foo', { id: 1 });
-    expect(navigate).toHaveBeenCalledWith({ to: '/foo', params: { id: 1 } });
-  });
+  // С ADR 014 второй аргумент — options-объект:
+  //   { params?, search?, hash?, replace? }
+  // Все поля прямо мапятся в raw.navigate({ to, ...opts }).
 
-  it('passes undefined params if omitted', () => {
+  it('delegates to raw.navigate with just { to } when no opts', () => {
     const { raw, navigate } = mkRaw();
     wrap(raw).goTo('/bar');
-    expect(navigate).toHaveBeenCalledWith({ to: '/bar', params: undefined });
+    expect(navigate).toHaveBeenCalledWith({ to: '/bar' });
+  });
+
+  it('forwards params via opts.params', () => {
+    const { raw, navigate } = mkRaw();
+    wrap(raw).goTo('/users/:id', { params: { id: 42 } });
+    expect(navigate).toHaveBeenCalledWith({ to: '/users/:id', params: { id: 42 } });
+  });
+
+  it('forwards search query', () => {
+    const { raw, navigate } = mkRaw();
+    wrap(raw).goTo('/items', { search: { tag: 'urgent', sort: 'date' } });
+    expect(navigate).toHaveBeenCalledWith({
+      to: '/items',
+      search: { tag: 'urgent', sort: 'date' },
+    });
+  });
+
+  it('forwards hash', () => {
+    const { raw, navigate } = mkRaw();
+    wrap(raw).goTo('/docs', { hash: 'section-3' });
+    expect(navigate).toHaveBeenCalledWith({ to: '/docs', hash: 'section-3' });
+  });
+
+  it('forwards replace flag', () => {
+    const { raw, navigate } = mkRaw();
+    wrap(raw).goTo('/login', { replace: true });
+    expect(navigate).toHaveBeenCalledWith({ to: '/login', replace: true });
+  });
+
+  it('combines all opts in one call', () => {
+    const { raw, navigate } = mkRaw();
+    wrap(raw).goTo('/orgs/:slug/items', {
+      params: { slug: 'acme' },
+      search: { q: 'laptop' },
+      hash: 'top',
+      replace: true,
+    });
+    expect(navigate).toHaveBeenCalledWith({
+      to: '/orgs/:slug/items',
+      params: { slug: 'acme' },
+      search: { q: 'laptop' },
+      hash: 'top',
+      replace: true,
+    });
   });
 
   it('does not throw on empty path', () => {
     const { raw, navigate } = mkRaw();
     expect(() => wrap(raw).goTo('')).not.toThrow();
-    expect(navigate).toHaveBeenCalledWith({ to: '', params: undefined });
+    expect(navigate).toHaveBeenCalledWith({ to: '' });
   });
 });
 

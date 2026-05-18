@@ -29,6 +29,7 @@ type: index
   - [[009-event-interception-extension|🛠️ ADR 009 — Расширение перехватов событий]]
   - [[010-builders-split|🛠️ ADR 010 — Build-time пакеты в `packages/builders/`]]
   - [[013-explicit-define-app-config|🛠️ ADR 013 — `defineAppConfig` через explicit import]]
+  - [[014-router-api-extension|🛠️ ADR 014 — Router: `goTo` options-объект + generic `ICapsuleRouterContext`]]
 
 ## 🧩 Слои
 

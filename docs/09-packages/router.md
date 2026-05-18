@@ -77,8 +77,15 @@ router.goTo('/dashboard');
 ### `ICapsuleRouter<TRouteTree = AnyRoute>`
 
 ```ts
+interface IGoToOpts {
+  params?: Record<string, unknown>;   // :path-params
+  search?: Record<string, unknown>;   // ?query
+  hash?: string;                       // #anchor (без ведущего #)
+  replace?: boolean;                   // replaceState вместо pushState
+}
+
 interface ICapsuleRouter<TRouteTree extends AnyRoute = AnyRoute> {
-  goTo(path: string, params?: Record<string, unknown>): void;
+  goTo(path: string, opts?: IGoToOpts): void;
   back(): void;
   current(): string;
   /** Escape hatch: TanStack-роутер напрямую — для редких use-case'ов */
@@ -88,10 +95,26 @@ interface ICapsuleRouter<TRouteTree extends AnyRoute = AnyRoute> {
 
 API специально **не** копирует все возможности TanStack — даёт стабильный контракт, не зависящий от внутренних изменений роутера. Для нестандартных случаев — `router.raw`.
 
-- `goTo(path, params)` — `raw.navigate({ to: path, params })`. Цель типизируется как `string`, потому что `useRouter()` не имеет источника инференса (см. note выше).
+- `goTo(path, opts?)` — `raw.navigate({ to: path, ...opts })`. Опции напрямую мапятся в TanStack-`navigate`. См. [[014-router-api-extension|ADR 014]].
 - `back()` — `raw.history.back()`. Через TanStack-историю, а не `window.history.back()` напрямую — single-source-of-truth + проще к SSR.
-- `current()` — `raw.state.location.pathname`. Реактивно (читается по требованию).
+- `current()` — `raw.state.location.pathname`. Реактивно (читается по требованию). Search/hash берутся из `router.raw.state.location`.
 - `raw` — escape hatch. Когда `BaseProviders` параметризован конкретным `TRouteTree`, `raw.navigate({ to: '...' })` получит autocomplete по маршрутам.
+
+### `ICapsuleRouterContext<TUser = {}>`
+
+```ts
+type ICapsuleRouterContext<TUser extends object = {}> = TUser & {
+  [k: string]: unknown;
+};
+```
+
+App-уровневые поля (`isAuthenticated`, `tenant`, `locale`, ...) идут в `TUser`:
+
+```ts
+type AppCtx = ICapsuleRouterContext<{ isAuthenticated: boolean; tenant: string }>;
+```
+
+См. [[014-router-api-extension|ADR 014]] — почему generic, а не зашитый `isAuthenticated?: boolean` в default-shape.
 
 ### `RouterProvider`
 
@@ -132,6 +155,86 @@ const Auth = Feature(({ router }) => ({
 
 `router` приходит автоматически через `services` из `createLogicWrapper`. API-сигнатура не меняется при будущих рефакторингах внутренностей роутера.
 
+> [!note]
+> На уровне `useRouter()` generic `TRouteTree` не пробрасывается — здесь нет источника инференса. Если нужен типизированный `raw.navigate({ to })` с автокомплитом маршрутов — используйте `capsuleRouter.raw` из `createRouter` напрямую (там generic виден) или явно укажите тип переменной: `const router = useRouter() as ICapsuleRouter<typeof routeTree>`.
+
+## Рецепты
+
+### Guard через `routerContext`
+
+```tsx
+// apps/<app>/bootstrap.tsx
+<BaseProviders
+  routeTree={routeTree}
+  routerContext={{ isAuthenticated: hasToken() }}
+/>
+```
+
+```tsx
+// apps/<app>/.capsule/routes/dashboard.tsx
+import { createFileRoute, redirect } from '@tanstack/solid-router';
+
+export const Route = createFileRoute('/dashboard')({
+  beforeLoad: ({ context }) => {
+    if (!context.isAuthenticated) {
+      throw redirect({ to: '/login' });
+    }
+  },
+});
+```
+
+> [!warning]
+> Убедитесь, что `routerContext` явно пробросан в `<BaseProviders>`. Если guard объявляет `context.isAuthenticated`, а в props его нет — в guard'е будет `undefined`. На момент написания ни один из `apps/*` в репо не прокидывает `routerContext` — root-routes объявляют поле впустую.
+
+### Query-параметры, hash и replace
+
+С ADR 014 это прямой вызов `goTo` через options-объект:
+
+```ts
+const router = useRouter();
+
+// Переход с query, hash, replace
+router.goTo('/items', {
+  search: { tag: 'urgent', sort: 'date' },
+  hash: 'top',
+  replace: true,
+});
+
+// Path-параметры — через opts.params
+router.goTo('/users/:id', { params: { id: 42 } });
+```
+
+Чтение текущего URL (search/hash) — через escape hatch:
+
+```ts
+const search = router.raw.state.location.search; // { tag: 'urgent', sort: 'date' }
+const hash = router.raw.state.location.hash;
+const path = router.current();                    // pathname only
+```
+
+### Мягкая зависимость: компонент без роутера
+
+Для компонентов, которые могут рендериться вне контекста роутера (Storybook, unit-тесты, переиспользуемые в других приложениях), используй `useContext(RouterContext)` напрямую — он отдаёт `null` без throw'а:
+
+```tsx
+import { RouterContext } from '@capsuletech/web-router';
+import { useContext } from 'solid-js';
+
+export const NavLink = (props: { to: string; children: JSX.Element }) => {
+  const router = useContext(RouterContext); // null вне Provider'а
+  return (
+    <a
+      href={props.to}
+      class={router?.current() === props.to ? 'active' : ''}
+    >
+      {props.children}
+    </a>
+  );
+};
+```
+
+Живой пример этого паттерна — `packages/web/ui/src/primitives/layout/switch.tsx:48`.
+
 ## Что **не** входит в `@capsuletech/web-router`
 
 - API-клиент / fetch-обёртка — это уровень `@capsuletech/web-query`.
@@ -140,6 +243,7 @@ const Auth = Feature(({ router }) => ({
 
 ## Связанное
 
-- [[003-router-context-based|ADR 003]]
+- [[003-router-context-based|ADR 003]] — Context-based вместо singleton
+- [[014-router-api-extension|ADR 014]] — `goTo` options-объект + generic `ICapsuleRouterContext`
 - [[controller-proxy]]
 - [[vite-plugins|RouterPlugin]]

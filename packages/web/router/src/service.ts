@@ -7,6 +7,7 @@ import {
   type ICapsuleRouter,
   type ICapsuleRouterContext,
   type ICreateRouterOpts,
+  type IGoToOpts,
   wrap,
 } from './types';
 
@@ -32,4 +33,10 @@ export const createRouter = <TRouteTree extends AnyRoute>(
   };
 };
 
-export type { TanStackRouter, ICapsuleRouter, ICapsuleRouterContext, ICreateRouterOpts };
+export type {
+  TanStackRouter,
+  ICapsuleRouter,
+  ICapsuleRouterContext,
+  ICreateRouterOpts,
+  IGoToOpts,
+};

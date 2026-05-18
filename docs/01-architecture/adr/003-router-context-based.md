@@ -116,3 +116,4 @@ const Auth = Feature(({ router }) => ({
 - [[router|@capsuletech/router]]
 - [[controller-proxy]]
 - [[002-controller-vs-feature|ADR 002]] (services-инъекция)
+- [[014-router-api-extension|ADR 014]] — продолжение: `goTo` options-объект + generic `ICapsuleRouterContext`

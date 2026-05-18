@@ -4,6 +4,7 @@ export type {
   ICapsuleRouter,
   ICapsuleRouterContext,
   ICreateRouterOpts,
+  IGoToOpts,
   TanStackRouter,
 } from './service';
 /**

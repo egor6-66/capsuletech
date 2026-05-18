@@ -599,9 +599,12 @@ importers:
 
   packages/web/router:
     dependencies:
+      '@tanstack/solid-router':
+        specifier: ^1.169.0
+        version: 1.169.2(solid-js@1.9.12)
       solid-js:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: ^1.9.5
+        version: 1.9.12
     devDependencies:
       '@capsuletech/lib-builder':
         specifier: workspace:*
@@ -609,6 +612,9 @@ importers:
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite
+      '@tanstack/router-core':
+        specifier: ^1.169.0
+        version: 1.169.2
 
   packages/web/state:
     dependencies:
