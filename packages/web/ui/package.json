@@ -12,104 +12,142 @@
     },
     "./package.json": "./package.json",
     "./button": {
+      "types": "./dist/components/button/index.d.ts",
       "import": "./dist/components/button/index.mjs",
       "default": "./dist/components/button/index.mjs"
     },
     "./button/*": {
+      "types": "./dist/components/button/*.d.ts",
+      "import": "./dist/components/button/*.mjs",
       "default": "./dist/components/button/*.mjs"
     },
     "./card": {
+      "types": "./dist/components/card/index.d.ts",
       "import": "./dist/components/card/index.mjs",
       "default": "./dist/components/card/index.mjs"
     },
     "./card/*": {
+      "types": "./dist/components/card/*.d.ts",
+      "import": "./dist/components/card/*.mjs",
       "default": "./dist/components/card/*.mjs"
     },
     "./field": {
+      "types": "./dist/components/field/index.d.ts",
       "import": "./dist/components/field/index.mjs",
       "default": "./dist/components/field/index.mjs"
     },
     "./field/*": {
+      "types": "./dist/components/field/*.d.ts",
+      "import": "./dist/components/field/*.mjs",
       "default": "./dist/components/field/*.mjs"
     },
     "./input": {
+      "types": "./dist/components/input/index.d.ts",
       "import": "./dist/components/input/index.mjs",
       "default": "./dist/components/input/index.mjs"
     },
     "./input/*": {
+      "types": "./dist/components/input/*.d.ts",
+      "import": "./dist/components/input/*.mjs",
       "default": "./dist/components/input/*.mjs"
     },
     "./label": {
+      "types": "./dist/components/label/index.d.ts",
       "import": "./dist/components/label/index.mjs",
       "default": "./dist/components/label/index.mjs"
     },
     "./label/*": {
+      "types": "./dist/components/label/*.d.ts",
+      "import": "./dist/components/label/*.mjs",
       "default": "./dist/components/label/*.mjs"
     },
     "./layout": {
+      "types": "./dist/components/layout/index.d.ts",
       "import": "./dist/components/layout/index.mjs",
       "default": "./dist/components/layout/index.mjs"
     },
     "./layout/*": {
+      "types": "./dist/components/layout/*.d.ts",
+      "import": "./dist/components/layout/*.mjs",
       "default": "./dist/components/layout/*.mjs"
     },
     "./list": {
+      "types": "./dist/components/list/index.d.ts",
       "import": "./dist/components/list/index.mjs",
       "default": "./dist/components/list/index.mjs"
     },
     "./list/*": {
+      "types": "./dist/components/list/*.d.ts",
+      "import": "./dist/components/list/*.mjs",
       "default": "./dist/components/list/*.mjs"
     },
     "./navigation": {
+      "types": "./dist/components/navigation/index.d.ts",
       "import": "./dist/components/navigation/index.mjs",
       "default": "./dist/components/navigation/index.mjs"
     },
     "./navigation/*": {
+      "types": "./dist/components/navigation/*.d.ts",
+      "import": "./dist/components/navigation/*.mjs",
       "default": "./dist/components/navigation/*.mjs"
     },
     "./separator": {
+      "types": "./dist/components/separator/index.d.ts",
       "import": "./dist/components/separator/index.mjs",
       "default": "./dist/components/separator/index.mjs"
     },
     "./separator/*": {
+      "types": "./dist/components/separator/*.d.ts",
+      "import": "./dist/components/separator/*.mjs",
       "default": "./dist/components/separator/*.mjs"
     },
     "./slot": {
+      "types": "./dist/components/slot/index.d.ts",
       "import": "./dist/components/slot/index.mjs",
       "default": "./dist/components/slot/index.mjs"
     },
     "./slot/*": {
+      "types": "./dist/components/slot/*.d.ts",
+      "import": "./dist/components/slot/*.mjs",
       "default": "./dist/components/slot/*.mjs"
     },
     "./toggle": {
+      "types": "./dist/components/toggle/index.d.ts",
       "import": "./dist/components/toggle/index.mjs",
       "default": "./dist/components/toggle/index.mjs"
     },
     "./toggle/*": {
+      "types": "./dist/components/toggle/*.d.ts",
+      "import": "./dist/components/toggle/*.mjs",
       "default": "./dist/components/toggle/*.mjs"
     },
     "./typography": {
+      "types": "./dist/components/typography/index.d.ts",
       "import": "./dist/components/typography/index.mjs",
       "default": "./dist/components/typography/index.mjs"
     },
     "./typography/*": {
+      "types": "./dist/components/typography/*.d.ts",
+      "import": "./dist/components/typography/*.mjs",
       "default": "./dist/components/typography/*.mjs"
     },
     "./wrappers": {
+      "types": "./dist/components/wrappers/index.d.ts",
       "import": "./dist/components/wrappers/index.mjs",
       "default": "./dist/components/wrappers/index.mjs"
     },
     "./wrappers/*": {
+      "types": "./dist/components/wrappers/*.d.ts",
+      "import": "./dist/components/wrappers/*.mjs",
       "default": "./dist/components/wrappers/*.mjs"
     }
   },
   "files": [
-    "dist",
-    "src",
-    "!**/*.tsbuildinfo"
+    "dist"
   ],
   "scripts": {
     "build": "vite build",
+    "dev": "vite build --watch",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build"
   },
@@ -121,6 +159,7 @@
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
+    "@capsuletech/lib-builder": "workspace:*",
     "@capsuletech/vite-builder": "workspace:*"
   }
 }

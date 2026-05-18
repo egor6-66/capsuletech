@@ -591,6 +591,9 @@ importers:
         specifier: ^1.0.4
         version: 1.0.4(solid-js@1.9.12)
     devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../../builders/lib
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite

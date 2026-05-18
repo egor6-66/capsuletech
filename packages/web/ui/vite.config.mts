@@ -11,7 +11,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
 
-import { libConfig } from '../../builders/lib/src';
+import { libConfig } from '@capsuletech/lib-builder';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -29,16 +29,26 @@ const remapPrimitivesDtsPlugin = (outDir: string): Plugin => ({
     const componentsDir = resolve(distDir, 'components');
     if (!existsSync(primitivesDir)) return;
 
-    // Мерджим содержимое primitives/ в components/ (только .d.ts).
-    for (const comp of readdirSync(primitivesDir)) {
-      const from = resolve(primitivesDir, comp);
+    // Мерджим содержимое primitives/ в components/ — и поддиректории
+    // (per-component .d.ts), И top-level файлы (вроде primitives/index.d.ts
+    // = barrel `src/primitives/index.ts`). Без второго dist/index.d.ts ссылается
+    // на ./components, но `components/index.d.ts` не появляется — bundler
+    // и node резолверы падают на InternalResolutionError (attw bundler ❌).
+    for (const entry of readdirSync(primitivesDir)) {
+      const from = resolve(primitivesDir, entry);
+      let isDir = false;
       try {
-        if (!statSync(from).isDirectory()) continue;
+        isDir = statSync(from).isDirectory();
       } catch {
         continue;
       }
-      const to = resolve(componentsDir, comp);
-      cpSync(from, to, { recursive: true });
+      if (isDir) {
+        cpSync(from, resolve(componentsDir, entry), { recursive: true });
+      } else if (entry === 'index.d.ts') {
+        // primitives/index.d.ts → components/index.d.ts (барель — пути
+        // `./button` etc указывают на siblings и остаются валидными).
+        cpSync(from, resolve(componentsDir, 'index.d.ts'));
+      }
     }
     rmSync(primitivesDir, { recursive: true, force: true });
 
