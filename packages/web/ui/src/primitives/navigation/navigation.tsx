@@ -33,7 +33,7 @@ export function NavigationList<T = any>(props: INavigationListProps<T>) {
   });
 
   return (
-    // @ts-ignore
+    // @ts-expect-error
     <ul class={className()} style={style()} {...others}>
       <For each={local.items}>{(item, index) => local.children(item, index)}</For>
     </ul>

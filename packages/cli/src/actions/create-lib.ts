@@ -1,5 +1,5 @@
-import { kit } from '../kit';
 import type { CommandAction } from '../commands/types';
+import { kit } from '../kit';
 import { scaffoldEntity } from './_scaffold';
 
 export const createLib: CommandAction = async (ctx, params) => {

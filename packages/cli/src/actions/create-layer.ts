@@ -1,13 +1,12 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type { CommandAction } from '../commands/types';
 import { kit } from '../kit';
 import { LAYER_LABELS, type Layer, layerTemplates } from '../templates/layers';
-import type { CommandAction } from '../commands/types';
 
 const NAME_RE = /^[a-z][a-z0-9-]*(\/[a-z][a-z0-9-]*)*$/;
 
-const toPascal = (s: string) =>
-  s.replace(/(^|-)([a-z])/g, (_m, _p, c: string) => c.toUpperCase());
+const toPascal = (s: string) => s.replace(/(^|-)([a-z])/g, (_m, _p, c: string) => c.toUpperCase());
 
 export const createLayer: CommandAction = async (ctx, params) => {
   if (ctx.type !== 'app') {

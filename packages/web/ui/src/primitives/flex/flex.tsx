@@ -1,14 +1,8 @@
 import { cn } from '@capsuletech/web-style';
-import { type JSX, type ValidComponent, splitProps } from 'solid-js';
-import { Slot } from '../slot';
+import { type JSX, splitProps, type ValidComponent } from 'solid-js';
 import { mergeStyle, toGap } from '../grid/utils';
-import type {
-  FlexAlign,
-  FlexDirection,
-  FlexJustify,
-  FlexWrap,
-  IFlexProps,
-} from './interfaces';
+import { Slot } from '../slot';
+import type { FlexAlign, FlexDirection, FlexJustify, FlexWrap, IFlexProps } from './interfaces';
 
 // Статические таблицы → Tailwind purge видит все классы в исходниках.
 const DIRECTION: Record<FlexDirection, string> = {

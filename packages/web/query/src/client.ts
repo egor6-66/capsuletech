@@ -1,4 +1,4 @@
-import { QueryCache, keyToString } from './cache';
+import { keyToString, QueryCache } from './cache';
 import { defaultFetcher } from './fetcher';
 import type {
   ErrorInterceptor,

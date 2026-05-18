@@ -1,5 +1,5 @@
-import type { IMetricsBus, IReporter } from '../core/schema';
 import { isBrowser } from '../core/env';
+import type { IMetricsBus, IReporter } from '../core/schema';
 
 export interface IBeaconReporterOpts {
   url: string;
@@ -36,7 +36,8 @@ export function beaconReporter(opts: IBeaconReporterOpts): IReporter {
       if (triggers.includes('pagehide')) window.addEventListener('pagehide', onPageHide);
 
       return () => {
-        if (triggers.includes('hidden')) document.removeEventListener('visibilitychange', onVisibility);
+        if (triggers.includes('hidden'))
+          document.removeEventListener('visibilitychange', onVisibility);
         if (triggers.includes('pagehide')) window.removeEventListener('pagehide', onPageHide);
       };
     },

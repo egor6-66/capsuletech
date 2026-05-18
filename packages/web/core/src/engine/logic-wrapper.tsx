@@ -2,7 +2,7 @@ import { getApiClient } from '@capsuletech/web-query';
 import { useRouter } from '@capsuletech/web-router';
 import { createBridge, createState } from '@capsuletech/web-state';
 import { useMachine } from '@xstate/solid';
-import { Suspense, createEffect, onCleanup } from 'solid-js';
+import { createEffect, onCleanup, Suspense } from 'solid-js';
 import type {
   IDefineStateSchema,
   IHandlerApi,
@@ -23,8 +23,7 @@ export const createLogicWrapper =
 
       // Feature получает `api` (typed proxy из createApi) дополнительно. Controller
       // — только `router`: compliance запрещает IO в Controller'е, а api именно про IO.
-      const services: IServices =
-        kind === 'feature' ? { router, api: getApiClient() } : { router };
+      const services: IServices = kind === 'feature' ? { router, api: getApiClient() } : { router };
 
       const schema = defineStateSchema(services);
 

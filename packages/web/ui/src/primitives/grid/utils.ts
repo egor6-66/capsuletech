@@ -15,12 +15,10 @@ export const toTrack = (v: GridTrack): string => {
   return v;
 };
 
-export const toGap = (v: GridGap): string =>
-  typeof v === 'number' ? `${v * 0.25}rem` : v;
+export const toGap = (v: GridGap): string => (typeof v === 'number' ? `${v * 0.25}rem` : v);
 
 /** `['a a b', 'c c b']` → `"'a a b' 'c c b'"` для `grid-template-areas`. */
-export const toAreas = (areas: string[]): string =>
-  areas.map((row) => `'${row}'`).join(' ');
+export const toAreas = (areas: string[]): string => areas.map((row) => `'${row}'`).join(' ');
 
 /**
  * Сериализует CSSProperties-объект в инлайн-строку. Используется, когда юзер

@@ -1,5 +1,5 @@
-import type { ICollector, IMetricId, IMetricsBus } from '../core/schema';
 import { hasPO, supportsEntryType } from '../core/env';
+import type { ICollector, IMetricId, IMetricsBus } from '../core/schema';
 
 export function userTimingCollector(): ICollector {
   return {

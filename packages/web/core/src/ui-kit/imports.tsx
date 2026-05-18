@@ -1,7 +1,7 @@
-import { lazy } from 'solid-js';
 // `slot` — крошечный identity-хелпер ради TS-автокомплита. Импортируется sync
 // (а не lazy), чтобы `Ui.Layout.slot({...})` был доступен на этапе compile-time.
 import { slot as layoutSlot } from '@capsuletech/web-ui/layout/slot';
+import { lazy } from 'solid-js';
 
 // 1. Хелпер для сокращения записи
 // m[name] вытаскивает конкретный компонент из модуля, так как у вас именованные экспорты

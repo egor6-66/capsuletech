@@ -67,10 +67,7 @@ const SelectPrompt = <T,>({
   );
 };
 
-export const inkSelect = <T,>(
-  message: string,
-  options: SelectOption<T>[],
-): Promise<T | null> =>
+export const inkSelect = <T,>(message: string, options: SelectOption<T>[]): Promise<T | null> =>
   new Promise((resolve) => {
     let captured: T | null = null;
     const inst = render(
@@ -192,13 +189,7 @@ const ConfirmPrompt = ({
       exit();
       return;
     }
-    if (
-      key.leftArrow ||
-      key.rightArrow ||
-      key.tab ||
-      input === 'h' ||
-      input === 'l'
-    ) {
+    if (key.leftArrow || key.rightArrow || key.tab || input === 'h' || input === 'l') {
       setYes((v) => !v);
     }
   });

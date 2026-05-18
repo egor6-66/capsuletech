@@ -1,5 +1,5 @@
-import type { ICollector, IMetricsBus } from '../core/schema';
 import { isBrowser } from '../core/env';
+import type { ICollector, IMetricsBus } from '../core/schema';
 
 export interface IDomStatsOpts {
   intervalMs?: number;

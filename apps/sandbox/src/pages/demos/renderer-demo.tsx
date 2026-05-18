@@ -9,7 +9,9 @@ const RendererDemo = Page((Ui, Widgets) => (
             <Widgets.Forms.Auth />
           </div>
           <div class="flex flex-col items-center gap-4">
-            <h3 class="text-sm uppercase tracking-wide opacity-60">Via @capsuletech/renderer (JSON)</h3>
+            <h3 class="text-sm uppercase tracking-wide opacity-60">
+              Via @capsuletech/renderer (JSON)
+            </h3>
             <Widgets.Demos.RendererAuth />
           </div>
         </div>

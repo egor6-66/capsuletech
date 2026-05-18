@@ -48,9 +48,7 @@ export const Dashboard = (props: {
         ? [
             {
               ...rightBar,
-              children: (
-                <aside class={layoutSlots.resizeAsideRight}>{rightBar.children}</aside>
-              ),
+              children: <aside class={layoutSlots.resizeAsideRight}>{rightBar.children}</aside>,
             },
           ]
         : []),

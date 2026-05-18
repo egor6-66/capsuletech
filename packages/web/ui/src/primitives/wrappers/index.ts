@@ -13,6 +13,6 @@ Wrapper.Status = Status;
 Wrapper.Animate = Animate;
 Wrapper.Resizable = Resizable;
 
-export { Wrapper, Animate, Status, Resizable };
 export type { AnimateVariant, IAnimateProps } from './animate';
 export type { IResizableItem, IResizableProps, ResizableOrientation } from './resizable';
+export { Animate, Resizable, Status, Wrapper };

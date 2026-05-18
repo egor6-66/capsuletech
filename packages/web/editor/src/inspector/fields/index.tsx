@@ -4,8 +4,8 @@ import { BooleanField } from './BooleanField';
 import { NumberField } from './NumberField';
 import { NumberUnitField } from './NumberUnitField';
 import { SelectField } from './SelectField';
-import { TextField } from './TextField';
 import { TextareaField } from './TextareaField';
+import { TextField } from './TextField';
 
 /**
  * Диспатчер по `field.type`. Каждый case передаёт уже-типизированный field
@@ -37,4 +37,4 @@ export const renderField = (
   }
 };
 
-export { BooleanField, NumberField, NumberUnitField, SelectField, TextField, TextareaField };
+export { BooleanField, NumberField, NumberUnitField, SelectField, TextareaField, TextField };

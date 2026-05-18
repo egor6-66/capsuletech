@@ -1,5 +1,5 @@
-import type { ICollector, IMetricsBus } from '../core/schema';
 import { isBrowser } from '../core/env';
+import type { ICollector, IMetricsBus } from '../core/schema';
 
 type FetchFn = typeof fetch;
 
@@ -65,7 +65,10 @@ export function networkDeepCollector(opts: INetworkDeepOpts = {}): ICollector {
       if (patchXHR && typeof XMLHttpRequest !== 'undefined') {
         const origSend = XMLHttpRequest.prototype.send;
         patched.xhrSend = { orig: origSend };
-        XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, body?: Document | XMLHttpRequestBodyInit | null) {
+        XMLHttpRequest.prototype.send = function (
+          this: XMLHttpRequest,
+          body?: Document | XMLHttpRequestBodyInit | null,
+        ) {
           onStart();
           let settled = false;
           const settle = (ok: boolean) => {
@@ -84,7 +87,11 @@ export function networkDeepCollector(opts: INetworkDeepOpts = {}): ICollector {
       if (patchWebSocket && typeof WebSocket !== 'undefined') {
         const OrigWS = WebSocket;
         patched.ws = { orig: OrigWS };
-        const PatchedWS = function (this: WebSocket, url: string | URL, protocols?: string | string[]) {
+        const PatchedWS = function (
+          this: WebSocket,
+          url: string | URL,
+          protocols?: string | string[],
+        ) {
           onStart();
           const ws = new OrigWS(url, protocols);
           let settled = false;

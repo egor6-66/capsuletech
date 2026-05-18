@@ -1,8 +1,8 @@
-export { Inspector } from './Inspector';
 export { Category } from './Category';
 export { renderField } from './fields';
-export { parseUnit, formatUnit } from './fields/parse-unit';
 export type { IParsedUnit } from './fields/parse-unit';
+export { formatUnit, parseUnit } from './fields/parse-unit';
+export { Inspector } from './Inspector';
 export type {
   IBooleanField,
   ICategory,
@@ -11,8 +11,8 @@ export type {
   INumberField,
   INumberUnitField,
   ISelectField,
-  ITextField,
   ITextareaField,
+  ITextField,
   OnChangeFn,
   ValuesMap,
 } from './types';

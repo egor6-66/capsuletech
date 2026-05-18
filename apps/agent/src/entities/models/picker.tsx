@@ -111,9 +111,7 @@ const Picker = Entity(({ Button, List, Separator }) => (
             {(c: CatalogModel) => (
               <div class="flex items-start gap-2 px-2 py-1.5 rounded-md hover:bg-muted/40">
                 <div class="flex-1 min-w-0 space-y-0.5">
-                  <code class="text-xs font-mono text-foreground block truncate">
-                    {c.name}
-                  </code>
+                  <code class="text-xs font-mono text-foreground block truncate">{c.name}</code>
                   <p class="text-[11px] text-muted-foreground/90 leading-snug line-clamp-2">
                     {c.description}
                   </p>

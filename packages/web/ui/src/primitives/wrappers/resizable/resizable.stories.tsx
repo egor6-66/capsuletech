@@ -1,13 +1,6 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite';
-
+import { MockBlock, MockHeader, MockMain, MockRightBar, MockSidebar } from '../../_mocks';
 import { Layout } from '../../layout';
-import {
-  MockBlock,
-  MockHeader,
-  MockMain,
-  MockRightBar,
-  MockSidebar,
-} from '../../_mocks';
 import { Resizable } from './resizable';
 
 /**

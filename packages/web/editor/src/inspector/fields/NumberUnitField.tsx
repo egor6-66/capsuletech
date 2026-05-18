@@ -1,4 +1,4 @@
-import { For, createMemo } from 'solid-js';
+import { createMemo, For } from 'solid-js';
 import type { INumberUnitField } from '../types';
 import { FieldShell } from './FieldShell';
 import { formatUnit, parseUnit } from './parse-unit';

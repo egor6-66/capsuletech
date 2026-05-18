@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
+import AutoImport from 'unplugin-auto-import/vite';
 import {
   AliasesPlugin,
   AppConfigPlugin,
@@ -15,8 +16,6 @@ import {
 } from '../plugins';
 import { DEFINE_FACTORIES, WRAPPER_NAMES } from '../plugins/constants';
 import { appConfig } from './appConfig';
-
-import AutoImport from 'unplugin-auto-import/vite';
 
 export interface ICapsuleConfig {
   devServerPort?: number;

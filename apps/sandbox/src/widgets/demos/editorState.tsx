@@ -1,16 +1,22 @@
-import { DnDProvider, DragOverlay, createDraggable, createDroppable, useDnD } from '@capsuletech/dnd';
 import {
-  EditorOpError,
-  type IEditorTree,
-  type NodeId,
+  createDraggable,
+  createDroppable,
+  DnDProvider,
+  DragOverlay,
+  useDnD,
+} from '@capsuletech/dnd';
+import {
   addNode,
   createEmptyTree,
+  EditorOpError,
+  type IEditorTree,
   moveNode,
+  type NodeId,
   removeNode,
 } from '@capsuletech/editor-state';
-import { canAcceptChild, getAllManifests, getManifest } from '@capsuletech/web-manifests';
 import { type ISchema, Renderer } from '@capsuletech/renderer';
-import { For, Show, createMemo, createSignal } from 'solid-js';
+import { canAcceptChild, getAllManifests, getManifest } from '@capsuletech/web-manifests';
+import { createMemo, createSignal, For, Show } from 'solid-js';
 
 type PaletteDrag = { source: 'palette'; type: string; label: string };
 type TreeDrag = { source: 'tree'; nodeId: NodeId; type: string };

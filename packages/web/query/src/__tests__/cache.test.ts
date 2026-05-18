@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { QueryCache, keyToString } from '../cache';
+import { keyToString, QueryCache } from '../cache';
 import type { QueryKey } from '../types';
 
 // Простой кэш с JSON-сериализованным ключом + префиксная инвалидация.
@@ -48,9 +48,7 @@ describe('QueryCache — get/set', () => {
   it('stable-stringify рекурсивный — вложенные объекты тоже sort-independent', () => {
     const c = new QueryCache();
     c.set(['users', { filter: { age: 18, role: 'admin' } }], mkEntry(['users'], 'X'));
-    expect(
-      (c.get(['users', { filter: { role: 'admin', age: 18 } }]) as any)?.state.data,
-    ).toBe('X');
+    expect((c.get(['users', { filter: { role: 'admin', age: 18 } }]) as any)?.state.data).toBe('X');
   });
 
   it('массивы остаются order-sensitive (намеренно — ["a","b"] !== ["b","a"])', () => {

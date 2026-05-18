@@ -1,9 +1,9 @@
 export { ProfilerDashboard } from './dashboard';
-export { ProfilerWindow } from './primitives/window';
-export { Sparkline } from './primitives/sparkline';
-export { MetricRow } from './primitives/row';
-export { VitalsPanel } from './panels/vitals';
-export { RuntimePanel } from './panels/runtime';
-export { NetworkPanel } from './panels/network';
-export { ErrorsPanel } from './panels/errors';
 export { CustomPanel } from './panels/custom';
+export { ErrorsPanel } from './panels/errors';
+export { NetworkPanel } from './panels/network';
+export { RuntimePanel } from './panels/runtime';
+export { VitalsPanel } from './panels/vitals';
+export { MetricRow } from './primitives/row';
+export { Sparkline } from './primitives/sparkline';
+export { ProfilerWindow } from './primitives/window';

@@ -3,8 +3,8 @@
 // были скоупом для [data-theme="<name>"]. Идемпотентен: уже scoped файлы
 // пропускает. Всё прочее в файле (@import, @custom-variant, @theme inline,
 // @layer base) сохраняется как есть — мы только переписываем два селектора.
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname, basename, join } from 'node:path';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const dir = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'themes');
@@ -20,10 +20,7 @@ for (const file of files) {
   }
   const out = src
     .replace(/^:root(\s*\{)/m, `[data-theme="${name}"]$1`)
-    .replace(
-      /^\.dark(\s*\{)/m,
-      `[data-theme="${name}"].dark,\n[data-theme="${name}"] .dark$1`,
-    );
+    .replace(/^\.dark(\s*\{)/m, `[data-theme="${name}"].dark,\n[data-theme="${name}"] .dark$1`);
   writeFileSync(path, out);
   console.log(`scoped ${file}`);
 }

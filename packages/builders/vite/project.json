@@ -8,9 +8,7 @@
   "targets": {},
   "release": {
     "version": {
-      "manifestRootsToUpdate": [
-        "{projectRoot}"
-      ],
+      "manifestRootsToUpdate": ["{projectRoot}"],
       "currentVersionResolver": "git-tag",
       "fallbackCurrentVersionResolver": "disk"
     }

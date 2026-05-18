@@ -1,8 +1,5 @@
 {
-  "extends": [
-    "../../tsconfig.base.json",
-    "./.capsule/tsconfig.paths.json"
-  ],
+  "extends": ["../../tsconfig.base.json", "./.capsule/tsconfig.paths.json"],
   "compilerOptions": {
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

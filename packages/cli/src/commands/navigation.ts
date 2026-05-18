@@ -1,7 +1,7 @@
 import { goToRoot, openProject } from '../actions';
 import { ICONS } from '../cli/tui/icons';
-import { listWorkspaceChildren } from '../context';
 import type { CliContext } from '../context';
+import { listWorkspaceChildren } from '../context';
 import type { Command } from './types';
 
 /**

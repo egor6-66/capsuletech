@@ -1,7 +1,7 @@
 import type { AnyRoute } from '@tanstack/router-core';
 import {
-  type Router as TanStackRouter,
   createRouter as createTanStackRouter,
+  type Router as TanStackRouter,
 } from '@tanstack/solid-router';
 import {
   type ICapsuleRouter,
@@ -19,9 +19,7 @@ import {
  * получаются типизированные `raw.navigate({ to: '...' })` без явного указания
  * generic-параметра.
  */
-export const createRouter = <TRouteTree extends AnyRoute>(
-  opts: ICreateRouterOpts<TRouteTree>,
-) => {
+export const createRouter = <TRouteTree extends AnyRoute>(opts: ICreateRouterOpts<TRouteTree>) => {
   const raw = createTanStackRouter({
     routeTree: opts.routeTree,
     context: opts.context ?? {},
@@ -33,10 +31,4 @@ export const createRouter = <TRouteTree extends AnyRoute>(
   };
 };
 
-export type {
-  TanStackRouter,
-  ICapsuleRouter,
-  ICapsuleRouterContext,
-  ICreateRouterOpts,
-  IGoToOpts,
-};
+export type { ICapsuleRouter, ICapsuleRouterContext, ICreateRouterOpts, IGoToOpts, TanStackRouter };

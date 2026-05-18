@@ -1,15 +1,15 @@
+export { generateId, ROOT_ID } from './ids';
 export {
-  EditorOpError,
   addNode,
   createEmptyTree,
+  EditorOpError,
   moveNode,
   removeNode,
   reorderChildren,
   updateNode,
 } from './operations';
-export { ROOT_ID, generateId } from './ids';
-export { createEditorSchema } from './schema';
 export type { ICreateEditorSchemaOptions } from './schema';
+export { createEditorSchema } from './schema';
 export type {
   IAddNodePayload,
   IEditorContext,

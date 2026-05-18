@@ -66,8 +66,10 @@ if (!existsSync(appPkgPath)) {
 
 const appPkg = JSON.parse(readFileSync(appPkgPath, 'utf8'));
 const pkgName = appPkg.name ?? `@capsuletech/${app}`;
-const productName = appPkg.capsule?.productName ?? app.replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
-const identifier = appPkg.capsule?.identifier ?? `tech.capsule.${app.replace(/[^a-z0-9]/gi, '').toLowerCase()}`;
+const productName =
+  appPkg.capsule?.productName ?? app.replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
+const identifier =
+  appPkg.capsule?.identifier ?? `tech.capsule.${app.replace(/[^a-z0-9]/gi, '').toLowerCase()}`;
 
 // ─── build override config ───────────────────────────────────────────────────
 
@@ -113,9 +115,8 @@ if (action === 'dev') {
 // `--config <file>` иногда лотерея с merge'ом и тогда `bundle.active` из
 // override не подхватывается, build выходит 0, но `target/release/bundle/`
 // пустой. CLI-флаг — детерминирован.
-const explicitBundles = action === 'build' && process.platform === 'win32'
-  ? ['--bundles', 'msi,nsis']
-  : [];
+const explicitBundles =
+  action === 'build' && process.platform === 'win32' ? ['--bundles', 'msi,nsis'] : [];
 
 mkdirSync(desktopDir, { recursive: true });
 writeFileSync(overridePath, JSON.stringify(baseOverride, null, 2));

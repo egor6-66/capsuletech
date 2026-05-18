@@ -1,10 +1,10 @@
-import { For, createSignal, onMount } from 'solid-js';
+import { createSignal, For, onMount } from 'solid-js';
 
 const STORAGE_KEY = 'capsule-theme';
 
 // Eager-импорт всех тем — сами CSS-файлы попадут в бандл потребителя,
 // а имена пойдут в выпадайку. Не надо отдельно подключать @capsuletech/web-style/themes.
-// @ts-ignore
+// @ts-expect-error
 const themeModules = import.meta.glob('../themes/*.css', { eager: true });
 const DISCOVERED_THEMES = Object.keys(themeModules)
   .map((p) => p.match(/([^/]+)\.css$/)?.[1] ?? '')

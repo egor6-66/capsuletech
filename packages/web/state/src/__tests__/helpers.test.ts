@@ -8,10 +8,7 @@ import { clearAliases, registerAliases } from '../tag-registry';
  * детерминированное поведение pick/match. Регрессии тут ломают весь HCA-проект.
  */
 
-const mkComp = (
-  tags: string[],
-  extras: { dynamicTags?: string[]; [k: string]: unknown } = {},
-) => ({
+const mkComp = (tags: string[], extras: { dynamicTags?: string[]; [k: string]: unknown } = {}) => ({
   meta: { tags },
   ...(extras.dynamicTags ? { dynamicMeta: { tags: extras.dynamicTags } } : {}),
   ...extras,
@@ -142,7 +139,9 @@ describe('matchEntryByTags', () => {
 describe('tag-ops — defensive defaults', () => {
   it('treats missing meta as empty tags', () => {
     const data = {
-      a: { /* no meta */ } as unknown as ReturnType<typeof mkComp>,
+      a: {
+        /* no meta */
+      } as unknown as ReturnType<typeof mkComp>,
       b: mkComp(['email']),
     };
     expect(pickByTags(data, ['email'])).toEqual({ b: data.b });

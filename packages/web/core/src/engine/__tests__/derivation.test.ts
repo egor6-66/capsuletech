@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TAG_TO_INPUT_TYPE, deriveInputType, deriveName } from '../derivation';
+import { deriveInputType, deriveName, TAG_TO_INPUT_TYPE } from '../derivation';
 
 /**
  * Pure-helpers UiProxy:

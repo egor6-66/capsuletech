@@ -72,9 +72,7 @@ export const buildRouteInfo = (relativePath: string): RouteInfo | null => {
 
   // URL: фильтруем `_`-сегменты (pathless), параметры разворачиваем в `$x`.
   const urlSourceSegments = isIndex ? segments.slice(0, -1) : segments;
-  const urlSegments = urlSourceSegments
-    .filter((s) => !s.startsWith('_'))
-    .map(toTanStackParam);
+  const urlSegments = urlSourceSegments.filter((s) => !s.startsWith('_')).map(toTanStackParam);
   const routePath = urlSegments.length === 0 ? '/' : `/${urlSegments.join('/')}`;
 
   // Emit: сохраняем `_`-сегменты (TanStack treats them as pathless layouts),
@@ -165,9 +163,7 @@ const fileGenerator = async (event: string, paths: Paths & { filePath: string })
  * (`[x]` → `$x`). Нужен для корректного `unlinkDir`.
  */
 const computeMirrorDir = (outDir: string, insidePages: string): string => {
-  const segments = insidePages.split(/[\\/]/).map((s) =>
-    s.replace(/^\[([^\]]+)\]$/, '$$$1'),
-  );
+  const segments = insidePages.split(/[\\/]/).map((s) => s.replace(/^\[([^\]]+)\]$/, '$$$1'));
   return join(outDir, ...segments);
 };
 

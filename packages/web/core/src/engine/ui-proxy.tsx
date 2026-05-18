@@ -2,13 +2,13 @@ import { createEffect, createUniqueId, mergeProps, onCleanup, splitProps } from 
 import type { ICtx } from './ctx';
 import {
   type AnyEvent,
-  TAG_TO_INPUT_TYPE,
   deriveInputType,
   deriveName,
   getTargetData,
+  TAG_TO_INPUT_TYPE,
 } from './derivation';
 
-export { TAG_TO_INPUT_TYPE, deriveInputType, deriveName, getTargetData };
+export { deriveInputType, deriveName, getTargetData, TAG_TO_INPUT_TYPE };
 
 /**
  * Закрытый набор перехватываемых событий (см. ADR 009).
@@ -76,11 +76,7 @@ const safeCall = (fn: any, ...args: any[]) => {
  * скармливать произвольный stub-компонент без поднятия всего `web-ui` lazy-graph'а.
  * Public-API контракт (UiProxy returns Proxy over Ui) сохранён 1:1.
  */
-export const wrapComponent = (
-  ctx: ICtx<any>,
-  wrapperProps: any,
-  OriginalComponent: any,
-): any => {
+export const wrapComponent = (ctx: ICtx<any>, wrapperProps: any, OriginalComponent: any): any => {
   if (!OriginalComponent) return undefined;
 
   if (typeof OriginalComponent !== 'function' && typeof OriginalComponent !== 'object') {

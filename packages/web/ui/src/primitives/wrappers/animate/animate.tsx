@@ -104,7 +104,7 @@ export const Animate = (props: IAnimateProps) => {
       <Presence exitBeforeEnter={props.exitBeforeEnter ?? true}>
         <Show when={props.keyed} keyed>
           {
-            // @ts-ignore
+            // @ts-expect-error
             () => <Motion {...motionAttrs()}>{props.children}</Motion>
           }
         </Show>

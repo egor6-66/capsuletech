@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createMetricsBus } from '../core/bus';
 import { createPerfApi } from '../api/usePerf';
+import { createMetricsBus } from '../core/bus';
 
 describe('createPerfApi', () => {
   it('count() accumulates and writes the running total as a counter', () => {

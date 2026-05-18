@@ -1,4 +1,4 @@
-import { For, Show, createSignal, onCleanup, onMount } from 'solid-js';
+import { createSignal, For, onCleanup, onMount, Show } from 'solid-js';
 import { useProfiler } from '../../api/useProfiler';
 import type { IMetricId } from '../../core/schema';
 import { MetricRow } from '../primitives/row';

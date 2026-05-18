@@ -13,11 +13,9 @@ export const layoutSlots = {
    * фиксированной ширины и без `hidden md:block` — шириной управляет corvu
    * Panel через inline `style`. Высоту фиксируем `h-full`, скролл — `overflow-auto`.
    */
-  resizeSidebar:
-    'h-full w-full overflow-auto border-r bg-muted/40 p-[--component-padding]',
+  resizeSidebar: 'h-full w-full overflow-auto border-r bg-muted/40 p-[--component-padding]',
   resizeMain: 'h-full w-full overflow-auto',
-  resizeAsideRight:
-    'h-full w-full overflow-auto border-l bg-muted/40 p-[--layout-padding]',
+  resizeAsideRight: 'h-full w-full overflow-auto border-l bg-muted/40 p-[--layout-padding]',
   /**
    * Resize-режим vertical (`standard` + `holy-grail`): header/footer
    * становятся panel'ями corvu, поэтому фиксированной высоты быть не должно —
@@ -25,18 +23,15 @@ export const layoutSlots = {
    */
   resizeHeader:
     'w-full h-full overflow-auto border-b bg-muted/40 px-[--layout-padding] py-[--component-padding] backdrop-blur',
-  resizeFooter:
-    'w-full h-full overflow-auto border-t bg-muted/40 p-[--layout-padding]',
+  resizeFooter: 'w-full h-full overflow-auto border-t bg-muted/40 p-[--layout-padding]',
   /**
    * Holy-grail wrapper — CSS Grid с tracks `auto / 1fr / auto` по обеим осям.
    * `grid-template-areas` задаётся inline-стилем в `switch.tsx`.
    */
   holyGrailGrid:
     'grid h-full w-full grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr_auto] overflow-hidden',
-  holyGrailLeft:
-    'w-64 overflow-auto border-r bg-muted/40 p-[--component-padding]',
-  holyGrailRight:
-    'w-80 overflow-auto border-l bg-muted/40 p-[--layout-padding]',
+  holyGrailLeft: 'w-64 overflow-auto border-r bg-muted/40 p-[--component-padding]',
+  holyGrailRight: 'w-80 overflow-auto border-l bg-muted/40 p-[--layout-padding]',
 };
 
 export const variants = {

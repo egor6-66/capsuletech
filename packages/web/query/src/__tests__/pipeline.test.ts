@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { type ApiContext, type Middleware, compose } from '../pipeline';
+import { type ApiContext, compose, type Middleware } from '../pipeline';
 
 // Koa-style compose: каждый mw оборачивает следующий через next().
 // Тесты держат семантику: порядок pre/post-фаз, передача ctx, защиту
@@ -17,11 +17,13 @@ const mkCtx = (): ApiContext => ({
 describe('compose — execution order', () => {
   it('runs mw left-to-right pre, right-to-left post', async () => {
     const trace: string[] = [];
-    const mk = (name: string): Middleware => async (_ctx, next) => {
-      trace.push(`pre:${name}`);
-      await next();
-      trace.push(`post:${name}`);
-    };
+    const mk =
+      (name: string): Middleware =>
+      async (_ctx, next) => {
+        trace.push(`pre:${name}`);
+        await next();
+        trace.push(`post:${name}`);
+      };
     await compose([mk('A'), mk('B'), mk('C')])(mkCtx());
     expect(trace).toEqual(['pre:A', 'pre:B', 'pre:C', 'post:C', 'post:B', 'post:A']);
   });

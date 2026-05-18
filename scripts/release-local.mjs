@@ -40,7 +40,7 @@
  *   - Bump версий и changelog — это release.mjs (prod).
  * ==========================================================================*/
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -54,9 +54,10 @@ const args = new Map(
   }),
 );
 
-const REGISTRY = args.get('registry') && args.get('registry') !== true
-  ? String(args.get('registry'))
-  : (process.env.NPM_REGISTRY_VERDACCIO || 'http://localhost:4873');
+const REGISTRY =
+  args.get('registry') && args.get('registry') !== true
+    ? String(args.get('registry'))
+    : process.env.NPM_REGISTRY_VERDACCIO || 'http://localhost:4873';
 const TAG = args.get('tag') && args.get('tag') !== true ? String(args.get('tag')) : 'local';
 const SHOULD_BUILD = !args.has('no-build');
 const GROUP = args.get('group');
@@ -68,7 +69,10 @@ if (!GROUP || GROUP === true) {
 
 const log = (m) => console.log(`\x1b[36m[release-local]\x1b[0m ${m}`);
 const warn = (m) => console.warn(`\x1b[33m[release-local]\x1b[0m ${m}`);
-const fail = (m) => { console.error(`\x1b[31m[release-local]\x1b[0m ${m}`); process.exit(1); };
+const fail = (m) => {
+  console.error(`\x1b[31m[release-local]\x1b[0m ${m}`);
+  process.exit(1);
+};
 
 // ---------------------------------------------------------------------------
 // 1. Группы из nx.json
@@ -77,13 +81,14 @@ const nxJson = JSON.parse(readFileSync(join(repoRoot, 'nx.json'), 'utf8'));
 const allGroups = nxJson.release?.groups ?? {};
 const resolveGroupNames = (g) => {
   if (g === 'all') return Object.keys(allGroups);
-  if (!allGroups[g]) fail(`Группа "${g}" не найдена в nx.json. Доступно: ${Object.keys(allGroups).join(', ')} или all`);
+  if (!allGroups[g])
+    fail(
+      `Группа "${g}" не найдена в nx.json. Доступно: ${Object.keys(allGroups).join(', ')} или all`,
+    );
   return [g];
 };
 const targetGroupNames = resolveGroupNames(GROUP);
-const targetPackages = new Set(
-  targetGroupNames.flatMap((name) => allGroups[name].projects ?? []),
-);
+const targetPackages = new Set(targetGroupNames.flatMap((name) => allGroups[name].projects ?? []));
 log(`Группы: ${targetGroupNames.join(', ')} → пакетов: ${targetPackages.size}`);
 
 // ---------------------------------------------------------------------------
@@ -101,7 +106,11 @@ const findCapsulePackages = (root) => {
       } catch {}
     }
     let entries;
-    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
     for (const e of entries) {
       if (e.isDirectory() && !SKIP.has(e.name)) walk(join(dir, e.name));
     }
@@ -114,8 +123,14 @@ const all = findCapsulePackages(join(repoRoot, 'packages'));
 const toPublish = [];
 for (const name of targetPackages) {
   const hit = all.get(name);
-  if (!hit) { warn(`Пакет "${name}" из группы не найден в packages/** — пропускаю`); continue; }
-  if (hit.pkg.private) { warn(`Пакет "${name}" private — пропускаю`); continue; }
+  if (!hit) {
+    warn(`Пакет "${name}" из группы не найден в packages/** — пропускаю`);
+    continue;
+  }
+  if (hit.pkg.private) {
+    warn(`Пакет "${name}" private — пропускаю`);
+    continue;
+  }
   toPublish.push(hit);
 }
 if (toPublish.length === 0) fail('Нечего публиковать — список пакетов пуст');
@@ -128,7 +143,10 @@ log(`К публикации: ${toPublish.map((p) => `${p.pkg.name}@${p.pkg.vers
 //    -dev.<ts> версия — единственный надёжный способ. Восстановим
 //    package.json в finally, чтобы в worktree не осталось следов.
 // ---------------------------------------------------------------------------
-const ts = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+const ts = new Date()
+  .toISOString()
+  .replace(/[-:T.Z]/g, '')
+  .slice(0, 14);
 
 // Снапшот ВСЕХ найденных пакетов (не только toPublish), чтобы при rewrite
 // workspace:* deps правильно подставить новые -dev версии соседей.
@@ -142,14 +160,23 @@ const restore = () => {
   if (_restored) return;
   _restored = true;
   for (const [path, raw] of snapshot) {
-    try { writeFileSync(path, raw); } catch {}
+    try {
+      writeFileSync(path, raw);
+    } catch {}
   }
 };
 process.on('exit', restore);
 for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) {
-  process.on(sig, () => { restore(); process.exit(130); });
+  process.on(sig, () => {
+    restore();
+    process.exit(130);
+  });
 }
-process.on('uncaughtException', (e) => { restore(); console.error(e); process.exit(1); });
+process.on('uncaughtException', (e) => {
+  restore();
+  console.error(e);
+  process.exit(1);
+});
 
 // Новые dev-версии: <текущая без -dev.*> + -dev.<ts>
 const newVersions = new Map(); // pkgName -> newVersion
@@ -209,12 +236,18 @@ if (SHOULD_BUILD) {
     {
       name: 'shared-* (rest) + web-* + cli',
       filters: [
-        '--filter', '@capsuletech/shared-*',
-        '--filter', '!@capsuletech/compliance',
-        '--filter', '!@capsuletech/biome-config',
-        '--filter', '!@capsuletech/vite-builder',
-        '--filter', '@capsuletech/web-*',
-        '--filter', '@capsuletech/cli',
+        '--filter',
+        '@capsuletech/shared-*',
+        '--filter',
+        '!@capsuletech/compliance',
+        '--filter',
+        '!@capsuletech/biome-config',
+        '--filter',
+        '!@capsuletech/vite-builder',
+        '--filter',
+        '@capsuletech/web-*',
+        '--filter',
+        '@capsuletech/cli',
       ],
     },
   ];
@@ -235,16 +268,21 @@ if (SHOULD_BUILD) {
 let failures = 0;
 for (const { dir, pkg } of toPublish) {
   log(`publish ${pkg.name}@${pkg.version} → ${REGISTRY}`);
-  const r = spawnSync('pnpm', ['publish', '--no-git-checks', '--registry', REGISTRY, '--tag', TAG], {
-    cwd: dir,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  });
+  const r = spawnSync(
+    'pnpm',
+    ['publish', '--no-git-checks', '--registry', REGISTRY, '--tag', TAG],
+    {
+      cwd: dir,
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+    },
+  );
   if ((r.status ?? 1) !== 0) {
     failures++;
     warn(`✖ ${pkg.name}`);
   }
 }
 
-if (failures > 0) fail(`Завершено с ошибками: ${failures}/${toPublish.length} пакетов не опубликовано`);
+if (failures > 0)
+  fail(`Завершено с ошибками: ${failures}/${toPublish.length} пакетов не опубликовано`);
 log(`✓ Готово. Опубликовано ${toPublish.length} пакетов в ${REGISTRY} (tag=${TAG}).`);

@@ -1,5 +1,5 @@
-import { matchByTags, matchEntryByTags, omitByTags, pickByTags } from './helpers';
 import type { IMachineContext } from './create';
+import { matchByTags, matchEntryByTags, omitByTags, pickByTags } from './helpers';
 
 /**
  * Аргумент `state` у `createBridge`. По форме совпадает с reactive-snapshot,

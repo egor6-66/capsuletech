@@ -1,6 +1,6 @@
 import { execa } from 'execa';
-import { kit } from '../kit';
 import type { CommandAction } from '../commands/types';
+import { kit } from '../kit';
 
 type NxJsonProjects = string[] | Record<string, unknown>;
 

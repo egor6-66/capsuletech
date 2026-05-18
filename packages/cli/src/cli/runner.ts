@@ -1,6 +1,6 @@
-import { kit } from '../kit';
-import type { CliContext } from '../context';
 import type { Command, CommandParam } from '../commands';
+import type { CliContext } from '../context';
+import { kit } from '../kit';
 
 const askParam = async (param: CommandParam): Promise<unknown> => {
   if (!param.prompt) return undefined;

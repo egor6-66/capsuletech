@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { z } from 'zod';
-import { type Endpoint, type InferInput, type InferOutput, defineEndpoint } from '../endpoint';
+import { defineEndpoint, type Endpoint, type InferInput, type InferOutput } from '../endpoint';
 
 // defineEndpoint — фабрика, factory принимает CapsuleZ.
 // Тесты держат runtime-shape и type-inference сигнатур.

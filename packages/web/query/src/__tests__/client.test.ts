@@ -1,10 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  QueryClient,
-  createQueryClient,
-  getQueryClient,
-  setQueryClient,
-} from '../client';
+import { createQueryClient, getQueryClient, QueryClient, setQueryClient } from '../client';
 import type { Fetcher } from '../types';
 
 // QueryClient — главное звено: resolveUrl + interceptors + cache + dedupe +
@@ -285,7 +280,9 @@ describe('mutate', () => {
       throw new Error('bad');
     });
     const c = new QueryClient({ fetcher });
-    await expect(c.mutate({ url: '/x', name: 'createUser', syncTo: bridge as any })).rejects.toThrow();
+    await expect(
+      c.mutate({ url: '/x', name: 'createUser', syncTo: bridge as any }),
+    ).rejects.toThrow();
     expect(bridge.setErrors).toHaveBeenCalledWith({ createUser: 'bad' });
   });
 

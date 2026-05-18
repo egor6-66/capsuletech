@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execa } from 'execa';
-import { kit } from '../kit';
-import { listWorkspaceChildren } from '../context';
 import type { CommandAction } from '../commands/types';
+import { listWorkspaceChildren } from '../context';
+import { kit } from '../kit';
 
 const readJson = <T = unknown>(path: string): T | null => {
   try {

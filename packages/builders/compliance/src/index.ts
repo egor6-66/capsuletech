@@ -1,6 +1,6 @@
-export { classify, extractGroup } from './classify';
-export type { Layer } from './classify';
+export type { ICheckOptions, IViolation } from './check';
 export { check } from './check';
-export type { IViolation, ICheckOptions } from './check';
+export type { Layer } from './classify';
+export { classify, extractGroup } from './classify';
 export { formatViolation, formatViolations } from './format';
-export { RUNTIME_ALLOWED, LAYER_PREFIXES, CROSS_LAYER_ALLOWED } from './rules';
+export { CROSS_LAYER_ALLOWED, LAYER_PREFIXES, RUNTIME_ALLOWED } from './rules';

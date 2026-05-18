@@ -51,9 +51,7 @@ describe('check — allowed imports (no violations)', () => {
   });
 
   it('type-only imports are skipped (no runtime link)', () => {
-    expect(
-      check(ENTITY_PATH, "import type { Anything } from 'xstate';"),
-    ).toEqual([]);
+    expect(check(ENTITY_PATH, "import type { Anything } from 'xstate';")).toEqual([]);
   });
 });
 
@@ -126,11 +124,9 @@ describe('check — side-effect-fetch', () => {
   });
 
   it('honors checkSideEffects: false', () => {
-    const violations = check(
-      CONTROLLER_PATH,
-      'function go() { fetch("/api/x"); }',
-      { checkSideEffects: false },
-    );
+    const violations = check(CONTROLLER_PATH, 'function go() { fetch("/api/x"); }', {
+      checkSideEffects: false,
+    });
     expect(violations.find((v) => v.kind === 'side-effect-fetch')).toBeUndefined();
   });
 });
@@ -224,7 +220,9 @@ describe('check — @capsuletech/web-* package names (regression)', () => {
 
   describe('controller / feature — web-state + web-router', () => {
     it('controller can import @capsuletech/web-state', () => {
-      expect(check(CONTROLLER_PATH, "import { Bridge } from '@capsuletech/web-state';")).toEqual([]);
+      expect(check(CONTROLLER_PATH, "import { Bridge } from '@capsuletech/web-state';")).toEqual(
+        [],
+      );
     });
     it('controller can import @capsuletech/web-router', () => {
       expect(

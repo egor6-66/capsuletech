@@ -7,13 +7,8 @@
  * engine-типы (`ICtx`, `IControllerHandle`) живут в `engine/ctx.ts`.
  */
 
-import type {
-  IBaseStateHandlers,
-  IBaseStateSchema,
-  IBridge,
-} from '@capsuletech/web-state';
 import type { ICapsuleRouter } from '@capsuletech/web-router';
-import type { Component, JSX, JSXElement } from 'solid-js';
+import type { IBaseStateHandlers, IBaseStateSchema, IBridge } from '@capsuletech/web-state';
 import type {
   Animate,
   Button,
@@ -24,6 +19,7 @@ import type {
   List,
   Navigation,
 } from '@capsuletech/web-ui';
+import type { Component, JSX, JSXElement } from 'solid-js';
 
 // -----------------------------------------------------------------------------
 // UI-вкус: что приходит wrapper'ам в первый позиционный аргумент.

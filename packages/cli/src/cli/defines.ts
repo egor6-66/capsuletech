@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-expect-error
 globalThis.defineCapsuleConfig = (config) => config;
-// @ts-ignore
+// @ts-expect-error
 globalThis.defineAppConfig = (config) => config;

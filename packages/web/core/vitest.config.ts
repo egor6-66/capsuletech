@@ -6,10 +6,7 @@ export default defineConfig({
   // file:///@solid-refresh URL и ругается на 'filename must be ...').
   plugins: [solid({ hot: false })],
   test: {
-    include: [
-      'src/**/__tests__/**/*.test.ts',
-      'src/**/__tests__/**/*.test.tsx',
-    ],
+    include: ['src/**/__tests__/**/*.test.ts', 'src/**/__tests__/**/*.test.tsx'],
     // jsdom нужен для UiProxy render-тестов (создание элементов, dispatchEvent).
     // Pure-helper тесты (derivation/controller-proxy/getTargetData) от этого
     // не страдают — jsdom-globals им просто не мешают.

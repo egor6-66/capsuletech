@@ -1,5 +1,5 @@
-import type { ICollector, IMetricsBus } from '../core/schema';
 import { supportsEntryType } from '../core/env';
+import type { ICollector, IMetricsBus } from '../core/schema';
 
 export interface IEventTimingOpts {
   durationThresholdMs?: number;

@@ -1,7 +1,7 @@
 import {
-  EditorOpError,
   addNode,
   createEmptyTree,
+  EditorOpError,
   moveNode,
   removeNode,
   reorderChildren,

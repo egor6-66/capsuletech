@@ -4,7 +4,9 @@ import { execa } from 'execa';
 import type { CommandAction } from '../commands/types';
 import { kit } from '../kit';
 
-const requireApp = (ctx: Parameters<CommandAction>[0]): ctx is Parameters<CommandAction>[0] & { name: string; root: string } => {
+const requireApp = (
+  ctx: Parameters<CommandAction>[0],
+): ctx is Parameters<CommandAction>[0] & { name: string; root: string } => {
   if (ctx.type !== 'app' || !ctx.root || !ctx.name) {
     kit.log.error('Desktop-команды запускаются только внутри apps/<name>/');
     return false;

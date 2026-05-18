@@ -60,7 +60,13 @@ export const deriveInputType = (meta: any): string | undefined => {
  */
 export const getTargetData = (
   e: AnyEvent | undefined,
-  finalProps: { name?: unknown; value?: unknown; meta?: unknown; dynamicMeta?: unknown; payload?: unknown },
+  finalProps: {
+    name?: unknown;
+    value?: unknown;
+    meta?: unknown;
+    dynamicMeta?: unknown;
+    payload?: unknown;
+  },
   derivedName?: string,
 ) => {
   // biome-ignore lint/suspicious/noExplicitAny: DOM Element shape varies.

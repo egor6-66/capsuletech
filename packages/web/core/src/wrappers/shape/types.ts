@@ -42,11 +42,8 @@ export type IShapeFactory<S extends ZodArray<ZodTypeAny> = ZodArray<ZodTypeAny>>
   ui: IShapeUi,
 ) => IShapeDefinition<S>;
 
-export type ShapeItem<S extends ZodArray<ZodTypeAny>> = S extends ZodArray<infer E>
-  ? E extends ZodTypeAny
-    ? zod.infer<E>
-    : never
-  : never;
+export type ShapeItem<S extends ZodArray<ZodTypeAny>> =
+  S extends ZodArray<infer E> ? (E extends ZodTypeAny ? zod.infer<E> : never) : never;
 
 export type IShapeRender<TItem> = (item: TItem, index: () => number) => JSX.Element;
 

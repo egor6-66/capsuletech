@@ -7,7 +7,10 @@ import type { RequestConfig } from './types';
  * чтобы пропустить управление дальше по цепочке. Работа до `await next()` —
  * pre-phase (видит «сырые» input/request), после — post-phase (видит response/data).
  */
-export type Middleware<C = ApiContext> = (ctx: C, next: () => Promise<void>) => Promise<void> | void;
+export type Middleware<C = ApiContext> = (
+  ctx: C,
+  next: () => Promise<void>,
+) => Promise<void> | void;
 
 /**
  * Объект, который путешествует через всю pipeline одного вызова endpoint'а.

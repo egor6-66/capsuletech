@@ -61,4 +61,5 @@ class WatcherManager {
 }
 
 const watcherManager = new WatcherManager();
+
 export { watcherManager };

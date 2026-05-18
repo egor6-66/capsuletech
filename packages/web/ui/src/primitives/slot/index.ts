@@ -1,2 +1,2 @@
-export { Slot } from './slot';
 export type { ISlotProps } from './interfaces';
+export { Slot } from './slot';

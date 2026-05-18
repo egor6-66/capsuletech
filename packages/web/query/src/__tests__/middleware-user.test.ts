@@ -228,9 +228,7 @@ describe('retry', () => {
       calls += 1;
       throw new NetworkError();
     };
-    await expect(retry({ max: 2, baseDelayMs: 0 })(ctx, next)).rejects.toBeInstanceOf(
-      NetworkError,
-    );
+    await expect(retry({ max: 2, baseDelayMs: 0 })(ctx, next)).rejects.toBeInstanceOf(NetworkError);
     expect(calls).toBe(3); // initial + 2 retries
   });
 

@@ -49,11 +49,7 @@ describe('libConfig — external selector (browser runtime)', () => {
     expect(isExternal(id, undefined, false)).toBe(true);
   });
 
-  it.each([
-    './local-file',
-    '../helper',
-    '/abs/path',
-  ])('bundles relative/absolute path %s', (id) => {
+  it.each(['./local-file', '../helper', '/abs/path'])('bundles relative/absolute path %s', (id) => {
     expect(isExternal(id, undefined, false)).toBe(false);
   });
 

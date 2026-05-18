@@ -12,9 +12,7 @@ const TS_EXT = new Set(['.ts', '.tsx', '.mts', '.cts']);
 const jitiCache = new Map<string, unknown>();
 
 const getJiti = async (cwd: string): Promise<(specifier: string) => Promise<unknown>> => {
-  let inst = jitiCache.get(cwd) as
-    | { import: (s: string) => Promise<unknown> }
-    | undefined;
+  let inst = jitiCache.get(cwd) as { import: (s: string) => Promise<unknown> } | undefined;
   if (!inst) {
     const { createJiti } = await import('jiti');
     inst = await createJiti(pathToFileURL(join(cwd, 'package.json')).href, {

@@ -1,9 +1,9 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import { generateFromTemplates } from '../utils/generateFromTemplates';
 import { execa } from 'execa';
 import type { CliMode } from '../context';
 import { kit } from '../kit';
+import { generateFromTemplates } from '../utils/generateFromTemplates';
 import { resolveTemplateDir } from '../utils/templates';
 
 export const TEMPLATES = {

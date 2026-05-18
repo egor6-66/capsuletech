@@ -41,9 +41,18 @@ describe('metricsBus', () => {
 
   it('lets meta override label/unit/kind without losing the id', () => {
     const bus = createMetricsBus();
-    bus.write('custom.requests' as const, 1, { label: 'API Requests', unit: 'req', kind: 'counter' });
+    bus.write('custom.requests' as const, 1, {
+      label: 'API Requests',
+      unit: 'req',
+      kind: 'counter',
+    });
     const m = bus.meta('custom.requests');
-    expect(m).toMatchObject({ id: 'custom.requests', label: 'API Requests', unit: 'req', kind: 'counter' });
+    expect(m).toMatchObject({
+      id: 'custom.requests',
+      label: 'API Requests',
+      unit: 'req',
+      kind: 'counter',
+    });
   });
 
   it('notifies subscribers and unsubscribes cleanly', () => {

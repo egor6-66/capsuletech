@@ -1,17 +1,16 @@
 import {
   cpSync,
   existsSync,
-  readFileSync,
   readdirSync,
+  readFileSync,
   rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Plugin } from 'vite';
-
 import { libConfig } from '@capsuletech/lib-builder';
+import type { Plugin } from 'vite';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -56,7 +55,7 @@ const remapPrimitivesDtsPlugin = (outDir: string): Plugin => ({
     const rootDts = resolve(distDir, 'index.d.ts');
     if (existsSync(rootDts)) {
       const src = readFileSync(rootDts, 'utf8');
-      const patched = src.replace(/(['"])\.\/primitives\1/g, "$1./components$1");
+      const patched = src.replace(/(['"])\.\/primitives\1/g, '$1./components$1');
       if (patched !== src) writeFileSync(rootDts, patched, 'utf8');
     }
   },

@@ -38,7 +38,12 @@ export const Column: Story = {
 export const Centered: Story = {
   name: 'align/justify: center',
   render: () => (
-    <Flex align="center" justify="center" gap={4} class="h-40 w-full border border-dashed border-white/15">
+    <Flex
+      align="center"
+      justify="center"
+      gap={4}
+      class="h-40 w-full border border-dashed border-white/15"
+    >
       <MockBlock label="centered" tone="b" />
     </Flex>
   ),

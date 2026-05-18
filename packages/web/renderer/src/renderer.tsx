@@ -1,12 +1,12 @@
 import {
   type Component,
+  createEffect,
+  createMemo,
   ErrorBoundary,
   For,
   type JSX,
-  Suspense,
-  createEffect,
-  createMemo,
   mergeProps,
+  Suspense,
 } from 'solid-js';
 import { createComponent } from 'solid-js/web';
 import { resolvePath } from './resolve';

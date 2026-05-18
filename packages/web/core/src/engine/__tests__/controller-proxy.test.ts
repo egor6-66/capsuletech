@@ -42,7 +42,6 @@ describe('ControllerProxy — system fields', () => {
     });
     expect(ctl.store).toBe(store);
   });
-
 });
 
 describe('ControllerProxy — method dispatch order', () => {
@@ -662,7 +661,13 @@ describe('ControllerProxy — schema.onError hook', () => {
   it('still re-throws original error even when onError absorbs it', async () => {
     const error = new Error('boom');
     const schema = makeSchema({
-      states: { idle: { onClick: () => { throw error; } } },
+      states: {
+        idle: {
+          onClick: () => {
+            throw error;
+          },
+        },
+      },
       onError: vi.fn(),
     });
     const ctl = ControllerProxy({
@@ -677,7 +682,13 @@ describe('ControllerProxy — schema.onError hook', () => {
   it('sync throw inside onError is logged but does not mask the original error', async () => {
     const original = new Error('original');
     const schema = makeSchema({
-      states: { idle: { onClick: () => { throw original; } } },
+      states: {
+        idle: {
+          onClick: () => {
+            throw original;
+          },
+        },
+      },
       onError: () => {
         throw new Error('onError-burst');
       },
@@ -699,7 +710,13 @@ describe('ControllerProxy — schema.onError hook', () => {
       throw new Error('onError-async-boom');
     });
     const schema = makeSchema({
-      states: { idle: { onClick: async () => { throw original; } } },
+      states: {
+        idle: {
+          onClick: async () => {
+            throw original;
+          },
+        },
+      },
       onError: onErrorAsync,
     });
     const ctl = ControllerProxy({

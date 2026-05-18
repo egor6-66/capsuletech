@@ -1,10 +1,10 @@
 import { VitalsMonitoringProvider } from '@capsuletech/web-profiler';
 import {
   type AnyRoute,
+  createRouter,
   type ICapsuleRouterContext,
   RouterContext,
   RouterProvider,
-  createRouter,
 } from '@capsuletech/web-router';
 import { Show } from 'solid-js';
 

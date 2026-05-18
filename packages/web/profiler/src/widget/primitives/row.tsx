@@ -1,7 +1,7 @@
-import { type Accessor, Show, createMemo } from 'solid-js';
+import { type Accessor, createMemo, Show } from 'solid-js';
+import { useProfiler } from '../../api/useProfiler';
 import { getRating } from '../../core/ratings';
 import type { IMetricId, IMetricMeta, IMetricSample } from '../../core/schema';
-import { useProfiler } from '../../api/useProfiler';
 import { Sparkline } from './sparkline';
 
 export interface IMetricRowProps {

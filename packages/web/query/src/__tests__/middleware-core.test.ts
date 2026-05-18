@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 import { NetworkError, ValidationError } from '../errors';
 import {
   buildRequest,
@@ -40,10 +40,15 @@ describe('validateInput', () => {
       config: { method: 'GET', path: '/', request: z.object({ id: z.string() }) } as any,
     });
     await expect(validateInput()(ctx, noop)).rejects.toBeInstanceOf(ValidationError);
-    await expect(validateInput()(mkCtx({
-      input: { id: 123 },
-      config: { method: 'GET', path: '/', request: z.object({ id: z.string() }) } as any,
-    }), noop)).rejects.toMatchObject({ phase: 'request' });
+    await expect(
+      validateInput()(
+        mkCtx({
+          input: { id: 123 },
+          config: { method: 'GET', path: '/', request: z.object({ id: z.string() }) } as any,
+        }),
+        noop,
+      ),
+    ).rejects.toMatchObject({ phase: 'request' });
   });
 
   it('writes parsed (typed) data back to ctx.input on success', async () => {
@@ -89,31 +94,33 @@ describe('buildRequest — path params', () => {
 });
 
 describe('buildRequest — body vs params', () => {
-  it.each(['GET', 'HEAD', 'DELETE'] as const satisfies HttpMethod[])(
-    '%s — non-path input → params (no body)',
-    async (method) => {
-      const ctx = mkCtx({
-        input: { id: 'x', page: 1, active: true },
-        config: { method, path: '/users/:id' } as any,
-      });
-      await buildRequest()(ctx, noop);
-      expect(ctx.request.body).toBeUndefined();
-      expect(ctx.request.params).toEqual({ page: 1, active: true });
-    },
-  );
+  it.each([
+    'GET',
+    'HEAD',
+    'DELETE',
+  ] as const satisfies HttpMethod[])('%s — non-path input → params (no body)', async (method) => {
+    const ctx = mkCtx({
+      input: { id: 'x', page: 1, active: true },
+      config: { method, path: '/users/:id' } as any,
+    });
+    await buildRequest()(ctx, noop);
+    expect(ctx.request.body).toBeUndefined();
+    expect(ctx.request.params).toEqual({ page: 1, active: true });
+  });
 
-  it.each(['POST', 'PUT', 'PATCH'] as const satisfies HttpMethod[])(
-    '%s — non-path input → body (no params)',
-    async (method) => {
-      const ctx = mkCtx({
-        input: { id: 'x', email: 'a@b.c' },
-        config: { method, path: '/users/:id' } as any,
-      });
-      await buildRequest()(ctx, noop);
-      expect(ctx.request.body).toEqual({ email: 'a@b.c' });
-      expect(ctx.request.params).toBeUndefined();
-    },
-  );
+  it.each([
+    'POST',
+    'PUT',
+    'PATCH',
+  ] as const satisfies HttpMethod[])('%s — non-path input → body (no params)', async (method) => {
+    const ctx = mkCtx({
+      input: { id: 'x', email: 'a@b.c' },
+      config: { method, path: '/users/:id' } as any,
+    });
+    await buildRequest()(ctx, noop);
+    expect(ctx.request.body).toEqual({ email: 'a@b.c' });
+    expect(ctx.request.params).toBeUndefined();
+  });
 
   it('GET с null/undefined значениями → ключи пропускаются', async () => {
     const ctx = mkCtx({
@@ -210,10 +217,7 @@ describe('httpTransport', () => {
       config: { method: 'GET', path: '/x' } as any,
     });
     await httpTransport()(ctx, noop);
-    expect(fetch).toHaveBeenCalledWith(
-      ['__endpoint', 'test', null],
-      expect.any(Object),
-    );
+    expect(fetch).toHaveBeenCalledWith(['__endpoint', 'test', null], expect.any(Object));
   });
 });
 

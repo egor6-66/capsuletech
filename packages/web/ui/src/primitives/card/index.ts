@@ -1,6 +1,5 @@
-import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './parts';
-
 import { Card as CardComponent } from './card';
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './parts';
 
 type CardWithStaticProps = typeof CardComponent & {
   Content: typeof CardContent;
@@ -17,5 +16,5 @@ Card.Footer = CardFooter;
 Card.Header = CardHeader;
 Card.Title = CardTitle;
 
-export { Card };
 export type * as ICard from './interfaces';
+export { Card };

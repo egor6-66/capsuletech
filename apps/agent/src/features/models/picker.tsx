@@ -1,11 +1,11 @@
+import type { CatalogModel, InstalledModel } from '../../services/models-api';
 import {
+  deleteModel,
   fetchModels,
   loadModel,
-  unloadModel,
-  deleteModel,
   pullModel,
+  unloadModel,
 } from '../../services/models-api';
-import type { CatalogModel, InstalledModel } from '../../services/models-api';
 
 const DEFAULT_MODEL = 'qwen2.5:14b';
 
@@ -87,9 +87,7 @@ const Picker = Feature(() => {
                 pullProgress.set(name, 0);
                 await refresh(store);
                 await pullModel(name, (p) => {
-                  const pct = p.total
-                    ? Math.floor(((p.completed ?? 0) / p.total) * 100)
-                    : 0;
+                  const pct = p.total ? Math.floor(((p.completed ?? 0) / p.total) * 100) : 0;
                   pullProgress.set(name, pct);
                   refresh(store).catch(() => {});
                 });

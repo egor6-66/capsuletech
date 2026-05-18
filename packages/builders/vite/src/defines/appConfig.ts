@@ -1,4 +1,4 @@
-import { type UserConfig, mergeConfig } from 'vite';
+import { mergeConfig, type UserConfig } from 'vite';
 
 export const appConfig = (config: UserConfig, idDev: boolean) => {
   return mergeConfig(

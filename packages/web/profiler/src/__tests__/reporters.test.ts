@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createMetricsBus } from '../core/bus';
 import { callbackReporter } from '../reporters/callback';
 import { consoleReporter } from '../reporters/console';
-import { createMetricsBus } from '../core/bus';
 
 describe('callbackReporter', () => {
   it('forwards every bus.write to the callback', () => {

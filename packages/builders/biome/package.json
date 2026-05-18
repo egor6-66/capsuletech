@@ -11,5 +11,7 @@
   "exports": {
     "./biome.json": "./biome.json"
   },
-  "files": ["biome.json"]
+  "files": [
+    "biome.json"
+  ]
 }

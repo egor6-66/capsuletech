@@ -1,5 +1,5 @@
 import { canAcceptChild, getManifest } from '../manifests';
-import { ROOT_ID, generateId } from './ids';
+import { generateId, ROOT_ID } from './ids';
 import type {
   IAddNodePayload,
   IEditorNode,

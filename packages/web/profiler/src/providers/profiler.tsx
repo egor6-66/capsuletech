@@ -1,4 +1,4 @@
-import { type JSX, Show, onCleanup, onMount } from 'solid-js';
+import { type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { ProfilerContext } from '../api/useProfiler';
 import {
   connectionCollector,

@@ -1,3 +1,4 @@
+import { Field as FieldComponent } from './field';
 import {
   FieldContent,
   FieldDescription,
@@ -9,8 +10,6 @@ import {
   FieldSet,
   FieldTitle,
 } from './parts';
-
-import { Field as FieldComponent } from './field';
 
 type FieldWithStaticProps = typeof FieldComponent & {
   Content: typeof FieldContent;
@@ -35,5 +34,5 @@ Field.Separator = FieldSeparator;
 Field.Set = FieldSet;
 Field.Title = FieldTitle;
 
-export { Field };
 export type * as IField from './interfaces';
+export { Field };

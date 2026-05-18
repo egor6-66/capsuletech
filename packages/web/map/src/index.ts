@@ -1,4 +1,4 @@
-export { MapView } from './MapView';
-export type { IMapViewProps } from './MapView';
-export { useMap, MapContext } from './context';
 export type { IMapContext } from './context';
+export { MapContext, useMap } from './context';
+export type { IMapViewProps } from './MapView';
+export { MapView } from './MapView';

@@ -1,4 +1,4 @@
-import { For, Show, createSignal } from 'solid-js';
+import { createSignal, For, Show } from 'solid-js';
 import { renderField } from './fields';
 import type { ICategory, OnChangeFn, ValuesMap } from './types';
 

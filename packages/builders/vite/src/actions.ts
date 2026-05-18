@@ -1,4 +1,4 @@
-import { type UserConfig, build, createServer as createViteServer, preview } from 'vite';
+import { build, createServer as createViteServer, preview, type UserConfig } from 'vite';
 
 import { appConfig, capsuleConfig } from './defines';
 

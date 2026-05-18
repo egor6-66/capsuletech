@@ -27,7 +27,7 @@
  *   USD за миллион токенов, см. константу PRICES ниже. При смене тарифов —
  *   править руками (по состоянию 2026-05).
  * ==========================================================================*/
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 
@@ -107,7 +107,7 @@ const collectTurns = () => {
   return turns.sort((a, b) => (a.ts || '').localeCompare(b.ts || ''));
 };
 
-const FEATURE_START = /<<\s*feature\s*:\s*([a-z0-9_\-]+)\s*>>/i;
+const FEATURE_START = /<<\s*feature\s*:\s*([a-z0-9_-]+)\s*>>/i;
 const FEATURE_END = /<<\s*\/\s*feature\s*>>/i;
 
 /**

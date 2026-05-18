@@ -52,7 +52,9 @@ describe('defaultFetcher — JSON parsing', () => {
 
 describe('defaultFetcher — body serialization', () => {
   it('object body → JSON.stringify + Content-Type header', async () => {
-    const spy = stubFetch(new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
+    const spy = stubFetch(
+      new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
+    );
     await defaultFetcher({ method: 'POST', resolvedUrl: '/x', body: { hi: 1 } });
     const init = (spy as any).mock.calls[0][1] as RequestInit;
     expect(init.body).toBe(JSON.stringify({ hi: 1 }));
@@ -60,14 +62,18 @@ describe('defaultFetcher — body serialization', () => {
   });
 
   it('string body — passed through, no JSON header added', async () => {
-    const spy = stubFetch(new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
+    const spy = stubFetch(
+      new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
+    );
     await defaultFetcher({ method: 'POST', resolvedUrl: '/x', body: 'raw' });
     const init = (spy as any).mock.calls[0][1] as RequestInit;
     expect(init.body).toBe('raw');
   });
 
   it('FormData body passed through', async () => {
-    const spy = stubFetch(new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
+    const spy = stubFetch(
+      new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
+    );
     const fd = new FormData();
     fd.append('k', 'v');
     await defaultFetcher({ method: 'POST', resolvedUrl: '/x', body: fd });
@@ -75,7 +81,9 @@ describe('defaultFetcher — body serialization', () => {
   });
 
   it('Blob body passed through', async () => {
-    const spy = stubFetch(new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
+    const spy = stubFetch(
+      new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
+    );
     const blob = new Blob(['x']);
     await defaultFetcher({ method: 'POST', resolvedUrl: '/x', body: blob });
     expect((spy as any).mock.calls[0][1].body).toBe(blob);
@@ -117,7 +125,9 @@ describe('defaultFetcher — non-2xx', () => {
 
 describe('defaultFetcher — request init', () => {
   it('passes method/headers/signal/credentials through', async () => {
-    const spy = stubFetch(new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
+    const spy = stubFetch(
+      new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
+    );
     const signal = new AbortController().signal;
     await defaultFetcher({
       method: 'PATCH',
@@ -134,7 +144,9 @@ describe('defaultFetcher — request init', () => {
   });
 
   it('defaults method to GET', async () => {
-    const spy = stubFetch(new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
+    const spy = stubFetch(
+      new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
+    );
     await defaultFetcher({ resolvedUrl: '/x' });
     expect((spy as any).mock.calls[0][1].method).toBe('GET');
   });

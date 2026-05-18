@@ -1,5 +1,5 @@
 import { Check, Copy } from 'lucide-solid';
-import { Show, createSignal } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import { copyTheme } from '../export';
 import type { ITheme } from '../types';
 

@@ -19,7 +19,9 @@ export function connectionCollector(): ICollector {
       };
 
       write();
-      const target = conn as unknown as EventTarget & { addEventListener?: EventTarget['addEventListener'] };
+      const target = conn as unknown as EventTarget & {
+        addEventListener?: EventTarget['addEventListener'];
+      };
       const supportsEvents = typeof target.addEventListener === 'function';
       if (supportsEvents) target.addEventListener('change', write);
 

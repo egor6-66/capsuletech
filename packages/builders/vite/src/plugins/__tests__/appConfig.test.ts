@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import type { Plugin } from 'vite';
+import { describe, expect, it } from 'vitest';
 import { AppConfigPlugin } from '../appConfig';
 
 /**

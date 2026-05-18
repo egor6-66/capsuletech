@@ -1,10 +1,12 @@
 import { parse } from '@babel/parser';
 import _traverse from '@babel/traverse';
+
 // @babel/traverse is CJS with __esModule:true — Node.js ESM interop gives the namespace object,
 // not the function. Unwrap .default when present.
 const traverse: typeof _traverse = (_traverse as any).default ?? _traverse;
+
 import * as t from '@babel/types';
-import { type Layer, classify, extractGroup } from './classify';
+import { classify, extractGroup, type Layer } from './classify';
 import { CROSS_LAYER_ALLOWED, LAYER_PREFIXES, RUNTIME_ALLOWED } from './rules';
 
 export interface IViolation {

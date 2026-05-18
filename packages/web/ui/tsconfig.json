@@ -1,12 +1,7 @@
 {
   "extends": "../../../tsconfig.base.json",
   "include": ["src", "vite.config.mts"],
-  "exclude": [
-    "**/*.stories.ts",
-    "**/*.stories.js",
-    "**/*.stories.jsx",
-    "**/*.stories.tsx"
-  ],
+  "exclude": ["**/*.stories.ts", "**/*.stories.js", "**/*.stories.jsx", "**/*.stories.tsx"],
   "references": [
     {
       "path": "./tsconfig.storybook.json"

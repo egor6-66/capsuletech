@@ -9,5 +9,5 @@ const Navigation = NavigationComponent as NavigationWithStaticProps;
 Navigation.List = NavigationList;
 Navigation.Item = NavigationItem;
 
-export { Navigation, NavigationItem, NavigationList };
 export type * as INavigation from './interfaces';
+export { Navigation, NavigationItem, NavigationList };

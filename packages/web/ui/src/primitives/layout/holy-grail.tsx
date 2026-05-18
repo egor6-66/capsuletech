@@ -1,5 +1,5 @@
 import type { ICapsuleRouter } from '@capsuletech/web-router';
-import { type JSX } from 'solid-js';
+import type { JSX } from 'solid-js';
 import { type IResizableItem, Resizable } from '../wrappers/resizable';
 import type { ILayoutProps, LayoutSlotMap } from './interfaces';
 import { type INormalizedSlot, normalizeSlot } from './utils';
@@ -41,8 +41,7 @@ export const HolyGrail = (props: {
   const useHorizontalResize = left.resizable || main.resizable || right.resizable;
   const useVerticalResize = header.resizable || footer.resizable;
 
-  const animatedMain = () =>
-    props.animateMain(main.children, props.animated, props.router);
+  const animatedMain = () => props.animateMain(main.children, props.animated, props.router);
 
   // Средняя строка (left | main | right) — либо горизонтальный Resizable,
   // либо flex со статическими ширинами на боках.
@@ -51,9 +50,7 @@ export const HolyGrail = (props: {
       const items: IResizableItem[] = [
         {
           ...left,
-          children: (
-            <aside class={layoutSlots.resizeSidebar}>{left.children}</aside>
-          ),
+          children: <aside class={layoutSlots.resizeSidebar}>{left.children}</aside>,
         },
         {
           ...main,
@@ -61,9 +58,7 @@ export const HolyGrail = (props: {
         },
         {
           ...right,
-          children: (
-            <aside class={layoutSlots.resizeAsideRight}>{right.children}</aside>
-          ),
+          children: <aside class={layoutSlots.resizeAsideRight}>{right.children}</aside>,
         },
       ];
       return (
@@ -86,9 +81,7 @@ export const HolyGrail = (props: {
     const items: IResizableItem[] = [
       {
         ...header,
-        children: (
-          <header class={layoutSlots.resizeHeader}>{header.children}</header>
-        ),
+        children: <header class={layoutSlots.resizeHeader}>{header.children}</header>,
       },
       {
         // main-panel этой группы — целая средняя строка; resizable должен
@@ -99,9 +92,7 @@ export const HolyGrail = (props: {
       },
       {
         ...footer,
-        children: (
-          <footer class={layoutSlots.resizeFooter}>{footer.children}</footer>
-        ),
+        children: <footer class={layoutSlots.resizeFooter}>{footer.children}</footer>,
       },
     ];
     return <Resizable orientation="vertical" items={items} withHandle />;
@@ -123,8 +114,7 @@ export const HolyGrail = (props: {
     <div
       class={layoutSlots.holyGrailGrid}
       style={{
-        'grid-template-areas':
-          "'header header header' 'left main right' 'footer footer footer'",
+        'grid-template-areas': "'header header header' 'left main right' 'footer footer footer'",
       }}
     >
       <header class={layoutSlots.header} style={{ 'grid-area': 'header' }}>

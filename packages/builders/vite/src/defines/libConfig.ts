@@ -7,5 +7,6 @@
 // Re-export сохраняет публичный runtime API `@capsuletech/vite-builder` →
 // можно делать `import { libConfig } from '@capsuletech/vite-builder'` как
 // раньше.
-export { libConfig } from '@capsuletech/lib-builder';
+
 export type { IDefineLibConfigOptions, LibRuntime } from '@capsuletech/lib-builder';
+export { libConfig } from '@capsuletech/lib-builder';

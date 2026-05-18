@@ -28,7 +28,9 @@ describe('classify', () => {
 
   describe('HCA layers (Windows backslash paths)', () => {
     it('resolves entity on Windows path', () => {
-      expect(classify('D:\\repo\\apps\\sandbox\\src\\entities\\_auth\\loginForm.tsx')).toBe('entity');
+      expect(classify('D:\\repo\\apps\\sandbox\\src\\entities\\_auth\\loginForm.tsx')).toBe(
+        'entity',
+      );
     });
     it('resolves widget on Windows path', () => {
       expect(classify('D:\\repo\\apps\\agent\\src\\widgets\\forms\\auth.tsx')).toBe('widget');
@@ -52,12 +54,16 @@ describe('classify', () => {
       expect(classify('/repo/node_modules/some-pkg/index.js')).toBeNull();
     });
 
-    it.each(['.test.ts', '.test.tsx', '.test.js', '.test.jsx', '.spec.ts', '.spec.tsx'])(
-      'test pattern (%s) → "test"',
-      (suffix) => {
-        expect(classify(`/repo/apps/sandbox/src/entities/foo${suffix}`)).toBe('test');
-      },
-    );
+    it.each([
+      '.test.ts',
+      '.test.tsx',
+      '.test.js',
+      '.test.jsx',
+      '.spec.ts',
+      '.spec.tsx',
+    ])('test pattern (%s) → "test"', (suffix) => {
+      expect(classify(`/repo/apps/sandbox/src/entities/foo${suffix}`)).toBe('test');
+    });
   });
 
   describe('non-matching paths', () => {
@@ -77,9 +83,9 @@ describe('classify', () => {
 
 describe('extractGroup', () => {
   it('extracts group name for entity', () => {
-    expect(
-      extractGroup('/repo/apps/sandbox/src/entities/_auth/loginForm.tsx', 'entity'),
-    ).toBe('_auth');
+    expect(extractGroup('/repo/apps/sandbox/src/entities/_auth/loginForm.tsx', 'entity')).toBe(
+      '_auth',
+    );
   });
 
   it('extracts group name for widget', () => {
@@ -105,9 +111,9 @@ describe('extractGroup', () => {
   });
 
   it('extracts controller group correctly', () => {
-    expect(
-      extractGroup('/repo/apps/sandbox/src/controllers/auth/loginForm.ts', 'controller'),
-    ).toBe('auth');
+    expect(extractGroup('/repo/apps/sandbox/src/controllers/auth/loginForm.ts', 'controller')).toBe(
+      'auth',
+    );
   });
 
   it('extracts feature group correctly', () => {

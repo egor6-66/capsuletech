@@ -3,7 +3,7 @@ import maplibregl, {
   type LngLatLike,
   type StyleSpecification,
 } from 'maplibre-gl';
-import { type JSX, createEffect, createSignal, onCleanup, onMount } from 'solid-js';
+import { createEffect, createSignal, type JSX, onCleanup, onMount } from 'solid-js';
 
 import { MapContext } from './context';
 

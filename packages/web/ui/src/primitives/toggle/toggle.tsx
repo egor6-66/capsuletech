@@ -1,4 +1,4 @@
-import { Show, createSignal } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import type { IToggleProps } from './interfaces';
 
 /**

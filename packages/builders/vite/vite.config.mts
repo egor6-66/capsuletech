@@ -1,7 +1,7 @@
+import path from 'node:path';
 import { libConfig } from '../lib/src/libConfig';
 // Деep-import минуя barrel — иначе esbuild потянет CompliancePlugin → compliance/dist.
 import { staticCopyPlugin } from './src/plugins/staticCopy';
-import path from 'node:path';
 
 export default libConfig({
   entry: 'src/index.ts',

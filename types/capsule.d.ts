@@ -27,5 +27,3 @@ declare global {
    */
   function defineAppConfig<const T extends IAppConfig>(config: T): T;
 }
-
-export {};

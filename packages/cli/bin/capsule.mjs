@@ -37,7 +37,9 @@ const entryPath = isDev ? tsPath : jsPath;
 
   const rawArgs = process.argv.slice(2);
   const hasPositional = rawArgs.some((a) => !a.startsWith('-'));
-  const hasFlag = rawArgs.some((a) => a === '-h' || a === '--help' || a === '-V' || a === '--version');
+  const hasFlag = rawArgs.some(
+    (a) => a === '-h' || a === '--help' || a === '-V' || a === '--version',
+  );
 
   if ((hasPositional || hasFlag) && program) {
     await program.parseAsync(process.argv);

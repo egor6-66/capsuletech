@@ -1,5 +1,4 @@
-export const isBrowser =
-  typeof window !== 'undefined' && typeof performance !== 'undefined';
+export const isBrowser = typeof window !== 'undefined' && typeof performance !== 'undefined';
 
 export function hasPO(): boolean {
   return isBrowser && typeof PerformanceObserver !== 'undefined';

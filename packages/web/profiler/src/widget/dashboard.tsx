@@ -1,11 +1,11 @@
 import { Tabs } from '@kobalte/core/tabs';
-import { For, createSignal } from 'solid-js';
+import { createSignal, For } from 'solid-js';
 import { CustomPanel } from './panels/custom';
 import { ErrorsPanel } from './panels/errors';
 import { NetworkPanel } from './panels/network';
 import { RuntimePanel } from './panels/runtime';
 import { VitalsPanel } from './panels/vitals';
-import { persistTab, readPersistedTab, ProfilerWindow } from './primitives/window';
+import { ProfilerWindow, persistTab, readPersistedTab } from './primitives/window';
 
 type TabKey = 'vitals' | 'runtime' | 'network' | 'errors' | 'custom';
 

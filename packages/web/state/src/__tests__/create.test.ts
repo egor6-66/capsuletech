@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createActor } from 'xstate';
-import { createState } from '../create';
 import type { IBaseStateSchema } from '../create';
+import { createState } from '../create';
 
 /**
  * `createState(schema)` строит XState-машину из HCA-схемы. Тесты прогоняют

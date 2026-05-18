@@ -65,11 +65,7 @@ export const CommandList = ({ items, selectedIndex, width, viewportRows }: Comma
                 : '  ';
           const raw = prefix + cmd.label;
           return (
-            <Text
-              key={cmd.id}
-              color={active ? theme.brand : theme.textDim}
-              bold={active}
-            >
+            <Text key={cmd.id} color={active ? theme.brand : theme.textDim} bold={active}>
               {padToWidth(raw, innerWidth)}
             </Text>
           );

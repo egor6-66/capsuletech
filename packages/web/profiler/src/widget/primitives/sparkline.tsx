@@ -1,4 +1,4 @@
-import { type Accessor, Show, createMemo } from 'solid-js';
+import { type Accessor, createMemo, Show } from 'solid-js';
 import type { IMetricSample } from '../../core/schema';
 
 export interface ISparklineProps {

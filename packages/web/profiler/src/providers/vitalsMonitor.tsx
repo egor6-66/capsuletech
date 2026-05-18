@@ -1,4 +1,4 @@
-import { type JSX, createContext, createMemo, useContext } from 'solid-js';
+import { createContext, createMemo, type JSX, useContext } from 'solid-js';
 import { useProfiler } from '../api/useProfiler';
 import type { IMetricId, IMetricsBus } from '../core/schema';
 import { ProfilerProvider } from './profiler';

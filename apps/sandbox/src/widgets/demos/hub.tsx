@@ -22,7 +22,8 @@ const DEMOS = [
   {
     path: '/demos/renderer-demo',
     title: 'Renderer Side-by-Side',
-    description: 'JSON-схема vs JSX-сборка той же формы. Валидация контракта @capsuletech/renderer.',
+    description:
+      'JSON-схема vs JSX-сборка той же формы. Валидация контракта @capsuletech/renderer.',
     icon: LayoutTemplate,
   },
   {

@@ -1,2 +1,2 @@
-export * from './watcher';
 export * from './walk';
+export * from './watcher';

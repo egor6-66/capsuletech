@@ -1,5 +1,5 @@
 import type { ICapsuleRouter } from '@capsuletech/web-router';
-import { type JSX } from 'solid-js';
+import type { JSX } from 'solid-js';
 import { type IResizableItem, Resizable } from '../wrappers/resizable';
 import type { ILayoutProps, LayoutSlotMap } from './interfaces';
 import { type INormalizedSlot, normalizeSlot } from './utils';
@@ -33,9 +33,7 @@ export const Standard = (props: {
     const items: IResizableItem[] = [
       {
         ...header,
-        children: (
-          <header class={layoutSlots.resizeHeader}>{header.children}</header>
-        ),
+        children: <header class={layoutSlots.resizeHeader}>{header.children}</header>,
       },
       {
         ...main,
@@ -47,9 +45,7 @@ export const Standard = (props: {
       },
       {
         ...footer,
-        children: (
-          <footer class={layoutSlots.resizeFooter}>{footer.children}</footer>
-        ),
+        children: <footer class={layoutSlots.resizeFooter}>{footer.children}</footer>,
       },
     ];
     return <Resizable orientation="vertical" items={items} withHandle />;

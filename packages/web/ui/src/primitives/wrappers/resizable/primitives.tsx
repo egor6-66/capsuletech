@@ -1,9 +1,8 @@
 import { createStyle } from '@capsuletech/web-style';
-import type { ValidComponent } from 'solid-js';
-import { Show, splitProps } from 'solid-js';
-
 import type { DynamicProps, HandleProps, RootProps } from '@corvu/resizable';
 import ResizablePrimitive from '@corvu/resizable';
+import type { ValidComponent } from 'solid-js';
+import { Show, splitProps } from 'solid-js';
 
 import { GripIcon } from './grip-icon';
 import { resizableHandleCva, resizableRootCva } from './variants';
@@ -35,11 +34,7 @@ type ResizableHandleProps<T extends ValidComponent = 'button'> = HandleProps<T> 
 export const ResizableHandle = <T extends ValidComponent = 'button'>(
   props: DynamicProps<T, ResizableHandleProps<T>>,
 ) => {
-  const [local, rest] = splitProps(props as ResizableHandleProps, [
-    'class',
-    'style',
-    'withHandle',
-  ]);
+  const [local, rest] = splitProps(props as ResizableHandleProps, ['class', 'style', 'withHandle']);
   const { className, style } = createStyle(resizableHandleCva, {
     class: local.class,
     style: local.style,

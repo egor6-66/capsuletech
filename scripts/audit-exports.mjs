@@ -21,7 +21,7 @@
  *     проблема (publint error, attw 💀).
  */
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const ROOT = resolve(process.cwd());

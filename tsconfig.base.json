@@ -19,24 +19,16 @@
     "emitDecoratorMetadata": true,
     "paths": {
       "@capsuletech/web-core/create": ["packages/web/core/src/create/index.ts"],
-      "@capsuletech/web-core/providers": [
-        "packages/web/core/src/providers/index.ts"
-      ],
+      "@capsuletech/web-core/providers": ["packages/web/core/src/providers/index.ts"],
       "@capsuletech/web-core": ["packages/web/core/src/index.ts"],
       "@capsuletech/web-state": ["packages/web/state/src/index.ts"],
       "@capsuletech/web-renderer": ["packages/web/renderer/src/index.ts"],
       "@capsuletech/web-dnd": ["packages/web/dnd/src/index.ts"],
       "@capsuletech/web-map": ["packages/web/map/src/index.ts"],
       "@capsuletech/web-editor": ["packages/web/editor/src/index.ts"],
-      "@capsuletech/web-editor/manifests": [
-        "packages/web/editor/src/manifests/index.ts"
-      ],
-      "@capsuletech/web-editor/state": [
-        "packages/web/editor/src/state/index.ts"
-      ],
-      "@capsuletech/web-editor/inspector": [
-        "packages/web/editor/src/inspector/index.ts"
-      ],
+      "@capsuletech/web-editor/manifests": ["packages/web/editor/src/manifests/index.ts"],
+      "@capsuletech/web-editor/state": ["packages/web/editor/src/state/index.ts"],
+      "@capsuletech/web-editor/inspector": ["packages/web/editor/src/inspector/index.ts"],
       "@capsuletech/web-profiler": ["packages/web/profiler/src/index.ts"],
       "@capsuletech/web-query": ["packages/web/query/src/index.ts"],
       "@capsuletech/web-router": ["packages/web/router/src/index.ts"],
@@ -52,9 +44,7 @@
       ],
       "@capsuletech/cli": ["packages/cli/src/index.ts"],
       "@capsuletech/cli/*": ["packages/cli/*"],
-      "@capsuletech/shared-file-manager": [
-        "packages/shared/file-manager/src/index.ts"
-      ],
+      "@capsuletech/shared-file-manager": ["packages/shared/file-manager/src/index.ts"],
       "@capsuletech/compliance": ["packages/builders/compliance/src/index.ts"],
       "@capsuletech/vite-builder": ["packages/builders/vite/src/index.ts"],
       "@capsuletech/lib-builder": ["packages/builders/lib/src/index.ts"],

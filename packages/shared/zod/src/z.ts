@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js';
-import { z as zodRoot } from 'zod';
 import type { ZodType } from 'zod';
+import { z as zodRoot } from 'zod';
 
 /**
  * Capsule-расширенный zod-namespace. Прокидывается в фабрики обёрток (Shape и др.)

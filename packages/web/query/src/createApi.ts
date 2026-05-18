@@ -1,7 +1,7 @@
 import { createQueryClient, type QueryClient, setQueryClient } from './client';
 import type { Endpoint, InferInput, InferOutput } from './endpoint';
 import * as builtinMw from './middleware';
-import { compose, type ApiContext, type Middleware } from './pipeline';
+import { type ApiContext, compose, type Middleware } from './pipeline';
 
 /**
  * Typed-proxy `services.api` для Feature. Сливается через TS-interface-merging

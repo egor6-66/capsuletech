@@ -1,13 +1,13 @@
-export { createState } from './create';
-export { createBridge } from './bridge';
 export type {
+  BridgeMatchOptions,
   IBridge,
   IBridgeSend,
   IBridgeStateSnapshot,
   IRegisteredComponent,
-  BridgeMatchOptions,
 } from './bridge';
-export type { IBaseStateSchema, IBaseStateHandlers, IMachineContext } from './create';
-export { pickByTags, omitByTags, matchByTags, matchEntryByTags } from './helpers';
+export { createBridge } from './bridge';
+export type { IBaseStateHandlers, IBaseStateSchema, IMachineContext } from './create';
+export { createState } from './create';
 export type { ComponentData, MatchOptions } from './helpers';
-export { registerAliases, clearAliases, getAliases, expandTags } from './tag-registry';
+export { matchByTags, matchEntryByTags, omitByTags, pickByTags } from './helpers';
+export { clearAliases, expandTags, getAliases, registerAliases } from './tag-registry';

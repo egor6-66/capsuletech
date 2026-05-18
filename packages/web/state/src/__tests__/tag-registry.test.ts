@@ -72,14 +72,7 @@ describe('expandTags', () => {
     registerAliases({ '@form': ['@inputs', '@actions'] });
     const out = expandTags(['@form']);
     expect(out).toEqual(
-      expect.arrayContaining([
-        '@form',
-        '@inputs',
-        '@actions',
-        'email',
-        'password',
-        'submit',
-      ]),
+      expect.arrayContaining(['@form', '@inputs', '@actions', 'email', 'password', 'submit']),
     );
   });
 
@@ -104,9 +97,7 @@ describe('expandTags', () => {
 
   it('expands multiple input tags at once', () => {
     const out = expandTags(['@inputs', '@actions']);
-    expect(out).toEqual(
-      expect.arrayContaining(['email', 'password', 'submit', 'cancel']),
-    );
+    expect(out).toEqual(expect.arrayContaining(['email', 'password', 'submit', 'cancel']));
   });
 
   it('empty input returns empty output', () => {

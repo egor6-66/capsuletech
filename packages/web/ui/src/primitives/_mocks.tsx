@@ -52,7 +52,10 @@ const NAV: INavItem[] = [
  * Цветной баннер «название слота». Делает границы раскладки видимыми
  * вне зависимости от темы. `tone` маппится на темовые токены.
  */
-const SlotBanner = (props: { label: string; tone: 'primary' | 'accent' | 'secondary' | 'muted' | 'destructive' }) => {
+const SlotBanner = (props: {
+  label: string;
+  tone: 'primary' | 'accent' | 'secondary' | 'muted' | 'destructive';
+}) => {
   const map = {
     primary: 'bg-primary text-primary-foreground',
     accent: 'bg-accent text-accent-foreground',
@@ -61,7 +64,9 @@ const SlotBanner = (props: { label: string; tone: 'primary' | 'accent' | 'second
     destructive: 'bg-destructive text-destructive-foreground',
   } as const;
   return (
-    <div class={`flex items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] ${map[props.tone]}`}>
+    <div
+      class={`flex items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] ${map[props.tone]}`}
+    >
       <span>{props.label}</span>
       <span class="opacity-60">slot</span>
     </div>
@@ -76,14 +81,26 @@ export const MockHeader = () => (
         <FolderTree class="size-4 opacity-70" />
         <span>Capsule UI</span>
         <ChevronRight class="size-3 opacity-40" />
-        <Typography variant="p" color="muted" class="text-xs">workspace</Typography>
+        <Typography variant="p" color="muted" class="text-xs">
+          workspace
+        </Typography>
       </div>
       <div class="flex items-center gap-1">
-        <Button variant="ghost" size="sm">Docs</Button>
-        <Button variant="ghost" size="sm">Releases</Button>
-        <Button variant="ghost" size="icon" aria-label="search"><Search class="size-4" /></Button>
-        <Button variant="ghost" size="icon" aria-label="notifications"><Bell class="size-4" /></Button>
-        <Button variant="ghost" size="icon" aria-label="account"><User class="size-4" /></Button>
+        <Button variant="ghost" size="sm">
+          Docs
+        </Button>
+        <Button variant="ghost" size="sm">
+          Releases
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="search">
+          <Search class="size-4" />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="notifications">
+          <Bell class="size-4" />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="account">
+          <User class="size-4" />
+        </Button>
       </div>
     </div>
   </div>
@@ -142,7 +159,9 @@ export const MockMain = () => (
     <div class="flex flex-1 flex-col gap-4 overflow-auto p-6">
       <div class="flex items-center justify-between">
         <div>
-          <Typography variant="h2" class="border-0 pb-0 text-xl">Dashboard</Typography>
+          <Typography variant="h2" class="border-0 pb-0 text-xl">
+            Dashboard
+          </Typography>
           <Typography variant="p" color="muted" class="text-xs">
             Layout slots preview · drag handles to resize
           </Typography>
@@ -160,8 +179,8 @@ export const MockMain = () => (
       <Card class="border-dashed">
         <Card.Content>
           <Typography variant="p" color="muted" class="text-xs">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt
-            ut labore et dolore magna aliqua.
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua.
           </Typography>
         </Card.Content>
       </Card>
@@ -171,8 +190,12 @@ export const MockMain = () => (
 
 const InspectorRow = (props: { label: string; value: string; tone?: 'default' | 'success' }) => (
   <div class="flex items-center justify-between border-b border-border/50 py-1.5 text-xs last:border-0">
-    <Typography variant="p" color="muted" class="text-xs">{props.label}</Typography>
-    <span class={`font-mono text-xs ${props.tone === 'success' ? 'text-primary' : 'text-foreground'}`}>
+    <Typography variant="p" color="muted" class="text-xs">
+      {props.label}
+    </Typography>
+    <span
+      class={`font-mono text-xs ${props.tone === 'success' ? 'text-primary' : 'text-foreground'}`}
+    >
       {props.value}
     </span>
   </div>
@@ -195,8 +218,9 @@ export const MockRightBar = () => (
       <Card>
         <Card.Content class="text-xs leading-relaxed">
           <Typography variant="p" color="muted" class="text-xs">
-            Drag the left handle to resize this panel. With <code class="rounded bg-muted px-1">resizable: false</code> the
-            handle next to it disappears.
+            Drag the left handle to resize this panel. With{' '}
+            <code class="rounded bg-muted px-1">resizable: false</code> the handle next to it
+            disappears.
           </Typography>
         </Card.Content>
       </Card>

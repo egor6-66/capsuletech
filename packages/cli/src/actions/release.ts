@@ -1,6 +1,6 @@
-import { execa } from 'execa';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { execa } from 'execa';
 import type { CommandAction } from '../commands/types';
 import { kit } from '../kit';
 
@@ -9,7 +9,11 @@ import { kit } from '../kit';
  * Если nx.json меняется — поправь и здесь.
  */
 const GROUPS: Array<{ value: string; label: string; hint: string }> = [
-  { value: 'cli', label: 'cli', hint: '@capsuletech/cli + shared-{file-manager, vite, compliance}' },
+  {
+    value: 'cli',
+    label: 'cli',
+    hint: '@capsuletech/cli + shared-{file-manager, vite, compliance}',
+  },
   { value: 'web_base', label: 'web_base', hint: '@capsuletech/web-* + shared-zod' },
   { value: 'all', label: 'all', hint: 'обе группы за один заход' },
 ];
@@ -150,9 +154,7 @@ export const release: CommandAction = async (ctx) => {
   kit.note(summary, '📦 Релиз');
 
   const confirmMessage =
-    mode === 'prod'
-      ? `ВНИМАНИЕ: prod-публикация в ${registry}. Подтвердить?`
-      : 'Запустить релиз?';
+    mode === 'prod' ? `ВНИМАНИЕ: prod-публикация в ${registry}. Подтвердить?` : 'Запустить релиз?';
   const ok = await kit.confirm(confirmMessage);
   if (!ok) return;
 
@@ -167,9 +169,7 @@ export const release: CommandAction = async (ctx) => {
     if (pushTags) {
       await execa('git', ['push', '--follow-tags'], { cwd: ctx.root, stdio: 'inherit' });
     } else {
-      kit.log.info(
-        'Теги не запушены. Когда соберёшься: git push origin main --follow-tags',
-      );
+      kit.log.info('Теги не запушены. Когда соберёшься: git push origin main --follow-tags');
     }
   }
 };

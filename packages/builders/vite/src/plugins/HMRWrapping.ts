@@ -1,7 +1,7 @@
 import _generate from '@babel/generator';
 import { parse } from '@babel/parser';
-import _traverse from '@babel/traverse';
 import type { NodePath } from '@babel/traverse';
+import _traverse from '@babel/traverse';
 import * as t from '@babel/types';
 import type { Plugin } from 'vite';
 import { WRAPPER_NAMES } from './constants';

@@ -4,6 +4,7 @@
 //   import { addNode }    from '@capsuletech/web-editor/state';
 //   import { Inspector }  from '@capsuletech/web-editor/inspector';
 // Тут — точка для тех, кому удобнее «всё в одном импорте».
+
+export * from './inspector';
 export * from './manifests';
 export * from './state';
-export * from './inspector';

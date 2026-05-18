@@ -1,8 +1,8 @@
 import { Command as Commander } from 'commander';
-import { kit } from '../kit';
-import { staticCommands } from '../commands';
 import type { Command } from '../commands';
+import { staticCommands } from '../commands';
 import { detect } from '../context';
+import { kit } from '../kit';
 import { runCommand } from './runner';
 
 interface TreeNode {

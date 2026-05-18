@@ -1,8 +1,3 @@
-export type {
-  ComponentCategory,
-  IComponentManifest,
-  IManifestSummary,
-} from './types';
 export {
   canAcceptChild,
   getAllManifests,
@@ -11,3 +6,8 @@ export {
   listByCategory,
   summarize,
 } from './registry';
+export type {
+  ComponentCategory,
+  IComponentManifest,
+  IManifestSummary,
+} from './types';

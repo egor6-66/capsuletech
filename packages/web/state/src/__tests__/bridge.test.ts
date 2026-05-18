@@ -36,13 +36,15 @@ describe('createBridge — getters', () => {
     expect(bridge[field as keyof typeof bridge]).toEqual(value);
   });
 
-  it.each(['styles', 'errors', 'components', 'props'])(
-    '%s defaults to {} when missing from context',
-    (field) => {
-      const bridge = createBridge(mkState({}), vi.fn());
-      expect(bridge[field as keyof typeof bridge]).toEqual({});
-    },
-  );
+  it.each([
+    'styles',
+    'errors',
+    'components',
+    'props',
+  ])('%s defaults to {} when missing from context', (field) => {
+    const bridge = createBridge(mkState({}), vi.fn());
+    expect(bridge[field as keyof typeof bridge]).toEqual({});
+  });
 });
 
 describe('createBridge — mutations', () => {
@@ -190,20 +192,14 @@ describe('createBridge — patch (tag-based mutator)', () => {
 
   it('does not send when there are no matches', () => {
     const send = vi.fn();
-    const bridge = createBridge(
-      mkState({ components: { a: { meta: { tags: ['x'] } } } }),
-      send,
-    );
+    const bridge = createBridge(mkState({ components: { a: { meta: { tags: ['x'] } } } }), send);
     bridge.patch(['y'], { ok: true });
     expect(send).not.toHaveBeenCalled();
   });
 
   it('does not send when all per-fn patches return empty', () => {
     const send = vi.fn();
-    const bridge = createBridge(
-      mkState({ components: { a: { meta: { tags: ['x'] } } } }),
-      send,
-    );
+    const bridge = createBridge(mkState({ components: { a: { meta: { tags: ['x'] } } } }), send);
     bridge.patch(['x'], () => ({}));
     expect(send).not.toHaveBeenCalled();
   });

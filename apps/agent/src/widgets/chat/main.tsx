@@ -14,10 +14,7 @@ const Main = Widget((_Ui, Features, Controllers, Entities, Widgets) => (
         <h1 class="text-base font-semibold tracking-tight">capsule · agent</h1>
       </div>
       <div class="flex items-center gap-3 text-xs text-muted-foreground">
-        <a
-          href="/lab"
-          class="px-2 py-0.5 rounded-md border border-border/50 hover:bg-muted/60"
-        >
+        <a href="/lab" class="px-2 py-0.5 rounded-md border border-border/50 hover:bg-muted/60">
           /lab →
         </a>
         <Widgets.Models.Picker />
@@ -26,9 +23,7 @@ const Main = Widget((_Ui, Features, Controllers, Entities, Widgets) => (
 
     <div class="flex-1 min-h-0">
       <Features.Chat.Main>
-        <Controllers.Chat.Main
-          overrides={{ onClick: 'sendMessage', onKeyDown: 'sendMessage' }}
-        >
+        <Controllers.Chat.Main overrides={{ onClick: 'sendMessage', onKeyDown: 'sendMessage' }}>
           <Entities.Chat.Main meta={{ tags: ['@chat'] }} />
         </Controllers.Chat.Main>
       </Features.Chat.Main>

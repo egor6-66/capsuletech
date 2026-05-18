@@ -1,4 +1,3 @@
-export { Shape } from './wrapper';
 export { ShapeUiContext, useShapeUi } from './context';
 export type {
   IShapeComponent,
@@ -11,3 +10,4 @@ export type {
   IShapeWrapper,
   ShapeItem,
 } from './types';
+export { Shape } from './wrapper';

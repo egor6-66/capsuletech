@@ -1,12 +1,12 @@
 import {
-  DnDProvider,
-  DragOverlay,
   createDraggable,
   createDroppable,
   createSortable,
+  DnDProvider,
+  DragOverlay,
 } from '@capsuletech/dnd';
 import { type LucideProps, MousePointerClick, Package, Rows3, TextCursorInput } from 'lucide-solid';
-import { type Component, For, createSignal } from 'solid-js';
+import { type Component, createSignal, For } from 'solid-js';
 
 interface IPaletteItem {
   type: string;

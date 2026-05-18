@@ -5,9 +5,9 @@
 [data-theme="deepPurple"] {
   --background: oklch(0.9838 0.0035 247.8583);
   --foreground: oklch(0.1284 0.0267 261.5937);
-  --card: oklch(1.0 0 0);
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.1284 0.0267 261.5937);
-  --popover: oklch(1.0 0 0);
+  --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.1284 0.0267 261.5937);
   --primary: oklch(0.4865 0.2423 291.8661);
   --primary-foreground: oklch(0.9838 0.0035 247.8583);
@@ -27,7 +27,7 @@
   --chart-3: oklch(0.6356 0.1398 156.1492);
   --chart-4: oklch(0.6192 0.2037 312.7283);
   --chart-5: oklch(0.6532 0.2114 353.9392);
-  --sidebar: oklch(1.0 0 0);
+  --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.1284 0.0267 261.5937);
   --sidebar-primary: oklch(0.4865 0.2423 291.8661);
   --sidebar-primary-foreground: oklch(0.9838 0.0035 247.8583);

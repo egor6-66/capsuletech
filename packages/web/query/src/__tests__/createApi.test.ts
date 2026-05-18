@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
+import { getQueryClient, QueryClient, setQueryClient } from '../client';
 import {
   type ApiConfigInput,
-  type MwToolbox,
   createApi,
   getApiClient,
+  type MwToolbox,
   setApiClient,
 } from '../createApi';
 import { defineEndpoint } from '../endpoint';
-import { getQueryClient, setQueryClient, QueryClient } from '../client';
 
 // createApi склеивает endpoints в typed-proxy:
 //  - сохраняет namespace-структуру (вложенность);
@@ -19,11 +19,12 @@ import { getQueryClient, setQueryClient, QueryClient } from '../client';
 // чтобы не плодить QueryClient stub'ы.
 
 const mockFetch = (body: unknown, status = 200) =>
-  vi.fn(async () =>
-    new Response(JSON.stringify(body), {
-      status,
-      headers: { 'content-type': 'application/json' },
-    }),
+  vi.fn(
+    async () =>
+      new Response(JSON.stringify(body), {
+        status,
+        headers: { 'content-type': 'application/json' },
+      }),
   ) as unknown as typeof fetch;
 
 beforeEach(() => {
@@ -222,11 +223,12 @@ describe('createApi — QueryClient publishing', () => {
   });
 
   it('client из getQueryClient — тот же, что в pipeline (можно invalidate из любого места)', async () => {
-    const fetchSpy = vi.fn(async () =>
-      new Response(JSON.stringify({ id: '1' }), {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-      }),
+    const fetchSpy = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ id: '1' }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
     ) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchSpy);
     try {

@@ -1,12 +1,6 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite';
 
-import {
-  MockFooter,
-  MockHeader,
-  MockMain,
-  MockRightBar,
-  MockSidebar,
-} from '../_mocks';
+import { MockFooter, MockHeader, MockMain, MockRightBar, MockSidebar } from '../_mocks';
 import { Button } from '../button';
 import { Layout } from './layout';
 
