@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build:** Vite 6 + кастомные плагины (`@capsuletech/vite-builder`)
 - **Monorepo:** Nx 22 + pnpm workspaces
 - **Styling:** Tailwind v4 + CVA + кастомный `createStyle`
-- **Lint/format:** Biome (расширяет `packages/system/biome/biome.json`)
+- **Lint/format:** Biome (расширяет `packages/builders/biome/biome.json`)
 
 ## Команды
 
@@ -42,7 +42,7 @@ pnpm desktop:build sandbox
 > [!important]
 > Vite привязан к **директории приложения** (`apps/<app>/`) — она же `workspaceRoot` для `getWorkspaceRoot()` в `@capsuletech/file-manager`. Запуск из корня репо ломает резолв `capsule.config.ts` и алиасы. Все CLI-команды дёргают через `cd apps/<app>` или скрипты приложения.
 
-Запуск sandbox через CLI на самом деле дёргает `createDevServer` из `@capsuletech/core/builder`, который читает `apps/sandbox/capsule.config.ts` и кормит конфиг в `@capsuletech/vite-builder`.
+Запуск sandbox через CLI на самом деле дёргает `createDevServer` из `@capsuletech/vite-builder` (`packages/builders/vite/src/defines/capsuleConfig.ts`), который читает `apps/sandbox/capsule.config.ts`.
 
 ### Backend (Rust workspace `backend/`)
 
@@ -74,7 +74,7 @@ backend/
 
 Имена `Page`, `Widget`, `Entity`, `Controller`, `Feature` — **глобальные**, инжектятся через `unplugin-auto-import`. В коде их **не импортируют**.
 
-Слоты других слоёв приходят **позиционными аргументами** в wrapper-функцию (см. `packages/core/src/wrappers/ui/interfaces.ts`):
+Слоты других слоёв приходят **позиционными аргументами** в wrapper-функцию (см. `packages/web/core/src/wrappers/interfaces.ts`):
 - `Widget((ui, features, controllers, entities) => JSX)` — flat-имена: `widgets/forms/auth.tsx` → `FormsAuth`, `entities/viewer/loginForm.tsx` → `ViewerLoginForm`
 - `Page((ui, widgets) => JSX)`
 - `Entity((ui) => JSX)`, `Controller(() => schema)`, `Feature((api) => schema)`
@@ -85,7 +85,7 @@ backend/
 
 ## Ключевая механика
 
-### UiProxy (`packages/core/src/wrappers/ui/ui-kit/proxy.tsx`)
+### UiProxy (`packages/web/core/src/engine/ui-proxy.tsx`)
 Когда `Entity` рендерится внутри `Controller`, базовый UI-kit оборачивается в Proxy. Политика **C — own meta opt-in**: побочные эффекты (регистрация в store, event-binding) активируются **только** если на JSX-узле явно задан `meta`. Структурные обёртки (`Field`, `Field.Label` и т.д.) проходят сквозным рендером.
 
 Для элементов с `meta`:
@@ -95,19 +95,19 @@ backend/
 - инжект реактивных `class` (с подмесом `store.styles[name]`), `disabled` (из `store.loading`), `name` (выведенного из `meta.tags`);
 - `target` собирается с `meta` (из inner JSX), `dynamicMeta` (из outer Entity-prop), `key`/`modifiers` для keyboard.
 
-### ControllerProxy (`packages/core/src/wrappers/logic/utils/proxy.ts`)
+### ControllerProxy (`packages/web/core/src/engine/controller-proxy.ts`)
 - Текущий стейт **читается из XState**: `state.value`. Собственного runtime нет.
 - При вызове `controller.<method>(target, ctx)` ищет хэндлер: `schema.states[current][method]` → `schema[method]` (top-level) → `await next()` (автобабблинг).
 - Передаёт в хэндлер API: `{ target, context, next, store, state }`. `state.set(name)` шлёт `__GOTO_<name>__` в XState; `state.matches(name|name[])` — сверка стейта.
 - `next(payload)` делегирует **прямым вызовом** `parent.controller[name]` — не через XState event-bus, естественный `await`-возврат. Опционально ремапит имя через `overrides`.
 
-### createLogicWrapper (`packages/core/src/wrappers/logic/utils/createLogicWrapper.tsx`)
+### createLogicWrapper (`packages/web/core/src/engine/logic-wrapper.tsx`)
 Общая фабрика для Controller и Feature (различие только в инжектируемых `services`). Создаёт XState-машину через `createState(schema)`, кладёт в Context, навешивает `createEffect` для lifecycle (`onInit`/`onExit` по изменению `state.value`).
 
-### Bridge (`packages/state/src/bridge.ts`)
+### Bridge (`packages/web/state/src/bridge.ts`)
 Геттер-обёртка вокруг XState `state`/`send` + tag-операции `pick / omit / match / matchEntry`. Реактивный — Solid ловит глубокие пути (`store.ctx.components`, `store.styles`, `store.loading`).
 
-## Vite-плагины (`packages/system/vite/src/plugins`)
+## Vite-плагины (`packages/builders/vite/src/plugins`)
 
 - **`ExportGeneratorPlugin`** — следит за `apps/*/src/{widgets,entities,controllers,features}/**` и через `ts-morph` поддерживает в актуальном состоянии `.capsule/registry/wrappers.ts` (lazy-импорты с вложенностью по папкам).
 - **`RouterPlugin`** — следит за `apps/*/src/pages/**`, генерит зеркальные `.capsule/routes/__pages/__auth/login.tsx` из шаблона, дальше TanStack Router CLI собирает `routeTree.gen.ts`.
@@ -115,7 +115,7 @@ backend/
 
 ## Aliasing
 
-`tsconfig.base.json` определяет `@capsuletech/*` пути для IDE. Реальные алиасы для рантайма — в `packages/core/src/builder/config.ts → resolve.alias` (для dev/build). При добавлении нового пакета обновляй **обе точки**, иначе IDE будет видеть, а Vite — нет.
+`tsconfig.base.json` определяет `@capsuletech/*` пути для IDE. Реальные алиасы для рантайма — в `packages/builders/vite/src/defines/capsuleConfig.ts → resolve.alias` (для dev/build). При добавлении нового пакета обновляй **обе точки**, иначе IDE будет видеть, а Vite — нет.
 
 ## Compliance (Golden Rules)
 
@@ -131,8 +131,7 @@ backend/
 ## Известные шероховатости
 
 Не «фиксить заодно», только если задача об этом:
-- Дублирование алиасов между `tsconfig.base.json` (`paths`) и `packages/core/src/builder/config.ts` (`resolve.alias`). Когда добавляется новый пакет — обновлять обе точки. Дедуп возможен (`tsconfigPaths` плагин уже подключён), но требует аккуратной проверки каждой записи — не cosmetic.
-- `packages/ui/vite.config.ts` импортирует `defineConfig` из `@capsuletech/vite-builder`, которого там нет (см. `pnpm nx build core` на старте сессии). Сборку core это не ломает, но `nx run-many -t build` для `ui/router/style` упадёт. Будет в отдельном проходе.
+- Дублирование алиасов между `tsconfig.base.json` (`paths`) и `packages/builders/vite/src/defines/capsuleConfig.ts` (`resolve.alias`). Когда добавляется новый пакет — обновлять обе точки. Дедуп возможен (`tsconfigPaths` плагин уже подключён), но требует аккуратной проверки каждой записи — не cosmetic.
 
 ### Закрытые в коде
 - ✅ Копипаста между `ControllerWrapper` / `FeatureWrapper` — заменено на `createLogicWrapper(kind)` (ADR 002).
@@ -159,7 +158,7 @@ backend/
 | `entity` | Haiku | новая Entity (stateless UI) |
 | `widget` | Haiku | новый Widget (композиция) |
 | `page` | Haiku | новая Page (Layout + слоты) |
-| `ui-component` | Haiku | новый компонент в `@capsuletech/ui` |
+| `ui-component` | Haiku | новый компонент в `@capsuletech/web-ui` |
 | `controller` | Sonnet | новый Controller (FSM) |
 | `feature` | Sonnet | новая Feature (API + side-effects) |
 
