@@ -37,11 +37,11 @@ jobs:
       CAPSULE_VERSION: ${{ inputs.version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: pnpm
@@ -84,7 +84,7 @@ jobs:
           "files<<EOF`n$list`nEOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: desktop/${{ inputs.app }}-v${{ inputs.version }}
           name: Desktop ${{ inputs.app }} v${{ inputs.version }}
