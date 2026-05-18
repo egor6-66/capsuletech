@@ -1,7 +1,12 @@
-# style
+# @capsuletech/web-style
 
-This library was generated with [Nx](https://nx.dev).
+Styling-слой Capsule: `createStyle` (CVA-обёртка), `cn`/`merge` helpers, реестр тем (CSS-файлы) и редактор тем (`ThemeEditor` + `ThemeSwitcher`).
 
-## Building
+Подпуть `/editor` — UI редактора (живёт за prop-флагом, чтобы прод-бандлы apps не тянули overhead). Подпути `/css` и `/themes` отдают сырые CSS-файлы для импорта в `apps/<app>` (через `createRoot` это делается автоматически).
 
-Run `nx build style` to build the library.
+Документация — в Obsidian-vault'е:
+
+- `docs/09-packages/style.md` — обзор пакета.
+
+Сборка: `pnpm nx build @capsuletech/web-style` (Vite + копирование CSS в dist).
+Тесты: `pnpm --filter @capsuletech/web-style test` (28 шт., node-env: `utils`, `editor/oklch`, `editor/export`).

@@ -1,4 +1,3 @@
-// packages/system/style/src/useStyle.ts
 import { createMemo } from 'solid-js';
 import { cn } from './utils';
 

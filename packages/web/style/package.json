@@ -11,31 +11,39 @@
       "default": "./dist/index.mjs"
     },
     "./editor": {
-      "types": "./dist/editor.d.ts",
+      "types": "./dist/editor/index.d.ts",
       "import": "./dist/editor.mjs",
       "default": "./dist/editor.mjs"
     },
-    "./css": {
-      "default": "./dist/index.css"
-    },
-    "./themes": {
-      "default": "./dist/themes/index.css"
-    },
-    "./themes/*": {
-      "default": "./dist/themes/*.css"
-    }
+    "./css": "./dist/index.css",
+    "./themes": "./dist/themes/index.css",
+    "./themes/*": "./dist/themes/*.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
-  "dependencies": {},
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "es-toolkit": "^1.46.0",
+    "lucide-solid": "^0.460.0",
+    "tailwind-merge": "^3.5.0"
+  },
   "peerDependencies": {
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
+    "@capsuletech/lib-builder": "workspace:*",
     "@capsuletech/vite-builder": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "packageManager": "pnpm"
   }
 }

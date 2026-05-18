@@ -129,8 +129,19 @@ for (const pkg of targets) {
     try {
       const data = JSON.parse(attw.output);
       const entrypoints = data?.analysis?.entrypoints ?? {};
-      // bundler-резолюция должна быть успешной для КАЖДОГО subpath.
-      bundlerOk = Object.values(entrypoints).every((ep) => {
+      // CSS-only subpath'ы (target = '*.css' или '*.css/*') не имеют types и
+      // не должны попадать в attw-проверку: bundler знает что .css — assets.
+      // Эвристика: смотрим в package.json exports, target в виде строки или
+      // в "default" заканчивается на `.css`.
+      const isCssEntry = (subpath) => {
+        const e = pkgJson.exports?.[subpath];
+        if (!e) return false;
+        const target = typeof e === 'string' ? e : e.default;
+        return typeof target === 'string' && /\.css(\/|$|\*)/.test(target);
+      };
+      // bundler-резолюция должна быть успешной для каждого NON-CSS subpath.
+      bundlerOk = Object.entries(entrypoints).every(([sub, ep]) => {
+        if (isCssEntry(sub)) return true;
         const r = ep?.resolutions?.bundler;
         return r && (!r.visibleProblems || r.visibleProblems.length === 0);
       });

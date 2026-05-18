@@ -1,6 +1,6 @@
 import { copyFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { libConfig } from '../../builders/lib/src';
+import { libConfig } from '@capsuletech/lib-builder';
 
 export default libConfig({
   entry: {

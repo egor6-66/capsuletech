@@ -551,10 +551,28 @@ importers:
 
   packages/web/style:
     dependencies:
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      es-toolkit:
+        specifier: ^1.46.0
+        version: 1.46.1
+      lucide-solid:
+        specifier: ^0.460.0
+        version: 0.460.0(solid-js@1.9.0)
       solid-js:
         specifier: ^1.9.0
         version: 1.9.0
+      tailwind-merge:
+        specifier: ^3.5.0
+        version: 3.6.0
     devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../../builders/lib
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite
@@ -10631,6 +10649,10 @@ snapshots:
       yallist: 3.1.1
 
   lru-cache@7.18.3: {}
+
+  lucide-solid@0.460.0(solid-js@1.9.0):
+    dependencies:
+      solid-js: 1.9.0
 
   lucide-solid@0.460.0(solid-js@1.9.12):
     dependencies:
