@@ -1,4 +1,3 @@
-import { builtinModules } from 'node:module';
 import { type UserConfig, mergeConfig } from 'vite';
 
 export const appConfig = (config: UserConfig, idDev: boolean) => {

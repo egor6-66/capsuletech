@@ -115,16 +115,19 @@ const loadAndGenerate = (props: IProps) => {
 };
 
 /**
- * Identifiers фабрик, которые в Node-CLI ставит `@capsuletech/cli/defines.ts`
- * на globalThis. В браузер эти фабрики не попадают, поэтому при бандлинге
- * `capsule.app.ts` нужно переписать вызовы `defineAppConfig(x)` → `(x)`
- * (identity-unwrap). Раньше это делалось через esbuild `define:` со значением
- * `'((__x__)=>__x__)'`, но новый esbuild валидирует define-values жёстко
- * (Invalid define value: must be entity name or JS literal) и эта схема
- * перестала собираться.
+ * Identifier фабрики `defineAppConfig`, которую в Node-CLI ставит
+ * `@capsuletech/cli/defines.ts` на globalThis. В браузер эта фабрика не
+ * попадает, поэтому при бандлинге `capsule.app.ts` нужно переписать вызовы
+ * `defineAppConfig(x)` → `(x)` (identity-unwrap). Раньше это делалось через
+ * esbuild `define:` со значением `'((__x__)=>__x__)'`, но новый esbuild
+ * валидирует define-values жёстко (Invalid define value: must be entity
+ * name or JS literal) и эта схема перестала собираться.
+ *
+ * `defineCapsuleConfig` здесь не нужен — он живёт в `capsule.config.ts`,
+ * который Vite-config (Node-only), а не в `capsule.app.ts`. Транформ
+ * срабатывает только на configPath = capsule.app.ts.
  */
-const BROWSER_FACTORY_NAMES = ['defineAppConfig', 'defineCapsuleConfig'] as const;
-const FACTORY_REPLACE_RE = new RegExp(`\\b(${BROWSER_FACTORY_NAMES.join('|')})\\b`, 'g');
+const FACTORY_REPLACE_RE = /\bdefineAppConfig\b/g;
 
 /**
  * Нормализация пути для сравнения id ↔ configPath:

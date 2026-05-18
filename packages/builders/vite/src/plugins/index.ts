@@ -1,4 +1,3 @@
-export { HtmlPlugin } from './html';
 export { HMRWrappingPlugin } from './HMRWrapping';
 export { ExportGeneratorPlugin } from './exportGenerator';
 export { EndpointsRegistryPlugin } from './endpointsRegistry';

@@ -16,12 +16,11 @@ export default libConfig({
     'solid-refresh',
     /^solid-refresh\//,
   ],
-  // Бандлим `shared-compliance` внутрь dist, иначе возникает реальный цикл:
-  // shared-vite -> shared-compliance (runtime через CompliancePlugin), а
-  // compliance в devDep тянет shared-vite для своей сборки через libConfig.
-  // (file-manager заинлайнен в utils/generateFromTemplates — убран из deps.)
+  // Бандлим `@capsuletech/compliance` внутрь dist, иначе возникает реальный цикл:
+  // vite-builder -> compliance (runtime через CompliancePlugin), а
+  // compliance в devDep тянет vite-builder для своей сборки через libConfig.
   bundleDependencies: [
-    /^@capsuletech\/shared-compliance/,
+    /^@capsuletech\/compliance/,
     // lib-builder содержит libConfig — переэкспортируется наружу как
     // часть runtime API `@capsuletech/vite-builder`, поэтому inline'им в dist.
     /^@capsuletech\/lib-builder/,

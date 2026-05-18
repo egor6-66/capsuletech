@@ -4,7 +4,7 @@ import { AppConfigPlugin } from '../appConfig';
 
 /**
  * Tests target ONLY the `transform` hook — это та точка, где переписываются
- * вызовы `defineAppConfig(...)` / `defineCapsuleConfig(...)` в identity-unwrap.
+ * вызовы `defineAppConfig(...)` в identity-unwrap.
  *
  * Регрессии, которые тут ловятся:
  *  - Path-mismatch на Windows (configPath с `\`, Vite id с `/`).
@@ -12,6 +12,10 @@ import { AppConfigPlugin } from '../appConfig';
  *
  * Если transform не сработал — `defineAppConfig` улетит в браузер как
  * bare identifier и упадёт `ReferenceError`.
+ *
+ * `defineCapsuleConfig` намеренно не транспилируется — он живёт в
+ * `capsule.config.ts` (Vite-config, Node-only). См. plugins/appConfig.ts
+ * комментарий рядом с `FACTORY_REPLACE_RE`.
  */
 
 const SOURCE = `export default defineAppConfig({ meta: { tags: ['a'] } });\n`;
@@ -63,15 +67,14 @@ describe('AppConfigPlugin.transform — id ↔ configPath matching', () => {
     expect(out).toBeNull();
   });
 
-  it('handles defineCapsuleConfig identifier as well', () => {
+  it('does not transform defineCapsuleConfig (lives in capsule.config.ts, Node-only)', () => {
     const path = '/repo/apps/agent/capsule.config.ts';
     const out = getTransform(path)(
       `export default defineCapsuleConfig({ devServerPort: 3000 });\n`,
       path,
     );
-    expect(out).not.toBeNull();
-    expect(out!.code).not.toContain('defineCapsuleConfig(');
-    expect(out!.code).toContain('((__x__)=>__x__)(');
+    // Even if path matches, the regex now targets only `defineAppConfig`.
+    expect(out).toBeNull();
   });
 
   it('returns null if no factory identifiers are present (safe early exit)', () => {

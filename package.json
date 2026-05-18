@@ -29,7 +29,7 @@
     "format": "biome format --write .",
     "audit:exports": "node scripts/audit-exports.mjs",
     "test": "pnpm -r --filter \"./packages/**\" --workspace-concurrency=1 test",
-    "dev:builders": "pnpm -r --parallel --filter \"./packages/builders/**\" --filter \"!@capsuletech/biome-config\" run dev",
+    "dev:builders": "pnpm -r --parallel --filter \"./packages/builders/**\" run dev",
     "report": "node scripts/feature-report.mjs",
     "report:list": "node scripts/feature-report.mjs list",
     "report:all": "node scripts/feature-report.mjs all",
