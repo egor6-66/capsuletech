@@ -3,16 +3,43 @@
   "version": "0.1.1",
   "type": "module",
   "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./providers": {
+      "types": "./dist/providers/index.d.ts",
+      "import": "./dist/providers.mjs",
+      "default": "./dist/providers.mjs"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components.mjs",
+      "default": "./dist/components.mjs"
+    }
+  },
   "files": [
-    "dist",
-    "src",
-    "!**/*.tsbuildinfo"
+    "dist"
   ],
-  "dependencies": {},
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "web-vitals": "^5.2.0"
+  },
   "peerDependencies": {
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
+    "@capsuletech/lib-builder": "workspace:*",
     "@capsuletech/vite-builder": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "packageManager": "pnpm"
   }
 }

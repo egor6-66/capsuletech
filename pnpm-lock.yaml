@@ -483,7 +483,13 @@ importers:
       solid-js:
         specifier: ^1.9.0
         version: 1.9.0
+      web-vitals:
+        specifier: ^5.2.0
+        version: 5.2.0
     devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../../builders/lib
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite
