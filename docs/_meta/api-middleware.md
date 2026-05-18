@@ -30,7 +30,8 @@ audience: claude
 | `packages/builders/vite/src/plugins/constants.ts` | `DEFINE_FACTORIES = { '@capsuletech/web-query': ['defineEndpoint'] }` — auto-import конфиг |
 | `packages/builders/vite/src/defines/capsuleConfig.ts` | Регистрация плагинов (browser-stub для globalThis-фабрик `defineAppConfig` живёт в `AppConfigPlugin.transform`) |
 | `packages/web/core/src/engine/logic-wrapper.tsx` | Инжект `services.api = getApiClient()` (только в Feature, не в Controller) |
-| `packages/web/query/src/createApi.ts` | `declare global { interface CapsuleApi {} }` — родной дом fallback'а под interface-merging (раньше жил в web-core/wrappers/ui/interfaces.ts) |
+| `packages/web/query/src/createApi.ts` | `declare global { interface CapsuleApi {} }` — родной дом fallback'а под interface-merging |
+| `packages/web/query/src/app-config.ts` | `IAppConfig` + identity-функция `defineAppConfig` — explicit-import API для `apps/<app>/capsule.app.ts` (подпуть `@capsuletech/web-query/app-config`) |
 
 ## Endpoint declaration syntax
 
@@ -137,7 +138,9 @@ Vite-плагин `EndpointsRegistryPlugin` следит за `apps/*/src/endpoi
 
 ## Известные грабли
 
-1. **`defineAppConfig is not defined` в браузере** — `AppConfigPlugin.transform` переписывает `defineAppConfig(x)` / `defineCapsuleConfig(x)` → identity прямо в исходнике `capsule.app.ts`. Через esbuild `define:` со стрелочной функцией это сделать нельзя — он валидирует value как `entity name | JS literal` и падает `[vite:define] Invalid define value`. В Node CLI глобал ставит `@capsuletech/cli/defines.ts`.
+### Bootstrap / build
+
+1. **`defineAppConfig is not defined` в браузере** — `AppConfigPlugin.transform` переписывает `defineAppConfig(x)` / `defineCapsuleConfig(x)` → identity прямо в исходнике `capsule.app.ts`. Через esbuild `define:` со стрелочной функцией это сделать нельзя — он валидирует value как `entity name | JS literal` и падает `[vite:define] Invalid define value`. В Node CLI глобал ставит `@capsuletech/cli/defines.ts`. Forward-path — explicit-import из `@capsuletech/web-query/app-config` (ADR 013).
 
 2. **`endpoints.ts` пустой** — `EndpointsRegistryPlugin` не успел отсканить или папка `src/endpoints/` отсутствует. Перезапустить dev.
 
@@ -145,11 +148,35 @@ Vite-плагин `EndpointsRegistryPlugin` следит за `apps/*/src/endpoi
 
 4. **`zod` peer-dep** — у `@capsuletech/web-query` `zod` в `peerDependencies`. Workspace pnpm подтягивает версию из root deps.
 
+### Endpoint contract
+
 5. **Order of middleware matters** — `statusMapper` ставится раньше `on401`, чтобы он видел типизированный `UnauthorizedError`, а не сырой `Error`.
 
 6. **`path`-параметры обязаны быть в `request`-схеме** — `buildRequest` берёт `:id` из `input.id`. Если поля нет — runtime-error `Missing path param`.
 
 7. **`map` без `response`** — теряет смысл, но не ломает (`map(undefined)` → что вернёт).
+
+8. **`endpoint.middleware` видит `ctx.data` (после map), не `ctx.response`** — `createApi.ts` добавляет per-endpoint mw **после** `mapDomain`. Если custom-mw нужен сырой response — пиши его как global. Design choice, [P2 #10](cleanup-plan.md#p2-10--endpointmiddleware-выполняется-после-mapdomain).
+
+### Cache + fetch (review 2026-05-18)
+
+Полный tracker — [docs/_meta/cleanup-plan.md > Web-query review](cleanup-plan.md#-web-query-review-2026-05-18--19-findings).
+
+| Грабля | File | Status |
+|---|---|---|
+| `setQueryClient`/`getQueryClient` оторваны от `createApi` (внешний getter всегда undefined) | [client.ts:218](../../packages/web/query/src/client.ts), [createApi.ts:140](../../packages/web/query/src/createApi.ts) | ✅ Fixed (P1 #1, 2026-05-18) |
+| Cache-key не стабилен по порядку ключей объекта (`{a,b}` ≠ `{b,a}`) | [cache.ts:10](../../packages/web/query/src/cache.ts) | ✅ Fixed (P1 #2, stable-stringify) |
+| `HttpError.response` — body single-read (повторный `.json()` падает `Body already consumed`) | [errors.ts:44](../../packages/web/query/src/errors.ts) | ✅ Fixed (P1 #3, `HttpError.bodyText`) |
+| `params` — только `string \| number \| boolean`, нет массивов и undefined-skip | [types.ts:25](../../packages/web/query/src/types.ts) | ✅ Fixed (P1 #4, arrays + skip) |
+| `ApiError` не использует native `Error.cause` — chain не виден в stack | [errors.ts:25](../../packages/web/query/src/errors.ts) | ✅ Fixed (P1 #5, native ES2022 cause) |
+| Нет `gcTime` / LRU — unbounded memory в долгоживущем SPA | [cache.ts:25](../../packages/web/query/src/cache.ts) | Will fix (P2 #6) |
+| Invalidate недоступна из Feature (только через `mutate.invalidates`) | [createApi.ts](../../packages/web/query/src/createApi.ts) | Will fix (P2 #7) |
+| `retry` без jitter — thundering herd на 5xx | [middleware/user.ts:134](../../packages/web/query/src/middleware/user.ts) | Will fix (P2 #8) |
+| DELETE без body запрещён — `buildRequest` не пропускает | [middleware/core.ts:42](../../packages/web/query/src/middleware/core.ts) | Will fix (P2 #9) |
+| `log()` без timing + без redact (Authorization утечёт в логи) | [middleware/user.ts:96](../../packages/web/query/src/middleware/user.ts) | Will fix (P2 #11) |
+| `dedupe` шарит in-flight через разные AbortSignal'ы — `s2.abort()` не отменяет p2 | [client.ts:110](../../packages/web/query/src/client.ts) | Known (P3 #12) |
+| Headers case-insensitivity не нормализована при merge | [client.ts:68](../../packages/web/query/src/client.ts) | Known (P3 #15) |
+| Нет canonical `createMockApi(...)` для тестов Feature | — | Will fix (P3 #16) |
 
 ## Что менять когда
 

@@ -28,7 +28,7 @@ status: living-doc
 | [packages/web/core](#packagesweb-core) | ✅ | ✅ | ✅ (P1 #3 закрыто web-router; P2 #10 закрыто web-query) |
 | [packages/web/state](#packagesweb-state) | ✅ | 🟡 (README — Nx-стаб) | ✅ |
 | [packages/web/router](#packagesweb-router) | ✅ | ✅ | ✅ |
-| [packages/web/query](#packagesweb-query) | ✅ | ✅ | ✅ |
+| [packages/web/query](#packagesweb-query) | ✅ | ✅ (review 2026-05-18) | 🟡 (P1 ✅ 5/5, P2 0/6, P3 0/8) |
 | packages/web/ui | ✅ | ✅ | ✅ (periphery only, no components touched — PR #28) |
 | packages/web/editor | ✅ | ✅ | ✅ (consolidated 3 packages: manifests + editor-state + inspector → web-editor with subpaths — PR #29) |
 | packages/web/renderer | ✅ | ✅ | ✅ (periphery — PR #29) |
@@ -520,6 +520,255 @@ packages/web/query/src/
 #### P2 — `tsconfig.json` extends-only (cross-package)
 
 Та же ситуация, что и в web-core/state/router. Делать одним кросс-проходом.
+
+---
+
+### 📋 Web-query review 2026-05-18 — 19 findings
+
+Полный review всего публичного API + 147 тестов. Группировка по приоритету.
+Каждый item — кандидат на отдельный commit в `refactor/web-query-pass-2`-ветке.
+
+**Pass-2 прогресс (2026-05-18):** P1 ✅ 5/5 закрыты, тесты 147 → 164 (+17). P2/P3 — на следующий проход.
+
+#### ✅ P1 — footgun-ы (5/5 закрыто)
+
+##### ✅ P1 #1 — `setQueryClient` / `getQueryClient` оторваны от `createApi`
+
+[packages/web/query/src/client.ts:218](packages/web/query/src/client.ts:218),
+[packages/web/query/src/createApi.ts:140](packages/web/query/src/createApi.ts:140).
+
+`createApi` внутри делает `createQueryClient(...)` и хранит в замыкании. Глобальный
+`setQueryClient` **не вызывается**. Снаружи `getQueryClient()` всегда `undefined`,
+из Feature нет ссылки на client → invalidate / setQueryData недоступны вне `mutate`.
+
+**Fix:** либо `setQueryClient(client)` внутри `createApi` (минимум), либо
+`createApi(config, endpoints, { client? })` + exposed `services.api.$cache.invalidate(key)`
+(см. #7).
+
+**Закрыто:** [createApi.ts:140-151](../../packages/web/query/src/createApi.ts) —
+`setQueryClient(client)` сразу после `createQueryClient(...)`. Минимальный шаг
+(без расширения публичного API). Расширение через `services.api.$cache` —
+в P2 #7. Тест [createApi.test.ts](../../packages/web/query/src/__tests__/createApi.test.ts):
+`getQueryClient()` теперь возвращает client, через который Feature может
+`invalidate` без ссылки на createApi.
+
+##### ✅ P1 #2 — Cache key sensitivity к порядку ключей объекта
+
+[packages/web/query/src/cache.ts:10](packages/web/query/src/cache.ts:10).
+
+`JSON.stringify({a:1,b:2}) !== JSON.stringify({b:2,a:1})` → разные cache entries
+для семантически одинакового input'а. Тест
+[`cache.test.ts:43`](packages/web/query/src/__tests__/cache.test.ts:43) **документирует
+это как "known limitation"**, но это footgun. После zod-parse порядок детерминирован
+(zod сохраняет порядок схемы) — смягчает, не лечит для прямых вызовов `client.fetch`.
+
+**Fix:** стабильная сериализация — sort keys рекурсивно. ~15 строк, не ломает API.
+Тест на инвариант: `cacheKey({a:1,b:2}) === cacheKey({b:2,a:1})`.
+
+**Закрыто:** [cache.ts:10-30](../../packages/web/query/src/cache.ts) —
+`stableStringify` рекурсивно сортирует ключи объектов; массивы остаются
+order-sensitive (намеренно). Тест-как-баг (`cache.test.ts:43`) переписан на
+инвариант — два теста: вложенные объекты + массивы остаются `[a,b] !== [b,a]`.
+
+##### ✅ P1 #3 — `HttpError.response: Response` — body single-read
+
+[packages/web/query/src/errors.ts:44](packages/web/query/src/errors.ts:44),
+[packages/web/query/src/fetcher.ts:31](packages/web/query/src/fetcher.ts:31).
+
+В error-interceptor'ах / `cause.response.json()` ловит `TypeError: Body already
+consumed` если стрим прочитан где-то выше. На сегодня `defaultFetcher` бросает
+до чтения body, но порядок чтения становится implicit-контрактом.
+
+**Fix:** в `HttpError` хранить `bodyText: string | null` (прочитанный заранее,
+async fetch теперь имеет `await res.text()` перед throw), или `responseClone:
+Response = response.clone()`. Первое предпочтительнее — детерминированно и
+JSON-сериализуемо для телеметрии.
+
+**Закрыто:** [errors.ts:43-71](../../packages/web/query/src/errors.ts) — добавлено
+поле `bodyText: string | null`. [fetcher.ts:30-36](../../packages/web/query/src/fetcher.ts) —
+`await res.text().catch(() => null)` перед `throw new HttpError(...)`. Consumer
+теперь обращается к `err.bodyText` многократно (например, Sentry + on401-handler).
+`err.response.text()` тоже работал бы, но стрим `bodyUsed` после нашего чтения —
+этот контракт зафиксирован в тесте.
+
+##### ✅ P1 #4 — `params` поддерживает только `string | number | boolean`
+
+[packages/web/query/src/types.ts:25](packages/web/query/src/types.ts:25),
+[packages/web/query/src/client.ts:55](packages/web/query/src/client.ts:55).
+
+`?tags=a&tags=b` (массивные фильтры) невозможны. `undefined`-skip тоже не работает
+(превратится в строку `"undefined"`).
+
+**Fix:** расширить тип до `string | number | boolean | undefined | null |
+ReadonlyArray<string | number | boolean>`. В `resolveUrl`:
+- `undefined`/`null` → skip;
+- array → `qs.append(k, String(v))` для каждого элемента.
+
+**Закрыто:** [types.ts:25-39](../../packages/web/query/src/types.ts) — тип
+расширен с поддержкой массивов и nullable элементов. [client.ts:51-69](../../packages/web/query/src/client.ts) —
+`resolveUrl` использует `qs.append` (был `qs.set`), skip-ит undefined/null
+сверху и внутри массивов; пустой qs не клеит `?`. Регрессия в
+[middleware/core.ts:46-56](../../packages/web/query/src/middleware/core.ts) —
+ручной cast убран, передаём rest как есть.
+
+##### ✅ P1 #5 — `ApiError` не использует native `Error.cause`
+
+[packages/web/query/src/errors.ts:25](packages/web/query/src/errors.ts:25).
+
+`super(message)` без `cause` → причинная цепочка теряется в `err.stack`. DevTools
+не видит chain. Pseudo-field `this.cause = opts.cause` есть, но native ES2022
+property не выставлен.
+
+**Fix:** `super(message, opts.cause !== undefined ? { cause: opts.cause } : undefined)`.
+Поле `this.cause` оставить для совместимости — оно дублирует native.
+
+**Закрыто:** [errors.ts:15-33](../../packages/web/query/src/errors.ts) — поле
+`cause` объявлено через `declare readonly cause?: unknown` (наследует
+own-property от ES2022 Error). `super(message, opts.cause !== undefined ? {
+cause: opts.cause } : undefined)` — native cause устанавливается condition'ом.
+Ручной `this.cause = opts.cause` убран (был дубликат). Тесты держат: cause
+доступен через `Object.getOwnPropertyDescriptor(e, 'cause')`, без cause —
+дескриптора нет (не плодим лишних own-properties).
+
+#### 🟡 P2 — заметные пробелы (0/6 закрыто)
+
+##### P2 #6 — Нет `gcTime` / LRU в QueryCache
+
+[packages/web/query/src/cache.ts:25](packages/web/query/src/cache.ts:25).
+
+`staleTime` есть, `gcTime` (когда удалить entry из памяти) — нет. Долгоживущий
+SPA с большим количеством разных query-keys → unbounded memory.
+
+**Fix:** `QueryClientOptions.gcTime?: number` + `maxEntries?: number` (простой
+LRU). Timer per entry или per-tick sweep при пересоздании.
+
+##### P2 #7 — Cache invalidation недоступна из Feature
+
+[packages/web/query/src/createApi.ts](packages/web/query/src/createApi.ts).
+
+Сейчас invalidate возможен только через `mutate({ invalidates: [...] })`. Если
+Feature получает push через WebSocket и хочет force-refresh `['users']` — она
+этого сделать не может (нет ссылки на client).
+
+**Fix:** добавить `services.api.$cache.invalidate(key)` / `.clear()` / `.refetch(key)`
+в InferApi. Или per-endpoint: `services.api.user.get.invalidate(input)`.
+
+##### P2 #8 — Retry без jitter
+
+[packages/web/query/src/middleware/user.ts:134](packages/web/query/src/middleware/user.ts:134).
+
+`base * 2 ** (attempt - 1)` — детерминированный backoff. При массовом сбое 503 →
+все клиенты бьют сервер синхронно (thundering herd).
+
+**Fix:** `delay = base * 2^(attempt-1) * (0.5 + Math.random())` (50% jitter).
+Или опциональный `jitter: 'full' | 'equal' | 'none'`.
+
+##### P2 #9 — DELETE without body
+
+[packages/web/query/src/middleware/core.ts:42](packages/web/query/src/middleware/core.ts:42).
+
+`hasBody = method !== 'GET' && method !== 'HEAD' && method !== 'DELETE'`. Многие
+REST API делают `DELETE /carts/items` с body `{ ids: [...] }` — это не запрещено
+RFC 7231 для не-GET/HEAD.
+
+**Fix:** убрать DELETE из исключения (или сделать opt-in через `EndpointConfig.bodyOnDelete?: boolean`).
+
+##### P2 #10 — `endpoint.middleware` выполняется ПОСЛЕ `mapDomain`
+
+[packages/web/query/src/createApi.ts:86](packages/web/query/src/createApi.ts:86).
+
+Per-endpoint mw видит уже **domain**-объект (после `map`), не сырой response. Если
+custom mw хочет логировать сырой DTO, кэшировать до маппинга, или decode binary
+блоб — он не может.
+
+**Fix (варианты):**
+1. Документировать как design choice (минимум).
+2. Переместить per-endpoint mw до `validateResponse`/`mapDomain`.
+3. `EndpointConfig.middleware: { preMap?: Middleware[]; postMap?: Middleware[] }`.
+
+Требует решения пользователя — это semantic break, нужен ADR.
+
+##### P2 #11 — `log()` — без timing, без redact
+
+[packages/web/query/src/middleware/user.ts:96](packages/web/query/src/middleware/user.ts:96).
+
+Нет `duration` (для perf debugging), нет маскировки `Authorization`/`Cookie`/`Set-Cookie`
+заголовков. Для production-логов критично, для dev — терпимо.
+
+**Fix:** `log({ timing?: boolean; redact?: string[] | ((h, k) => string) })`.
+
+#### 🟢 P3 — нюансы (7)
+
+##### P3 #12 — `dedupe` ломается с разными `AbortSignal`
+
+[packages/web/query/src/client.ts:110](packages/web/query/src/client.ts:110).
+
+`p1 = fetch({signal: s1})`, `p2 = fetch({signal: s2})` шарят in-flight. `s2.abort()`
+ничего не отменяет (p2 продолжает ждать p1).
+
+**Fix:** при dedupe линковать signals через `AbortSignal.any([s1, s2])` (Node 19+,
+браузерная поддержка с 2024). Edge-case, но реальный.
+
+##### P3 #13 — `(req.url ?? '').startsWith('http')` — фрагильно
+
+[packages/web/query/src/client.ts:53](packages/web/query/src/client.ts:53).
+
+Ловит и `httptea://...`. Лучше `/^https?:\/\//i`.
+
+##### P3 #14 — `isPrefix` через JSON.stringify per-element
+
+[packages/web/query/src/cache.ts:16](packages/web/query/src/cache.ts:16).
+
+Инвалидация O(n × keyDepth × stringify) — при >1000 entries заметно. Можно
+кэшировать `serializedKey` в `CacheEntry` при `set` — линейный матч префикса
+по строкам.
+
+##### P3 #15 — Headers case-insensitivity не нормализована
+
+[packages/web/query/src/client.ts:68](packages/web/query/src/client.ts:68).
+
+`{Accept: 'x'}` и `{accept: 'y'}` хранятся как разные ключи в плоском объекте.
+`fetch` потом схлопнет их непредсказуемо (последний выигрывает по platform).
+
+**Fix:** при merge использовать `new Headers()` или явно нормализовать к нижнему
+регистру.
+
+##### P3 #16 — Нет canonical `createMockApi(endpoints, mocks)` для тестов Feature
+
+Сейчас каждая Feature-тест пишет свой fake `services.api`. Будет drift.
+
+**Fix:** `@capsuletech/web-query/testing` подпуть с `createMockApi(endpoints, {
+'user.get': (input) => ({...}) })`. Возвращает proxy того же shape, что и
+production-api.
+
+##### P3 #17 — Streaming / SSE / WebSocket — за рамками
+
+OK для v0.1, но roadmap. Endpoint-DSL заточен под request-response. SSE
+(`EventSource`) и WebSocket — отдельный transport-слой, скорее всего рядом
+с `createApi` — `createStreamApi`.
+
+##### P3 #18 — `ApiError.payload: unknown` — нет JSON-сериализуемости guarantee
+
+Если payload содержит `Response`/`Blob`/`Function` (e.g. в кастомном error-interceptor'е),
+`JSON.stringify(err)` упадёт в Sentry/телеметрии.
+
+**Fix:** документировать в JSDoc, или ввести `serializePayload()` helper.
+
+##### P3 #19 — AI-anchor частично устарел
+
+[docs/_meta/api-middleware.md:33](docs/_meta/api-middleware.md:33) — упоминает
+старую локацию `interfaces.ts`. User-doc не упоминает подпуть `/app-config` и
+export `defineAppConfig`. Поправить в проходе по докам (см. handoff).
+
+#### Doc-pass plan
+
+Обновление пары [api-middleware.md](docs/09-packages/api-middleware.md) /
+[_meta/api-middleware.md](docs/_meta/api-middleware.md) должно добавить:
+
+- **Известные ограничения** (cache-key порядок, params типы, DELETE без body, headers case-insensitivity, AbortSignal в dedupe) — секция «Gotchas» в обеих доках.
+- **Порядок pipeline и почему** — раздел «Pipeline order» с диаграммой `validateInput → buildRequest → globalMw → httpTransport → validateResponse → mapDomain → endpointMw` и объяснением, что per-endpoint mw видит уже domain-объект (P2 #10).
+- **Подпуть `/app-config`** + export `defineAppConfig` — упомянуть в user-doc (сейчас только в README).
+- **Roadmap** — выжимка из P1/P2/P3 выше: что планируется (cache-key stability, params arrays, gcTime/LRU, jitter, $cache, mock-api, streaming).
 
 ---
 
