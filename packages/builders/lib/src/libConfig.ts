@@ -216,7 +216,7 @@ export const libConfig = (opts: IDefineLibConfigOptions): UserConfig => {
         : [
             dts({
               entryRoot: 'src',
-              outDir,
+              outDirs: outDir,
               pathsToAliases: false,
               include: ['src/**/*.ts', 'src/**/*.tsx'],
               tsconfigPath: existsSync(resolve('paths.config.json'))

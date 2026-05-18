@@ -173,20 +173,20 @@ describe('libConfig — build output shape', () => {
 
 describe('libConfig — plugin selection', () => {
   const pluginNames = (cfg: ReturnType<typeof libConfig>): string[] =>
-    (cfg.plugins ?? [])
-      .flat(Infinity)
+    ((cfg.plugins ?? []) as unknown[])
+      .flat(Number.POSITIVE_INFINITY)
       .filter(Boolean)
       .map((p) => (p as { name?: string }).name)
       .filter((n): n is string => Boolean(n));
 
   it('dts plugin is included by default', () => {
     const names = pluginNames(libConfig(baseOpts));
-    expect(names).toContain('vite:dts');
+    expect(names).toContain('unplugin-dts');
   });
 
   it('dts plugin is excluded when dts: false', () => {
     const names = pluginNames(libConfig({ ...baseOpts, dts: false }));
-    expect(names).not.toContain('vite:dts');
+    expect(names).not.toContain('unplugin-dts');
   });
 
   it('capsule:emit-dist-package-json plugin is included by default', () => {
