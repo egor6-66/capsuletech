@@ -45,7 +45,9 @@ jobs:
       # scripts/release.mjs: compliance → vite-builder, then anything.
       - name: Bootstrap shared builders
         run: |
+          pnpm --filter @capsuletech/lib-builder build
           pnpm --filter @capsuletech/compliance build
+          pnpm --filter @capsuletech/shared-file-manager build
           pnpm --filter @capsuletech/vite-builder build
       - run: pnpm nx run-many -t typecheck
 
@@ -64,7 +66,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Bootstrap shared builders
         run: |
+          pnpm --filter @capsuletech/lib-builder build
           pnpm --filter @capsuletech/compliance build
+          pnpm --filter @capsuletech/shared-file-manager build
           pnpm --filter @capsuletech/vite-builder build
       - run: pnpm test
 
@@ -83,6 +87,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Bootstrap shared builders
         run: |
+          pnpm --filter @capsuletech/lib-builder build
           pnpm --filter @capsuletech/compliance build
+          pnpm --filter @capsuletech/shared-file-manager build
           pnpm --filter @capsuletech/vite-builder build
       - run: pnpm nx run-many -t build
