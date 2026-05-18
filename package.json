@@ -100,7 +100,7 @@
     "execa": "^9.6.1",
     "jiti": "2.4.2",
     "lucide-solid": "^0.460.0",
-    "solid-js": "^1.9.5",
+    "solid-js": "^1.9.13",
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
     "tslib": "^2.8.1",
