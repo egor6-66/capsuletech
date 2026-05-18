@@ -44,7 +44,9 @@ export async function generateFromTemplates({
       return;
     }
 
-    changes.forEach((change) => console.log(`✨ Создаю: ${change.path}`));
+    changes.forEach((change) => {
+      console.log(`✨ Создаю: ${change.path}`);
+    });
 
     flushChanges(projectRoot, changes);
 

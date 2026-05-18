@@ -3,7 +3,7 @@ const Validator = Controller(() => {
     initial: 'idle',
     states: {
       idle: {
-        onClick: async ({ next, store, state, context }) => {
+        onClick: async ({ next }) => {
           const r = await next.with('hello');
           console.log('responseeeeee', r);
         },

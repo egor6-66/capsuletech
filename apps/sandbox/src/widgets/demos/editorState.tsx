@@ -194,6 +194,7 @@ const TreeRow = (props: ITreeRowProps) => {
       }}
     >
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: drag-based tree row, keyboard sensor — отдельная задача в @capsuletech/dnd */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: drag-based tree row, keyboard sensor — отдельная задача в @capsuletech/dnd */}
       <div
         ref={headerRefSet}
         data-tree-header
@@ -267,6 +268,7 @@ const PaletteItem = (props: IPaletteItemProps) => {
     return canAcceptChild(t, props.type);
   });
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: drag palette item — pointer-only interaction, keyboard accessibility tracked in @capsuletech/dnd
     <div
       ref={drag.ref}
       class="px-2 py-1 border rounded text-sm cursor-grab select-none transition-colors"

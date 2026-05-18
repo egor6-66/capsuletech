@@ -11,7 +11,8 @@
       "recommended": true,
       "complexity": {
         "noForEach": "off",
-        "useArrowFunction": "error"
+        "useArrowFunction": "error",
+        "noImportantStyles": "off"
       },
       "style": {
         "noUnusedTemplateLiteral": "off",
@@ -44,6 +45,11 @@
       "jsxQuoteStyle": "double",
       "trailingCommas": "all",
       "semicolons": "always"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   }
 }

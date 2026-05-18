@@ -1,4 +1,4 @@
-const Branches = Page((Ui, Widgets) => (
+const Branches = Page((Ui, _Widgets) => (
   <Ui.Layout variant={'centroid'} slots={{ main: <div>Branches page</div> }} />
 ));
 

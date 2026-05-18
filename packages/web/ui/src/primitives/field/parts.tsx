@@ -10,7 +10,6 @@ const createFieldPart = <T extends keyof JSX.IntrinsicElements>(
 ) => {
   // Используем JSX.IntrinsicElements[T], чтобы пропсы соответствовали тегу
   return (props: JSX.IntrinsicElements[T]) => {
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     const [local, others] = splitProps(props as any, ['class']);
 
     return (
@@ -20,7 +19,6 @@ const createFieldPart = <T extends keyof JSX.IntrinsicElements>(
         class={cn(defaultClass, local.class)}
         // Используем as any здесь, чтобы TS не пытался проверить
         // совместимость others со всеми возможными тегами сразу
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
         {...(others as any)}
       />
     );
@@ -68,7 +66,6 @@ export function FieldError(
         {...others}
       >
         <Show when={!local.children} fallback={local.children}>
-          {/* biome-ignore lint/style/noNonNullAssertion: <explanation> */}
           <Show when={local.errors!.length > 1} fallback={local.errors![0]?.message}>
             <ul class="ml-4 flex list-disc flex-col gap-1">
               <For each={local.errors}>

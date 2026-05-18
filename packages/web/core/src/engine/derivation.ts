@@ -69,7 +69,6 @@ export const getTargetData = (
   },
   derivedName?: string,
 ) => {
-  // biome-ignore lint/suspicious/noExplicitAny: DOM Element shape varies.
   const el = e?.currentTarget as any;
   return {
     name: el?.name || derivedName || finalProps.name,

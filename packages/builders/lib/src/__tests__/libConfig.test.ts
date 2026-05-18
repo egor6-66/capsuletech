@@ -21,7 +21,6 @@ type ExternalFn = (id: string, importer: string | undefined, isResolved: boolean
 
 const getExternalFn = (opts: Parameters<typeof libConfig>[0]): ExternalFn => {
   const cfg = libConfig(opts);
-  // biome-ignore lint/style/noNonNullAssertion: тест ожидает наличие
   const fn = cfg.build!.rollupOptions!.external as ExternalFn;
   expect(typeof fn).toBe('function');
   return fn;

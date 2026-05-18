@@ -1,5 +1,5 @@
 import { NetworkError, ValidationError } from '../errors';
-import type { ApiContext, Middleware } from '../pipeline';
+import type { Middleware } from '../pipeline';
 import type { RequestConfig } from '../types';
 
 const PATH_PARAM = /:(\w+)/g;

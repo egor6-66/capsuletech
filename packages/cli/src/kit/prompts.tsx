@@ -54,7 +54,7 @@ const SelectPrompt = <T,>({
       {options.map((o, i) => {
         const sel = i === idx;
         return (
-          <Box key={`${i}-${String(o.value)}`}>
+          <Box key={String(o.value)}>
             <Text color={sel ? 'cyan' : undefined}>
               {sel ? '❯ ' : '  '}
               {o.label}

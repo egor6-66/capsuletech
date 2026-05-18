@@ -2,6 +2,14 @@
   "$schema": "https://biomejs.dev",
   "extends": ["./packages/builders/biome/biome.json"],
   "files": {
-    "includes": ["**", "!**/dist", "!**/.capsule", "!**/node_modules", "!**/.nx", "!**/coverage"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/.capsule",
+      "!**/node_modules",
+      "!**/.nx",
+      "!**/coverage",
+      "!docs/_archive"
+    ]
   }
 }

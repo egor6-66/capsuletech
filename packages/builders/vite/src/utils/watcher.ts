@@ -1,5 +1,5 @@
 import { normalize, resolve, sep } from 'node:path';
-import type { Plugin, ViteDevServer } from 'vite';
+import type { ViteDevServer } from 'vite';
 import type { StructureEvent } from '../interfaces';
 
 interface IPaths {
@@ -30,7 +30,6 @@ class WatcherManager {
     if (!this.registry.has(targetDir)) {
       this.registry.set(targetDir, { subscribers: [], isWatching: false, originalRoot: targetDir });
     }
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     this.registry.get(targetDir)!.subscribers.push(callbacks);
   }
 

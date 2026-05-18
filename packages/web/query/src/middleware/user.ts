@@ -48,7 +48,7 @@ export const auth = (opts: {
  * Уже типизированные ошибки (всё, что extends ApiError, кроме сырой HttpError)
  * — pass-through.
  */
-export const statusMapper = (): Middleware => async (ctx, next) => {
+export const statusMapper = (): Middleware => async (_ctx, next) => {
   try {
     await next();
   } catch (err) {

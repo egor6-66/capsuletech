@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { copyFile, mkdir, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, normalize, relative, resolve, sep } from 'node:path';
+import { dirname, join, normalize, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
 

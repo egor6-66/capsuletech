@@ -10,7 +10,7 @@ const Auth = Feature(({ router, query }) => ({
        * В sandbox реального backend'а нет, поэтому query.mutate упадёт на network,
        * и мы фоллбэчимся на mock egor/123. В реальном проекте mock уберётся.
        */
-      authByLogin: async ({ target, store }) => {
+      authByLogin: async ({ target }) => {
         const { email, password } = (target.from ?? {}) as {
           email?: string;
           password?: string;

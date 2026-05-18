@@ -106,10 +106,8 @@ describe('ControllerProxy — method dispatch order', () => {
   it('auto-bubbles to parent when no handler anywhere', async () => {
     const parentHandler = vi.fn(async () => 'from-parent');
     const parent = {
-      // biome-ignore lint/suspicious/noExplicitAny: test stub
       controller: { onClick: parentHandler } as any,
       state: makeState('parent-state'),
-      // biome-ignore lint/suspicious/noExplicitAny: minimum stub
       store: {} as any,
     };
 
@@ -118,7 +116,6 @@ describe('ControllerProxy — method dispatch order', () => {
       state: makeState('idle'),
       send: vi.fn(),
       store: makeStore(),
-      // biome-ignore lint/suspicious/noExplicitAny: test stub
       parent: parent as any,
     });
 
@@ -296,7 +293,6 @@ describe('ControllerProxy — next() bubbling (passive)', () => {
       state: makeState('idle'),
       send: vi.fn(),
       store: makeStore(),
-      // biome-ignore lint/suspicious/noExplicitAny: test stub
       parent: { controller: { onClick: parentHandler } as any } as any,
     });
 
@@ -325,9 +321,7 @@ describe('ControllerProxy — next() bubbling (passive)', () => {
           onClick: async (t: ITarget) => {
             received = t;
           },
-          // biome-ignore lint/suspicious/noExplicitAny: stub
         } as any,
-        // biome-ignore lint/suspicious/noExplicitAny: stub
       } as any,
     });
 
@@ -357,9 +351,7 @@ describe('ControllerProxy — next() bubbling (passive)', () => {
           onClick: async (t: ITarget) => {
             received = t;
           },
-          // biome-ignore lint/suspicious/noExplicitAny: stub
         } as any,
-        // biome-ignore lint/suspicious/noExplicitAny: stub
       } as any,
     });
 
@@ -384,7 +376,6 @@ describe('ControllerProxy — next() bubbling (passive)', () => {
       state: makeState('idle'),
       send: vi.fn(),
       store: makeStore(),
-      // biome-ignore lint/suspicious/noExplicitAny: stub
       parent: { controller: { submit: parentSubmit } as any } as any,
       overrides: { onClick: 'submit' },
     });
@@ -407,7 +398,6 @@ describe('ControllerProxy — next() bubbling (passive)', () => {
       state: makeState('idle'),
       send: vi.fn(),
       store: makeStore(),
-      // biome-ignore lint/suspicious/noExplicitAny: stub
       parent: { controller: {} as any } as any,
     });
 
@@ -438,9 +428,7 @@ describe('ControllerProxy — next.with(arg) bubbling (explicit)', () => {
           onClick: async (t: ITarget) => {
             received = t;
           },
-          // biome-ignore lint/suspicious/noExplicitAny: stub
         } as any,
-        // biome-ignore lint/suspicious/noExplicitAny: stub
       } as any,
     });
 
@@ -473,9 +461,7 @@ describe('ControllerProxy — next.with(arg) bubbling (explicit)', () => {
           onClick: async (t: ITarget) => {
             received = t;
           },
-          // biome-ignore lint/suspicious/noExplicitAny: stub
         } as any,
-        // biome-ignore lint/suspicious/noExplicitAny: stub
       } as any,
     });
 
@@ -506,9 +492,7 @@ describe('ControllerProxy — next.with(arg) bubbling (explicit)', () => {
           onClick: async (t: ITarget) => {
             received = t;
           },
-          // biome-ignore lint/suspicious/noExplicitAny: stub
         } as any,
-        // biome-ignore lint/suspicious/noExplicitAny: stub
       } as any,
     });
 
@@ -531,7 +515,6 @@ describe('ControllerProxy — next.with(arg) bubbling (explicit)', () => {
       state: makeState('idle'),
       send: vi.fn(),
       store: makeStore(),
-      // biome-ignore lint/suspicious/noExplicitAny: stub
       parent: { controller: { submit: parentSubmit } as any } as any,
       overrides: { onClick: 'submit' },
     });

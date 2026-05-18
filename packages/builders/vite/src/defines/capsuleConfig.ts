@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import AutoImport from 'unplugin-auto-import/vite';
 import {

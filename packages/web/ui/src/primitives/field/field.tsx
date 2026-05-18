@@ -1,4 +1,4 @@
-import { cn, createStyle } from '@capsuletech/web-style';
+import { createStyle } from '@capsuletech/web-style';
 import { splitProps } from 'solid-js';
 
 import type { IFieldProps } from './interfaces';
@@ -12,5 +12,8 @@ export function Field(props: IFieldProps) {
     class: local.class,
     style: local.style,
   });
-  return <div role="group" data-slot="field" class={className()} style={style()} {...others} />;
+  return (
+    // biome-ignore lint/a11y/useSemanticElements: Field is a generic grouping primitive — wrapping in <fieldset> would force a default browser legend layout we don't want; consumers compose FieldSet/FieldLegend explicitly when semantics matter.
+    <div role="group" data-slot="field" class={className()} style={style()} {...others} />
+  );
 }

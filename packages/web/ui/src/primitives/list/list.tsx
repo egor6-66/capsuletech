@@ -89,7 +89,6 @@ function VirtualList<T>(props: IVirtualListProps<T>) {
                     : `translateY(${virtualItem.start}px)`,
               }}
             >
-              {/* biome-ignore lint/style/noNonNullAssertion: <explanation> */}
               {local.children(local.items![virtualItem.index], () => virtualItem.index)}
             </div>
           )}

@@ -14,7 +14,6 @@ export interface IControllerHandle {
   /** Реактивный bridge — exposed как удобный alias внутри handlers. */
   store: IBridge;
   /** Schema-defined methods: `controller.<name>(target, context)`. */
-  // biome-ignore lint/suspicious/noExplicitAny: см. JSDoc выше.
   [methodName: string]: any;
 }
 
@@ -24,7 +23,6 @@ export interface IControllerHandle {
  * путаница; до P2 #4 типизировалось как `AnyStateMachine`, что было неверно).
  * Generic `T` сохраняем для совместимости — кастится через `useCtx<TSnapshot>()`.
  */
-// biome-ignore lint/suspicious/noExplicitAny: state — реактивный xstate snapshot, тип зависит от schema.
 export interface ICtx<T = any> {
   state: T;
   store: IBridge;
@@ -35,5 +33,4 @@ export interface ICtx<T = any> {
 
 export const Context = createContext<ICtx>();
 
-// biome-ignore lint/suspicious/noExplicitAny: см. ICtx<T>.
 export const useCtx = <T = any>() => useContext(Context) as ICtx<T>;

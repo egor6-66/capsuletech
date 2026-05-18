@@ -1,4 +1,4 @@
-const Main = Widget((Ui, Features, Controllers, Entities) => (
+const Main = Widget((_Ui, Features, Controllers, Entities) => (
   <Features.Viewer.Auth>
     <Controllers.Universal.Navigation overrides={{ onClick: 'logout' }}>
       <Entities.Header.Main meta={{ tags: ['@header'] }} />

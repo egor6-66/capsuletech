@@ -1,4 +1,4 @@
-const List = Widget(({ Card }) => {
+const List = Widget(({ Card: _Card }) => {
   return (
     <div>wdawaddwdaddd</div>
     // <Features.Vi>

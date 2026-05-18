@@ -168,8 +168,8 @@ export const libConfig = (opts: IDefineLibConfigOptions): UserConfig => {
   // Динамическая функция валидации импортов для Rollup
   const rollupExternalSelector = (
     id: string,
-    importer: string | undefined,
-    isResolved: boolean,
+    _importer: string | undefined,
+    _isResolved: boolean,
   ) => {
     // 1. Относительные импорты файлов самого проекта всегда пакуем внутрь
     if (id.startsWith('.') || id.startsWith('/') || id.includes(':')) {

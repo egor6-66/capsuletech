@@ -1,5 +1,5 @@
 import { type ComponentStatus, STATUS_VARIABLES } from '@capsuletech/web-style';
-import { children, type JSX, splitProps } from 'solid-js';
+import { children, type JSX } from 'solid-js';
 
 interface StatusProps {
   status?: ComponentStatus;

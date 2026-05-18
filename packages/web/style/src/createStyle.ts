@@ -1,7 +1,6 @@
 import { createMemo } from 'solid-js';
 import { cn } from './utils';
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export function createStyle(cvaFn: any, props: any) {
   // Мы создаем мемо-производную, которая будет следить за изменениями
   const className = createMemo(() => {
