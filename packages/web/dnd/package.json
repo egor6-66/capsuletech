@@ -12,18 +12,22 @@
     }
   },
   "files": [
-    "dist",
-    "src",
-    "!**/*.tsbuildinfo"
+    "dist"
   ],
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "dev": "vite build --watch"
   },
   "dependencies": {},
   "peerDependencies": {
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
+    "@capsuletech/lib-builder": "workspace:*",
     "@capsuletech/vite-builder": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "packageManager": "pnpm"
   }
 }
