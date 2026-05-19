@@ -109,7 +109,7 @@ backend/
 
 ## Vite-плагины (`packages/builders/vite/src/plugins`)
 
-- **`ExportGeneratorPlugin`** — следит за `apps/*/src/{widgets,entities,controllers,features}/**` и через `ts-morph` поддерживает в актуальном состоянии `.capsule/registry/wrappers.ts` (lazy-импорты с вложенностью по папкам).
+- **`ExportGeneratorPlugin`** — следит за `apps/*/src/{widgets,entities,controllers,features}/**` и поддерживает в актуальном состоянии `.capsule/registry/wrappers.ts` (lazy-импорты с вложенностью по папкам). Использует `@nx/devkit.names()` для нормализации; генерация — обычный string-concat (`ts-morph` нигде в кодбейзе не импортируется, хотя ADR/доки упоминают как «будущее»).
 - **`RouterPlugin`** — следит за `apps/*/src/pages/**`, генерит зеркальные `.capsule/routes/__pages/__auth/login.tsx` из шаблона, дальше TanStack Router CLI собирает `routeTree.gen.ts`.
 - **`HMRWrappingPlugin`** — pre-transform на babel-AST: превращает `const Login = Page(...)` в `(props) => Page(...)(props)` и добавляет `export default`. Без него HMR Solid ломается, потому что `Page(...)` возвращает функцию, а не компонент при первом вызове.
 

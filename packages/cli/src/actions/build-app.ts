@@ -1,22 +1,8 @@
 import { existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import type { CommandAction } from '../commands/types';
 import { kit } from '../kit';
-import { cvd } from '../utils';
-
-const require = createRequire(import.meta.url);
-
-const getViteEntry = (root: string, mode: 'dev' | 'prod'): string => {
-  if (mode === 'dev') {
-    return resolve(root, 'packages/builders/vite/dist/index.mjs');
-  }
-  try {
-    return require.resolve('@capsuletech/vite-builder');
-  } catch {
-    return resolve(root, 'node_modules/@capsuletech/vite-builder');
-  }
-};
+import { cvd, getViteEntry } from '../utils';
 
 export const buildAppAction: CommandAction = async (ctx) => {
   if (ctx.type !== 'app' || !ctx.root) {
