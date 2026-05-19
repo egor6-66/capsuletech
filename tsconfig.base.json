@@ -31,6 +31,7 @@
       "@capsuletech/web-editor/inspector": ["packages/web/editor/src/inspector/index.ts"],
       "@capsuletech/web-profiler": ["packages/web/profiler/src/index.ts"],
       "@capsuletech/web-query": ["packages/web/query/src/index.ts"],
+      "@capsuletech/web-remote": ["packages/web/remote/src/index.ts"],
       "@capsuletech/web-router": ["packages/web/router/src/index.ts"],
       "@capsuletech/web-style": ["packages/web/style/src/index.ts"],
       "@capsuletech/web-style/editor": ["packages/web/style/src/editor/index.ts"],
@@ -49,7 +50,10 @@
       "@capsuletech/vite-builder": ["packages/builders/vite/src/index.ts"],
       "@capsuletech/lib-builder": ["packages/builders/lib/src/index.ts"],
       "@capsuletech/shared-zod": ["packages/shared/zod/src/index.ts"],
-      "@capsuletech/shared-utils": ["packages/shared/utils/src/index.ts"]
+      "@capsuletech/shared-utils": ["packages/shared/utils/src/index.ts"],
+      "@capsuletech/canvas-host": ["packages/canvas/host/src/index.ts"],
+      "@capsuletech/canvas-ui": ["packages/canvas/ui/src/index.ts"],
+      "@capsuletech/canvas-three": ["packages/canvas/three/src/index.ts"]
     }
   }
 }

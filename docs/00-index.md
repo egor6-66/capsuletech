@@ -30,6 +30,7 @@ type: index
   - [[010-builders-split|🛠️ ADR 010 — Build-time пакеты в `packages/builders/`]]
   - [[013-explicit-define-app-config|🛠️ ADR 013 — `defineAppConfig` через explicit import]]
   - [[014-router-api-extension|🛠️ ADR 014 — Router: `goTo` options-объект + generic `ICapsuleRouterContext`]]
+  - [[015-remote-modules|📝 ADR 015 — Remote modules: своё runtime, pluggable transport, manifest-driven]]
 
 ## 🧩 Слои
 
@@ -67,6 +68,7 @@ type: index
 - [[renderer|@capsuletech/web-renderer]]
 - [[editor|@capsuletech/web-editor]] — `/manifests` + `/state` + `/inspector` subpaths
 - [[profiler|@capsuletech/web-profiler]]
+- [[remote|@capsuletech/web-remote]] — 📝 skeleton (Phase 0)
 - [[compliance|@capsuletech/compliance]]
 - [[builders|📦 @capsuletech/builders — lib-builder + vite-builder + compliance + biome-config]]
 - [[api-middleware|🌐 API middleware — endpoints + pipeline]] — `@capsuletech/web-query`

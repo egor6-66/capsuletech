@@ -1,0 +1,35 @@
+{
+  "name": "@capsuletech/canvas-ui",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "@capsuletech/canvas-host": "workspace:*"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.9.0"
+  },
+  "devDependencies": {
+    "@capsuletech/lib-builder": "workspace:*",
+    "@capsuletech/vite-builder": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "packageManager": "pnpm"
+  }
+}

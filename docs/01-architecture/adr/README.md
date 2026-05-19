@@ -24,6 +24,8 @@ status: index
 | 011 | Деривация `name` из `meta.tags` (`name` под капотом) | 🛠️ implemented | 2026-05-10 |
 | 012 | Дедупликация UI-событий через event-marker (anti-bubbling) | 🛠️ implemented | 2026-05-10 |
 | [[013-explicit-define-app-config\|013]] | `defineAppConfig` через explicit import (закрывает S-8) | 🛠️ implemented | 2026-05-18 |
+| [[014-router-api-extension\|014]] | Router: `goTo` options-объект + generic `ICapsuleRouterContext` | 🛠️ implemented | 2026-05-18 |
+| [[015-remote-modules\|015]] | Remote modules: своё runtime, pluggable transport, manifest-driven | 📝 proposed | 2026-05-19 |
 
 > [!info]
 > Status:
