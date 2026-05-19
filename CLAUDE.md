@@ -115,7 +115,9 @@ backend/
 
 ## Aliasing
 
-`tsconfig.base.json` определяет `@capsuletech/*` пути для IDE. Реальные алиасы для рантайма — в `packages/builders/vite/src/defines/capsuleConfig.ts → resolve.alias` (для dev/build). При добавлении нового пакета обновляй **обе точки**, иначе IDE будет видеть, а Vite — нет.
+`tsconfig.base.json` — **единственная точка** регистрации `@capsuletech/*` путей. Vite-builder резолвит через `tsconfigPaths()` + `AliasesPlugin` (см. `packages/builders/vite/src/defines/capsuleConfig.ts`), читая ту же `tsconfig.base.json`. При добавлении нового пакета:
+1. Добавь путь в `tsconfig.base.json → compilerOptions.paths`.
+2. Добавь имя пакета в `optimizeDeps.exclude` в `capsuleConfig.ts` (иначе esbuild попытается пре-бандлить workspace-пакет и сломает JSX-транспиляцию).
 
 ## Compliance (Golden Rules)
 
@@ -131,7 +133,8 @@ backend/
 ## Известные шероховатости
 
 Не «фиксить заодно», только если задача об этом:
-- Дублирование алиасов между `tsconfig.base.json` (`paths`) и `packages/builders/vite/src/defines/capsuleConfig.ts` (`resolve.alias`). Когда добавляется новый пакет — обновлять обе точки. Дедуп возможен (`tsconfigPaths` плагин уже подключён), но требует аккуратной проверки каждой записи — не cosmetic.
+
+_На текущий момент пусто — последняя итерация sweep'ов (2026-05-18..19) закрыла известный долг._
 
 ### Закрытые в коде
 - ✅ Копипаста между `ControllerWrapper` / `FeatureWrapper` — заменено на `createLogicWrapper(kind)` (ADR 002).
@@ -148,6 +151,7 @@ backend/
 - ✅ Debug `console.log` убраны из hot-path: `HMRWrapping.ts` (дамп transformedCode), `createModuleTree.ts` (дамп root), `builder/config.ts` (`'wadadawdwad'`), `ui/vite.config.ts` (debug-путь). Остались только намеренные информ-сообщения в CLI/build-логах.
 - ✅ `nx.json: defaultBase` исправлен на `main`.
 - ✅ `tsconfig.json` references обновлены — добавлены `cli`, `router`, `state`, `compliance` (раньше `tsc --build` их не видел).
+- ✅ Дублирование алиасов — устранено. `tsconfigPaths()` + `AliasesPlugin` в vite-builder читают `tsconfig.base.json` как единственную точку правды (зафиксировано 2026-05-19 при создании `@capsuletech/web-remote`).
 
 ## Делегирование рутины субагентам
 

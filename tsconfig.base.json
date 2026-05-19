@@ -31,6 +31,7 @@
       "@capsuletech/web-editor/inspector": ["packages/web/editor/src/inspector/index.ts"],
       "@capsuletech/web-profiler": ["packages/web/profiler/src/index.ts"],
       "@capsuletech/web-query": ["packages/web/query/src/index.ts"],
+      "@capsuletech/web-remote": ["packages/web/remote/src/index.ts"],
       "@capsuletech/web-router": ["packages/web/router/src/index.ts"],
       "@capsuletech/web-style": ["packages/web/style/src/index.ts"],
       "@capsuletech/web-style/editor": ["packages/web/style/src/editor/index.ts"],

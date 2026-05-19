@@ -87,6 +87,7 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
         '@capsuletech/web-map',
         '@capsuletech/web-profiler',
         '@capsuletech/web-query',
+        '@capsuletech/web-remote',
         '@capsuletech/web-renderer',
         '@capsuletech/web-router',
         '@capsuletech/web-state',
