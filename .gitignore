@@ -19,9 +19,10 @@ vitest.config.*.timestamp*
 storybook-static
 .nx
 /.verdaccio
-/.claude
+# Local Claude Code state — local-only.
 .claude/worktrees
 .claude/settings.local.json
+# NOTE: .claude/agents/ is TRACKED — shared agent prompts for the team.
 .nx/polygraph
 ctx
 .aider*
