@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { IBridgeStateSnapshot } from '../bridge';
 import { createBridge } from '../bridge';
+import type { IMachineContext } from '../create';
 import { clearAliases, registerAliases } from '../tag-registry';
 
 /**
@@ -14,7 +16,11 @@ import { clearAliases, registerAliases } from '../tag-registry';
  *    `state.context.components`.
  */
 
-const mkState = (context: Record<string, unknown> = {}) => ({ context });
+// Bridge only reads `context.*` (with `?? {}` fallbacks), so partial mocks are
+// fine at runtime. The double cast keeps the test data lean without losing the
+// signature check on call sites.
+const mkState = (context: Partial<IMachineContext> = {}): IBridgeStateSnapshot =>
+  ({ context }) as unknown as IBridgeStateSnapshot;
 
 describe('createBridge — getters', () => {
   it('ctx returns state.context', () => {

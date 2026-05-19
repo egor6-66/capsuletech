@@ -521,7 +521,10 @@ describe('ControllerProxy — next.with(arg) bubbling (explicit)', () => {
 
     expect(await ctl.onClick(ITarget_EMPTY, {})).toBe('ok');
     expect(parentSubmit).toHaveBeenCalledOnce();
-    const [t] = parentSubmit.mock.calls[0] as [ITarget, unknown];
+    // `vi.fn(async () => 'ok')` infers a zero-arg signature, so its
+    // mock.calls tuple is `[]`. The proxy invokes it with `(target, ctx)`
+    // at runtime — we re-assert the shape through `unknown`.
+    const [t] = parentSubmit.mock.calls[0] as unknown as [ITarget, unknown];
     expect(t.from).toEqual({ k: 1 });
   });
 

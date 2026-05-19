@@ -53,7 +53,8 @@ export const statusMapper = (): Middleware => async (_ctx, next) => {
     await next();
   } catch (err) {
     if (err instanceof HttpError) {
-      const { status } = err;
+      // HttpError's constructor always sets status; ApiError types it optional.
+      const status = err.status as number;
       if (status === 401) throw new UnauthorizedError({ cause: err });
       if (status === 403) throw new ForbiddenError({ cause: err });
       if (status === 404) throw new NotFoundError({ cause: err });

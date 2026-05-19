@@ -86,9 +86,11 @@ describe('statusMapper', () => {
   it.each([500, 502, 503])('status >= 500 → ServerError (status=%i)', async (status) => {
     const ctx = mkCtx();
     const raw = Object.assign(new Error(`HTTP ${status}`), { status });
-    const caught: any = await statusMapper()(ctx, async () => {
-      throw raw;
-    }).catch((e) => e);
+    const caught: any = await Promise.resolve(
+      statusMapper()(ctx, async () => {
+        throw raw;
+      }),
+    ).catch((e) => e);
     expect(caught).toBeInstanceOf(ServerError);
     expect(caught.status).toBe(status);
   });
@@ -111,9 +113,11 @@ describe('statusMapper', () => {
   it('HttpError(500+) → ServerError, status preserved', async () => {
     const ctx = mkCtx();
     const httpErr = new HttpError(503, new Response(null, { status: 503 }));
-    const caught: any = await statusMapper()(ctx, async () => {
-      throw httpErr;
-    }).catch((e) => e);
+    const caught: any = await Promise.resolve(
+      statusMapper()(ctx, async () => {
+        throw httpErr;
+      }),
+    ).catch((e) => e);
     expect(caught).toBeInstanceOf(ServerError);
     expect(caught.status).toBe(503);
     expect(caught.cause).toBe(httpErr);
@@ -122,27 +126,33 @@ describe('statusMapper', () => {
   it('HttpError with unmapped status → rethrows as-is', async () => {
     const ctx = mkCtx();
     const httpErr = new HttpError(418, new Response(null, { status: 418 }));
-    const caught: any = await statusMapper()(ctx, async () => {
-      throw httpErr;
-    }).catch((e) => e);
+    const caught: any = await Promise.resolve(
+      statusMapper()(ctx, async () => {
+        throw httpErr;
+      }),
+    ).catch((e) => e);
     expect(caught).toBe(httpErr);
   });
 
   it('already-ApiError passes through unchanged', async () => {
     const ctx = mkCtx();
     const tagged = new TimeoutError();
-    const caught: any = await statusMapper()(ctx, async () => {
-      throw tagged;
-    }).catch((e) => e);
+    const caught: any = await Promise.resolve(
+      statusMapper()(ctx, async () => {
+        throw tagged;
+      }),
+    ).catch((e) => e);
     expect(caught).toBe(tagged);
   });
 
   it('error without .status rethrows raw', async () => {
     const ctx = mkCtx();
     const raw = new Error('weird');
-    const caught: any = await statusMapper()(ctx, async () => {
-      throw raw;
-    }).catch((e) => e);
+    const caught: any = await Promise.resolve(
+      statusMapper()(ctx, async () => {
+        throw raw;
+      }),
+    ).catch((e) => e);
     expect(caught).toBe(raw);
     expect(caught).not.toBeInstanceOf(ApiError);
   });
@@ -150,9 +160,11 @@ describe('statusMapper', () => {
   it('cause is preserved on the typed error', async () => {
     const ctx = mkCtx();
     const raw = Object.assign(new Error('HTTP 401'), { status: 401 });
-    const caught: any = await statusMapper()(ctx, async () => {
-      throw raw;
-    }).catch((e) => e);
+    const caught: any = await Promise.resolve(
+      statusMapper()(ctx, async () => {
+        throw raw;
+      }),
+    ).catch((e) => e);
     expect(caught.cause).toBe(raw);
   });
 });
@@ -187,9 +199,11 @@ describe('on401', () => {
       await new Promise((r) => setTimeout(r, 5));
       resolved = true;
     };
-    await on401(handler)(ctx, async () => {
-      throw new UnauthorizedError();
-    }).catch(() => {});
+    await Promise.resolve(
+      on401(handler)(ctx, async () => {
+        throw new UnauthorizedError();
+      }),
+    ).catch(() => {});
     expect(resolved).toBe(true);
   });
 });

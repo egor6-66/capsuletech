@@ -2,7 +2,15 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "emitDecoratorMetadata": true,
-    "outDir": "",
+    // composite + declaration are mandated by TS for any project referenced
+    // from another project's `references` array (TS6306/TS6310). We don't emit
+    // anything from here in practice, but Storybook tooling consumes this
+    // config, and tsc --noEmit -p tsconfig.json (the package's typecheck task)
+    // resolves project references and fails without them.
+    "composite": true,
+    "declaration": true,
+    "noEmit": false,
+    "outDir": "./dist/storybook-types",
     "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "preserve",

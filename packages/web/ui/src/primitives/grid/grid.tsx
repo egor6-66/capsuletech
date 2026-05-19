@@ -59,12 +59,15 @@ const GridImpl = <T extends ValidComponent = 'div'>(props: IGridProps<T>) => {
     return s;
   };
 
+  // See note in flex.tsx — generic Slot props get coerced via `any`.
   return (
     <Slot
-      as={(poly.as as T) ?? ('div' as T)}
-      class={cn(own.inline ? 'inline-grid' : 'grid', own.class)}
-      style={mergeStyle(computed(), own.style) as never}
-      {...(others as object)}
+      {...({
+        as: (poly.as as T) ?? ('div' as T),
+        class: cn(own.inline ? 'inline-grid' : 'grid', own.class),
+        style: mergeStyle(computed(), own.style) as never,
+        ...(others as object),
+      } as any)}
     />
   );
 };

@@ -13,7 +13,11 @@ const makeEvent = (overrides: Partial<AnyEvent>): AnyEvent =>
     ...overrides,
   }) as unknown as AnyEvent;
 
-const makeEl = (overrides: Record<string, unknown>) => ({ ...overrides });
+// `currentTarget` is typed as `EventTarget` by the DOM lib, but `getTargetData`
+// only reads ad-hoc fields (`name`, `value`, `type`, `checked`). Casting via
+// `unknown` keeps the test stubs trivial without re-implementing EventTarget.
+const makeEl = (overrides: Record<string, unknown>): EventTarget =>
+  ({ ...overrides }) as unknown as EventTarget;
 
 describe('getTargetData — name resolution', () => {
   it('prefers DOM element name over derivedName/props', () => {

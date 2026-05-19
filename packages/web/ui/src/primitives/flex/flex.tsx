@@ -84,12 +84,18 @@ export const Flex = <T extends ValidComponent = 'div'>(props: IFlexProps<T>) => 
     return s;
   };
 
+  // Slot is generic over T; the explicit class/style still fight TS because
+  // `Omit<ComponentProps<T>, 'as'>` is opaque for an unresolved T. Casting the
+  // whole props bag to `any` matches the same shortcut used inside Slot for
+  // the `{...others}` spread.
   return (
     <Slot
-      as={(poly.as as T) ?? ('div' as T)}
-      class={classes()}
-      style={mergeStyle(computed(), own.style) as never}
-      {...(others as object)}
+      {...({
+        as: (poly.as as T) ?? ('div' as T),
+        class: classes(),
+        style: mergeStyle(computed(), own.style) as never,
+        ...(others as object),
+      } as any)}
     />
   );
 };

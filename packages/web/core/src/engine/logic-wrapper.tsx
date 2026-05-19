@@ -6,6 +6,7 @@ import { createEffect, onCleanup, Suspense } from 'solid-js';
 import type {
   IDefineStateSchema,
   IHandlerApi,
+  INext,
   IServices,
   IStateApi,
   IWrapperProps,
@@ -50,12 +51,19 @@ export const createLogicWrapper =
           Array.isArray(n) ? n.includes(state.value as string) : state.value === n,
       };
 
+      // Lifecycle hooks don't have a parent UI event, so `next()` is a no-op.
+      // Cast keeps `next` shape (callable + `.with`) without polluting the
+      // public INext type with optional surface.
+      const lifecycleNext = Object.assign(async () => null, {
+        with: async () => null,
+      }) as unknown as INext;
+
       const lifecycleApi = (): IHandlerApi => ({
         target: {},
         context: store.ctx,
         store,
         state: stateApi,
-        next: async () => null,
+        next: lifecycleNext,
       });
 
       // Lifecycle: onInit / onExit, плюс initial-onInit на mount

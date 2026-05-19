@@ -47,12 +47,15 @@ export const Item = <T extends ValidComponent = 'div'>(props: IGridItemProps<T>)
     return s;
   };
 
+  // See note in ../flex/flex.tsx — generic Slot props get coerced via `any`.
   return (
     <Slot
-      as={(poly.as as T) ?? ('div' as T)}
-      class={cn(own.class)}
-      style={mergeStyle(styleFor(), own.style) as never}
-      {...(others as object)}
+      {...({
+        as: (poly.as as T) ?? ('div' as T),
+        class: cn(own.class),
+        style: mergeStyle(styleFor(), own.style) as never,
+        ...(others as object),
+      } as any)}
     />
   );
 };

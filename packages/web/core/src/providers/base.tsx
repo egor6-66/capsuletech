@@ -2,6 +2,7 @@ import { VitalsMonitoringProvider } from '@capsuletech/web-profiler';
 import {
   type AnyRoute,
   createRouter,
+  type ICapsuleRouter,
   type ICapsuleRouterContext,
   RouterContext,
   RouterProvider,
@@ -49,7 +50,11 @@ export function BaseProviders<TRouteTree extends AnyRoute = AnyRoute>(
           context: props.routerContext,
         });
         return (
-          <RouterContext.Provider value={capsuleRouter}>
+          // RouterContext is parameterised on the default AnyRoute branch;
+          // narrowing it to the local TRouteTree would force every consumer
+          // to thread the same generic. The widening cast is safe because
+          // the runtime shape is identical.
+          <RouterContext.Provider value={capsuleRouter as unknown as ICapsuleRouter}>
             <RouterProvider router={raw} />
           </RouterContext.Provider>
         );
