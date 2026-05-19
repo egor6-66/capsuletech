@@ -143,6 +143,7 @@ interface IProps {
 export const EndpointsRegistryPlugin = ({ out, typesOut, watchDir }: IProps): Plugin => {
   const known = new Map<string, Leaf>();
   let needsFlush = false;
+  let scanned = false;
 
   const srcRelFromRegistry = (() => {
     // out: <root>/.capsule/registry/endpoints.ts
@@ -173,20 +174,26 @@ export const EndpointsRegistryPlugin = ({ out, typesOut, watchDir }: IProps): Pl
     needsFlush = true;
   };
 
+  // Initial-scan идемпотентен: `buildStart` дёргается и в dev, и в prod, а
+  // `configureServer` — только в dev. Раньше скан проходил дважды в dev;
+  // флаг `scanned` гарантирует, что walk файлов и flush выполняются один раз.
+  // Эмитим даже если known пустой — нужен валидный пустой registry.
+  const initialScan = async (absWatch: string) => {
+    if (scanned) return;
+    scanned = true;
+    for (const file of await walkFiles(absWatch)) handleEvent('add', file, absWatch);
+    needsFlush = true;
+    flush();
+  };
+
   return {
     name: 'endpoints-registry',
     async buildStart() {
-      const absWatch = resolve(watchDir);
-      for (const file of await walkFiles(absWatch)) handleEvent('add', file, absWatch);
-      // Эмитим даже если known пустой — нужен валидный пустой registry.
-      needsFlush = true;
-      flush();
+      await initialScan(resolve(watchDir));
     },
     async configureServer(server: ViteDevServer) {
       const absWatch = resolve(server.config.root, watchDir);
-      for (const file of await walkFiles(absWatch)) handleEvent('add', file, absWatch);
-      needsFlush = true;
-      flush();
+      await initialScan(absWatch);
 
       watcherManager.init(server, absWatch);
       watcherManager.subscribe(absWatch, {
