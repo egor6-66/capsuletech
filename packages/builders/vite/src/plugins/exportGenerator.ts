@@ -207,6 +207,7 @@ export const ExportGeneratorPlugin = ({ out, typesOut, watchDir, files = [] }: I
   const layers = [...Object.keys(LAYER_TO_NAMESPACE), ...files];
   const known = new Map<string, Leaf>();
   let needsFlush = false;
+  let scanned = false;
 
   const flush = () => {
     if (!needsFlush) return;
@@ -231,23 +232,26 @@ export const ExportGeneratorPlugin = ({ out, typesOut, watchDir, files = [] }: I
     needsFlush = true;
   };
 
+  // Initial-scan идемпотентен: `buildStart` дёргается и в dev, и в prod, а
+  // `configureServer` — только в dev. Раньше скан проходил дважды в dev;
+  // флаг `scanned` гарантирует, что walk файлов и flush выполняются один раз.
+  const initialScan = async (absWatch: string) => {
+    if (scanned) return;
+    scanned = true;
+    for (const file of await walkFiles(absWatch)) {
+      handleEvent('add', file, absWatch);
+    }
+    flush();
+  };
+
   return {
     name: 'export-generator',
     async buildStart() {
-      // Initial-scan для prod-build (configureServer там не дёргается).
-      const absWatch = resolve(watchDir);
-      for (const file of await walkFiles(absWatch)) {
-        handleEvent('add', file, absWatch);
-      }
-      flush();
+      await initialScan(resolve(watchDir));
     },
     async configureServer(server: ViteDevServer) {
       const absWatch = resolve(server.config.root, watchDir);
-
-      for (const file of await walkFiles(absWatch)) {
-        handleEvent('add', file, absWatch);
-      }
-      flush();
+      await initialScan(absWatch);
 
       watcherManager.init(server, absWatch);
       watcherManager.subscribe(absWatch, {
