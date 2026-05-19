@@ -229,75 +229,6 @@ importers:
         specifier: ~4.1.0
         version: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
 
-  apps/agent:
-    dependencies:
-      '@capsuletech/shared-zod':
-        specifier: workspace:*
-        version: link:../../packages/shared/zod
-      '@capsuletech/web-core':
-        specifier: workspace:*
-        version: link:../../packages/web/core
-      '@capsuletech/web-query':
-        specifier: workspace:*
-        version: link:../../packages/web/query
-      '@capsuletech/web-router':
-        specifier: workspace:*
-        version: link:../../packages/web/router
-      '@capsuletech/web-state':
-        specifier: workspace:*
-        version: link:../../packages/web/state
-      '@capsuletech/web-style':
-        specifier: workspace:*
-        version: link:../../packages/web/style
-      '@capsuletech/web-ui':
-        specifier: workspace:*
-        version: link:../../packages/web/ui
-      '@tanstack/solid-router':
-        specifier: ^1.169.0
-        version: 1.169.2(solid-js@1.9.12)
-      solid-js:
-        specifier: ^1.9.5
-        version: 1.9.12
-
-  apps/ewc:
-    dependencies:
-      '@capsuletech/shared-zod':
-        specifier: workspace:*
-        version: link:../../packages/shared/zod
-      '@capsuletech/web-core':
-        specifier: workspace:*
-        version: link:../../packages/web/core
-      '@capsuletech/web-profiler':
-        specifier: workspace:*
-        version: link:../../packages/web/profiler
-      '@capsuletech/web-query':
-        specifier: workspace:*
-        version: link:../../packages/web/query
-      '@capsuletech/web-renderer':
-        specifier: workspace:*
-        version: link:../../packages/web/renderer
-      '@capsuletech/web-router':
-        specifier: workspace:*
-        version: link:../../packages/web/router
-      '@capsuletech/web-state':
-        specifier: workspace:*
-        version: link:../../packages/web/state
-      '@capsuletech/web-style':
-        specifier: workspace:*
-        version: link:../../packages/web/style
-      '@capsuletech/web-ui':
-        specifier: workspace:*
-        version: link:../../packages/web/ui
-
-  apps/sandbox:
-    dependencies:
-      '@capsuletech/web-core':
-        specifier: workspace:*
-        version: link:../../packages/web/core
-      '@capsuletech/web-query':
-        specifier: workspace:*
-        version: link:../../packages/web/query
-
   packages/builders/biome: {}
 
   packages/builders/compliance: {}
@@ -337,6 +268,50 @@ importers:
       solid-refresh:
         specifier: ^0.6.3
         version: 0.6.3(solid-js@1.9.12)
+
+  packages/canvas/host:
+    devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../../builders/lib
+      '@capsuletech/vite-builder':
+        specifier: workspace:*
+        version: link:../../builders/vite
+
+  packages/canvas/three:
+    dependencies:
+      '@capsuletech/canvas-host':
+        specifier: workspace:*
+        version: link:../host
+      solid-js:
+        specifier: ^1.9.0
+        version: 1.9.12
+      three:
+        specifier: '>=0.160.0'
+        version: 0.184.0
+    devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../../builders/lib
+      '@capsuletech/vite-builder':
+        specifier: workspace:*
+        version: link:../../builders/vite
+
+  packages/canvas/ui:
+    dependencies:
+      '@capsuletech/canvas-host':
+        specifier: workspace:*
+        version: link:../host
+      solid-js:
+        specifier: ^1.9.0
+        version: 1.9.12
+    devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../../builders/lib
+      '@capsuletech/vite-builder':
+        specifier: workspace:*
+        version: link:../../builders/vite
 
   packages/cli:
     dependencies:
@@ -5892,6 +5867,9 @@ packages:
 
   thread-stream@3.1.0:
     resolution: {integrity: sha512-OqyPZ9u96VohAyMfJykzmivOrY2wfMSf3C5TtFJVgN+Hm6aj+voFhlK+kZEIv2FBh1X6Xp3DlnCOfEQ3B2J86A==}
+
+  three@0.184.0:
+    resolution: {integrity: sha512-wtTRjG92pM5eUg/KuUnHsqSAlPM296brTOcLgMRqEeylYTh/CdtvKUvCyyCQTzFuStieWxvZb8mVTMvdPyUpxg==}
 
   through2@2.0.5:
     resolution: {integrity: sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ==}
@@ -12508,6 +12486,8 @@ snapshots:
   thread-stream@3.1.0:
     dependencies:
       real-require: 0.2.0
+
+  three@0.184.0: {}
 
   through2@2.0.5:
     dependencies:

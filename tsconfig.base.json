@@ -49,7 +49,10 @@
       "@capsuletech/vite-builder": ["packages/builders/vite/src/index.ts"],
       "@capsuletech/lib-builder": ["packages/builders/lib/src/index.ts"],
       "@capsuletech/shared-zod": ["packages/shared/zod/src/index.ts"],
-      "@capsuletech/shared-utils": ["packages/shared/utils/src/index.ts"]
+      "@capsuletech/shared-utils": ["packages/shared/utils/src/index.ts"],
+      "@capsuletech/canvas-host": ["packages/canvas/host/src/index.ts"],
+      "@capsuletech/canvas-ui": ["packages/canvas/ui/src/index.ts"],
+      "@capsuletech/canvas-three": ["packages/canvas/three/src/index.ts"]
     }
   }
 }
