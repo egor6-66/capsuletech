@@ -1,6 +1,6 @@
 import type { Preview } from 'storybook-solidjs-vite';
 
-import '../../style/src/index.css';
+import './preview.css';
 
 // Eager-импорт всех тем — CSS попадает в preview-бандл, имена идут в toolbar.
 // Тот же приём использует ThemeSwitcher в @capsuletech/web-style/switcher.
