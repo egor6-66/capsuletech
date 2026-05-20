@@ -41,6 +41,7 @@
       "@capsuletech/web-ui": ["packages/web/ui/src/index.ts"],
       "@capsuletech/web-ui/*": [
         "packages/web/ui/src/primitives/*",
+        "packages/web/ui/src/primitives/layout/*",
         "packages/web/ui/src/components/*"
       ],
       "@capsuletech/cli": ["packages/cli/src/index.ts"],
