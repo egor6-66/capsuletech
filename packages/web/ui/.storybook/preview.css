@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@capsuletech/web-style/css";
 @import "@capsuletech/web-style/themes";
 
 /* Tailwind utility scan: web-ui's own src/ — Button/Card/etc. */
