@@ -272,6 +272,7 @@ await step('pnpm dev + curl /', async () => {
   const appDir = join(FIXTURE_DIR, 'apps', APP_NAME);
   let port = null;
   let stdoutBuf = '';
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI escape (\x1b) intentional
   const stripAnsi = (s) => s.replace(/\x1b\[[0-9;]*m/g, '');
   const devProc = trackChild(
     spawn('pnpm', ['dev'], {
