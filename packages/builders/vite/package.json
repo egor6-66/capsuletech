@@ -11,15 +11,23 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@babel/generator": "^7.29.1",
     "@babel/parser": "^7.29.3",
+    "@babel/traverse": "^7.25.6",
+    "@babel/types": "^7.25.6",
     "@capsuletech/compliance": "workspace:*",
     "@capsuletech/lib-builder": "workspace:*",
     "@nx/devkit": "^22.7.0",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/router-vite-plugin": "^1.166.45",
-    "vite-plugin-solid": "^2.11.12"
+    "jiti": "2.4.2",
+    "unplugin-auto-import": "^21.0.0",
+    "vite-plugin-solid": "^2.11.12",
+    "vite-tsconfig-paths": "^6.1.1"
   },
   "devDependencies": {
+    "@types/babel__generator": "^7.27.0",
+    "@types/babel__traverse": "^7.28.0",
     "solid-refresh": "^0.6.3"
   },
   "peerDependencies": {

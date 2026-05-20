@@ -127,7 +127,7 @@ const loadAndGenerate = (props: IProps) => {
  * который Vite-config (Node-only), а не в `capsule.app.ts`. Транформ
  * срабатывает только на configPath = capsule.app.ts.
  */
-const FACTORY_REPLACE_RE = /\bdefineAppConfig\b/g;
+const FACTORY_REPLACE_RE = /\bdefineAppConfig(?=\s*\()/g;
 
 /**
  * Нормализация пути для сравнения id ↔ configPath:

@@ -82,4 +82,29 @@ describe('AppConfigPlugin.transform — id ↔ configPath matching', () => {
     const out = getTransform(path)(`export default { foo: 1 };\n`, path);
     expect(out).toBeNull();
   });
+
+  // Regression: FACTORY_REPLACE_RE must NOT match the identifier inside an
+  // import-statement — only call-sites (`defineAppConfig(`).
+  it('legacy — no import: replaces bare call-site only', () => {
+    const path = '/repo/apps/agent/capsule.app.ts';
+    const code = `export default defineAppConfig({ foo: 1 });\n`;
+    const out = getTransform(path)(code, path);
+    expectTransformed(out);
+    expect(out!.code).toBe(`export default ((__x__)=>__x__)({ foo: 1 });\n`);
+  });
+
+  it('new template — with import: import binding preserved, call-site replaced', () => {
+    const path = '/repo/apps/agent/capsule.app.ts';
+    const code = [
+      `import { defineAppConfig } from '@capsuletech/web-query/app-config';`,
+      `export default defineAppConfig({ meta: { tags: ['click'] }, aliases: {} });`,
+      '',
+    ].join('\n');
+    const out = getTransform(path)(code, path);
+    expectTransformed(out);
+    // The import line must keep the original identifier intact.
+    expect(out!.code).toContain(`import { defineAppConfig } from '@capsuletech/web-query/app-config'`);
+    // The call-site must be replaced.
+    expect(out!.code).toContain(`((__x__)=>__x__)({ meta:`);
+  });
 });

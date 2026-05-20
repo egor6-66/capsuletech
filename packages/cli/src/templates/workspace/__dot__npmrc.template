@@ -6,3 +6,10 @@ registry=https://registry.npmjs.org/
 # из публичного npm.
 @capsuletech:registry=http://localhost:4873/
 //localhost:4876/:_authToken=secretVerdaccioToken
+
+# Автоустановка peerDependencies — capsule-пакеты декларируют все runtime-singletons
+# (solid-js, xstate, @tanstack/*, @kobalte/core, ...) как peer, и pnpm должен их
+# подтянуть сам. Без этого app/package.json пришлось бы вручную дублировать ~7
+# транзитивных deps, и они дрейфовали бы относительно требований пакетов.
+# Это и так дефолт начиная с pnpm@8 — прописано явно для self-documenting.
+auto-install-peers=true

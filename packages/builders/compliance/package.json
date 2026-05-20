@@ -10,7 +10,14 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "devDependencies": {},
+  "dependencies": {
+    "@babel/parser": "^7.29.3",
+    "@babel/traverse": "^7.25.6",
+    "@babel/types": "^7.25.6"
+  },
+  "devDependencies": {
+    "@types/babel__traverse": "^7.28.0"
+  },
   "publishConfig": {
     "access": "public",
     "packageManager": "pnpm"

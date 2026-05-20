@@ -16,6 +16,7 @@
     "@capsuletech/web-query": "<%= cap %>",
     "@capsuletech/web-renderer": "<%= cap %>",
     "@capsuletech/web-editor": "<%= cap %>",
-    "@capsuletech/shared-zod": "<%= cap %>"
+    "@capsuletech/shared-zod": "<%= cap %>",
+    "solid-js": "1.9.12"
   }
 }
