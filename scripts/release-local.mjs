@@ -58,7 +58,10 @@ const REGISTRY =
   args.get('registry') && args.get('registry') !== true
     ? String(args.get('registry'))
     : process.env.NPM_REGISTRY_VERDACCIO || 'http://localhost:4873';
-const TAG = args.get('tag') && args.get('tag') !== true ? String(args.get('tag')) : 'local';
+// Default dist-tag is `latest` — without it `pnpm install @capsuletech/foo`
+// in a freshly scaffolded app cannot resolve the version (scaffold writes "latest").
+// Override via --tag=<name> if needed.
+const TAG = args.get('tag') && args.get('tag') !== true ? String(args.get('tag')) : 'latest';
 const SHOULD_BUILD = !args.has('no-build');
 const GROUP = args.get('group');
 
