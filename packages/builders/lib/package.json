@@ -20,7 +20,11 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "dependencies": {},
+  "dependencies": {
+    "vite-plugin-dts": "~5.0.0",
+    "vite-plugin-solid": "^2.11.12",
+    "vite-tsconfig-paths": "^6.1.1"
+  },
   "devDependencies": {},
   "publishConfig": {
     "access": "public",
