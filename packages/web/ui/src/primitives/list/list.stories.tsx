@@ -9,6 +9,21 @@ const NAV = [
   { id: 4, label: 'Settings' },
 ];
 
+// Batch mode: template component
+function NavItem(props: { label: string; active?: boolean }) {
+  return (
+    <li
+      class={`rounded-md px-3 py-2 text-sm ${
+        props.active
+          ? 'bg-primary text-primary-foreground'
+          : 'hover:bg-accent hover:text-accent-foreground'
+      }`}
+    >
+      {props.label}
+    </li>
+  );
+}
+
 const BIG = Array.from({ length: 1000 }, (_, i) => ({
   id: i,
   label: `Row #${i + 1}`,
@@ -98,5 +113,28 @@ export const Virtual: Story = {
         <div class="border-b border-border px-3 py-2 text-sm font-mono">{item.label}</div>
       )}
     />
+  ),
+};
+
+export const BatchMode: Story = {
+  name: 'batch mode · data + as template',
+  render: (args) => (
+    <List
+      {...args}
+      data={NAV}
+      as={NavItem}
+      itemProps={(item) => ({ label: item.label, active: item.active })}
+    />
+  ),
+};
+
+export const Semantic: Story = {
+  name: 'semantic · plain children',
+  render: (args) => (
+    <List {...args}>
+      <li class="rounded-md px-3 py-2 text-sm hover:bg-accent">Home</li>
+      <li class="rounded-md px-3 py-2 text-sm hover:bg-accent">Inbox</li>
+      <li class="rounded-md px-3 py-2 text-sm hover:bg-accent">Settings</li>
+    </List>
   ),
 };

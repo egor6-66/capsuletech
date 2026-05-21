@@ -25,7 +25,7 @@ last-verified: 2026-05-21
 | `packages/web/core/src/wrappers/view.tsx` | `ViewWrapper` — простой leaf, UiProxy под ControllerContext, ShapeUiContext.Provider |
 | `packages/web/core/src/wrappers/widget.tsx` | `WidgetWrapper` — добавляет `Outlet` в Ui, ShapeUiContext.Provider |
 | `packages/web/core/src/wrappers/page.tsx` | `PageWrapper` — `{ Layout, Outlet, Animate }` в Ui, ShapeUiContext.Provider |
-| `packages/web/core/src/wrappers/shape/wrapper.tsx` | `ShapeWrapper` — резолвит `as` через path-tracker или global direct ref, рендерит через `Dynamic` |
+| `packages/web/core/src/wrappers/shape/wrapper.tsx` | `ShapeWrapper` — batch flow (v0.4.0+): `splitProps`+`mergeProps`, передаёт `data` + extras в `as` через `Dynamic`. Path-tracker резолвится через `ShapeUiContext`. |
 | `packages/web/core/src/wrappers/shape/context.tsx` | `ShapeUiContext` — несёт **только** Ui (после revert PR #114) |
 | `packages/web/core/src/wrappers/shape/ui-path-tracker.ts` | Proxy-based path-tracker для `as: ui.X.Y` |
 | `packages/web/core/src/wrappers/logic-wrapper.tsx` | `createLogicWrapper(kind)` — Controller/Feature общая фабрика (services injection + XState + lifecycle) |
@@ -65,10 +65,22 @@ import { BaseProviders } from '@capsuletech/web-core/providers';
 View<P>((Ui: ViewUi, props: P) => JSX.Element): Component<P>
 Widget<P>((Ui: WidgetUi, props: P) => JSX.Element): Component<P>
 Page<P>((Ui: PageUi, props: P) => JSX.Element): Component<P>
-Shape((z: ZodHelpers, ui: UiPathTracker) => ShapeDefinition): Component<ShapeProps>
+// v0.4.0: batch flow — Shape НЕ итерирует, передаёт data[] целиком в as-template
+Shape((z: ZodHelpers, ui: UiPathTracker) => {
+  schema: ZodArray;
+  defaults?: TData[];
+  as?: Component;        // batch-template (Ui.List / Ui.DataTable / custom)
+  [extraKey: string]: unknown; // columns, sorting, itemAs, etc → forwarded to as
+}): Component<{
+  data?: TData[];        // overrides defaults
+  as?: Component;        // overrides definition.as
+  [extraKey: string]: unknown; // consumer extras win over definition extras
+}>
 Controller((services: IServices) => IDefineStateSchema): Component
 Feature((services: IServices) => IDefineStateSchema): Component
 ```
+
+**Shape v0.4.0 BREAKING:** `props: (item) => ...` per-item mapper и `children` render-prop удалены. `IShapeTemplateProps` и `IShapeRender` убраны из публичного API. Используй batch-templates (`Ui.List` / `Ui.DataTable`). Реактивность через `splitProps` + `mergeProps`.
 
 **Generic `<P extends Record<string, any>>`** на View/Widget/Page renderer'ах — для типизации props на call site (Shape `as`-pattern: template-View получает item-данные как props).
 
@@ -132,7 +144,7 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 
 3. **`Providers` — namespace, не named export.** `import { Providers } from '@capsuletech/web-core'; <Providers.BaseProviders>`. Расширяемая namespace для будущих `Providers.TestingProvider`. Не плющи в named.
 
-4. **`Ui.Layout` — plain object**, не вызываемый компонент. `{ Grid, Flex, Matrix }` — три lazy-компонента. Источник: `src/ui-kit/imports.tsx:17`.
+4. **`Ui.Layout` — plain object**, не вызываемый компонент. `{ Grid, Flex, Matrix }` — три lazy-компонента. Источник: `src/ui-kit/imports.tsx:17`. В отличие от него, `Ui.Table` — вызываемый compound (`Object.assign(TableBase, { Header, Body, Row, Head, Cell })`), доступен в `ViewUi` и `WidgetUi`. `Ui.DataTable` — простой callable (без sub-components), доступен в `ViewUi` и `WidgetUi`. Generic `<TData>` — TS инферирует тип строки из `data`/`columns` props. Subpath: `@capsuletech/web-ui/dataTable`.
 
 5. **Все `Ui.*` — lazy через `createLazy`.** Обёртка над `lazy(() => import(...).then(m => ({ default: m[name] })))`. Нужен `<Suspense>` вокруг дерева. `createRoot` оборачивает в Suspense автоматически.
 
@@ -154,6 +166,8 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 
 12. **`ShapeUiContext` несёт только `Ui`** (после revert PR #114 в commit 477b0fb). Раньше был combined `{ ...Ui, Views }` — теперь Shape берёт View-templates через global `Views.X.Y` в `as`, не через `ui.Views.X.Y` path-tracker.
 
+18. **Shape v0.4.0 — batch flow, не per-item.** `<For each>` убран. `props: (item) => ...` и `children` render-prop — удалены. `IShapeTemplateProps` / `IShapeRender` — убраны из публичного API. Теперь `as` получает: `data` (целый массив) + extras из definition + consumer JSX props. Итерация — внутри batch-template (`Ui.List`, `Ui.DataTable`). Apps-код с per-item Shapes (старый `props: (item) => ...`) → нужно переписать на batch-template.
+
 13. **Generic `<P>` на wrapper'ах требует `extends Record<string, any>`** — чтобы соответствовать Solid `Component<P>`. Default `Record<string, any>` сохраняет backward-compat для factory без `<P>`. Не упрощай до `<P = unknown>` — Solid Component откажет.
 
 14. **`Object.assign(globalThis, _registry)` ломает tree-shaking** для registry. Поэтому `wrappers.ts` использует `lazy()` для каждого компонента — это обходит проблему через code-splitting. Eager-import всех registries → fat initial bundle. См. session note про lazy registry в memory.
@@ -164,6 +178,7 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 
 | Хочу… | Куда лезть |
 |---|---|
+| Добавить новый primitive в `Ui` (например `Dialog`) | `src/ui-kit/imports.tsx` (lazy + `Object.assign` для compound) + тип в `ViewUiRaw`/`WidgetUiRaw` в `src/wrappers/interfaces.ts` + характеризационные тесты в `src/wrappers/__tests__/ui-meta-props.test.tsx` |
 | Добавить новый wrapper-слой (например `Adapter`) | `WRAPPER_NAMES` в `packages/builders/vite/src/plugins/constants.ts` (SSOT для AutoImport, делает owner-builders) + новый wrapper в `packages/web/core/src/wrappers/` + публичный API в `index.ts` + AI-anchor entry |
 | Добавить новое поле в `ITarget` (например `meta.section`) | `packages/web/core/src/wrappers/interfaces.ts > ITarget` + сборщик `target` в `engine/ui-proxy.tsx` + опционально `engine/derivation.ts` если выводится из tags. Tests! |
 | Добавить новый handler-event (`onScroll`) | `engine/ui-proxy.tsx > EVENT_HANDLERS` + (опц) `engine/derivation.ts > TAG_TO_INPUT_TYPE`. ADR 009. Tests! |

@@ -5,8 +5,6 @@ export type {
   IShapeComponentProps,
   IShapeDefinition,
   IShapeFactory,
-  IShapeRender,
-  IShapeTemplateProps,
   IShapeUi,
   IShapeWrapper,
   ShapeItem,

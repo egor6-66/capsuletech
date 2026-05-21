@@ -75,11 +75,17 @@ interface IResizableFlexProps {
 }
 
 const ResizableFlex = (props: IResizableFlexProps) => {
-  const sizes = createMemo(() => fillInitialSizes(props.items));
+  // Snapshot items via memo so the getter from the outer component (e.g. matrix's
+  // `get items() { return buildHorizontalItems(...); }`) is called at most ONCE per
+  // reactive update rather than once per access-site.  Multiple accesses within the
+  // same computation return the identical array reference, preventing repeated
+  // JSX-node creation that would move slot-children DOM nodes out of their panels.
+  const items = createMemo(() => props.items);
+  const sizes = createMemo(() => fillInitialSizes(items()));
 
   return (
     <ResizableRoot orientation={props.orientation} class={props.class}>
-      <For each={props.items}>
+      <For each={items()}>
         {(item, index) => (
           <>
             <ResizablePanel
@@ -92,7 +98,7 @@ const ResizableFlex = (props: IResizableFlexProps) => {
             </ResizablePanel>
             <Show
               when={(() => {
-                const next = props.items[index() + 1];
+                const next = items()[index() + 1];
                 return !!next && item.resizable !== false && next.resizable !== false;
               })()}
             >

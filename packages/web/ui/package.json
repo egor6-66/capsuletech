@@ -131,6 +131,16 @@
       "import": "./dist/components/separator/*.mjs",
       "default": "./dist/components/separator/*.mjs"
     },
+    "./table": {
+      "types": "./dist/components/table/index.d.ts",
+      "import": "./dist/components/table/index.mjs",
+      "default": "./dist/components/table/index.mjs"
+    },
+    "./table/*": {
+      "types": "./dist/components/table/*.d.ts",
+      "import": "./dist/components/table/*.mjs",
+      "default": "./dist/components/table/*.mjs"
+    },
     "./slot": {
       "types": "./dist/components/slot/index.d.ts",
       "import": "./dist/components/slot/index.mjs",
@@ -170,6 +180,16 @@
       "types": "./dist/components/wrappers/*.d.ts",
       "import": "./dist/components/wrappers/*.mjs",
       "default": "./dist/components/wrappers/*.mjs"
+    },
+    "./dataTable": {
+      "types": "./dist/components/dataTable/index.d.ts",
+      "import": "./dist/components/dataTable/index.mjs",
+      "default": "./dist/components/dataTable/index.mjs"
+    },
+    "./dataTable/*": {
+      "types": "./dist/components/dataTable/*.d.ts",
+      "import": "./dist/components/dataTable/*.mjs",
+      "default": "./dist/components/dataTable/*.mjs"
     }
   },
   "files": [
@@ -178,6 +198,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build"
   },
@@ -187,14 +209,20 @@
     "solid-motionone": "^1.0.4"
   },
   "peerDependencies": {
+    "@capsuletech/web-style": "workspace:*",
     "@kobalte/core": "^0.13.0",
+    "@tanstack/solid-table": "^8.21.3",
     "@tanstack/solid-virtual": "^3.13.24",
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
     "@capsuletech/lib-builder": "workspace:*",
     "@capsuletech/vite-builder": "workspace:*",
+    "@capsuletech/web-router": "workspace:*",
     "@tailwindcss/vite": "^4.2.4",
+    "@tanstack/solid-table": "^8.21.3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "jsdom": "~29.1.1",
     "lucide-solid": "^1.16.0",
     "storybook": "^10",
     "storybook-solidjs-vite": "^10",

@@ -45,7 +45,7 @@ export const OnlyMain: Story = {
   render: () => (
     <Matrix
       slots={{
-        main: <Button>Centroid content</Button>,
+        main: { children: <Button>Centroid content</Button> },
       }}
     />
   ),
@@ -60,7 +60,7 @@ export const OnlyMainAnimated: Story = {
     <Matrix
       animated="fade"
       slots={{
-        main: <Button>Fade in on mount</Button>,
+        main: { children: <Button>Fade in on mount</Button> },
       }}
     />
   ),
@@ -75,9 +75,9 @@ export const HeaderMainFooter: Story = {
   render: () => (
     <Matrix
       slots={{
-        header: <MockHeader />,
-        main: <MockMain />,
-        footer: <MockFooter />,
+        header: { children: <MockHeader /> },
+        main: { children: <MockMain /> },
+        footer: { children: <MockFooter /> },
       }}
     />
   ),
@@ -92,11 +92,11 @@ export const FullGrid: Story = {
   render: () => (
     <Matrix
       slots={{
-        header: <MockHeader />,
-        sidebar: <MockSidebar />,
-        main: <MockMain />,
-        rightBar: <MockRightBar />,
-        footer: <MockFooter />,
+        header: { children: <MockHeader /> },
+        sidebar: { children: <MockSidebar /> },
+        main: { children: <MockMain /> },
+        rightBar: { children: <MockRightBar /> },
+        footer: { children: <MockFooter /> },
       }}
     />
   ),
@@ -110,9 +110,9 @@ export const HeaderSidebarMain: Story = {
   render: () => (
     <Matrix
       slots={{
-        header: <MockHeader />,
-        sidebar: <MockSidebar />,
-        main: <MockMain />,
+        header: { children: <MockHeader /> },
+        sidebar: { children: <MockSidebar /> },
+        main: { children: <MockMain /> },
       }}
     />
   ),
@@ -128,7 +128,7 @@ export const ResizableSidebars: Story = {
   render: () => (
     <Matrix
       slots={{
-        header: <MockHeader />,
+        header: { children: <MockHeader /> },
         sidebar: { children: <MockSidebar />, resizable: true, initialSize: 0.2, minSize: 0.12 },
         main: { children: <MockMain />, resizable: true },
         rightBar: { children: <MockRightBar />, resizable: true, initialSize: 0.22, minSize: 0.15 },
@@ -147,8 +147,8 @@ export const ResizableVertical: Story = {
   render: () => (
     <Matrix
       slots={{
-        header: <MockHeader />,
-        main: <MockMain />,
+        header: { children: <MockHeader /> },
+        main: { children: <MockMain /> },
         footer: { children: <MockFooter />, resizable: true, initialSize: 0.15, minSize: 0.08 },
       }}
     />

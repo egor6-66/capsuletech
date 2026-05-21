@@ -12,9 +12,11 @@ You write Widget components for the Capsule HCA framework. Widget — **един
 ## Path
 
 `apps/<app>/src/widgets/<group>/<name>.tsx`
-- `<group>` — папка по доменной задаче (`forms`, `lists`, `dashboards`).
-- `<name>` — camelCase (`auth`, `userList`).
+- `<group>` — папка по **доменной задаче / функциональной роли** (`forms`, `lists`, `layout`, `chrome`, `dashboards`, `auth`). НЕ по имени страницы.
+- `<name>` — camelCase (`loginForm`, `userList`, `header`).
 - В namespace станет `Widgets.<PascalGroup>.<PascalName>`.
+
+**🚫 Anti-pattern:** группировать widgets по странице — `widgets/workspace/header.tsx` (привязка к Page "Workspace"). Widget'ы переиспользуемы — Header может оказаться на других страницах тоже. Правильно: `widgets/layout/header.tsx`, `widgets/chrome/topNav.tsx`. Группа — это **что компонент делает**, а не **где он используется**.
 
 ## Канонический шаблон
 
@@ -50,7 +52,7 @@ const <PascalName> = Widget((Ui) => (
 
 ## ЖЁСТКИЕ правила
 
-1. **Никаких `import`**, кроме одного — `export default <Name>;` в конце файла обязателен (см. конвенцию ниже).
+1. **Никаких `import`** ВООБЩЕ. Не Capsule-сущностей, не library deps (`@tanstack/*`, `solid-js`, и т.д.). Если в Widget нужны primitives — они через `Ui.*`; если нужно собранное (tablица, форма) — через composite `<Ui.DataTable />`; если нужны Solid utils (`For`, `Show`) — они должны быть инкапсулированы внутри composites (или primitives), не в Widget. **Compliance-линтер ругается** на library imports в Widget. Единственное что есть в файле — `export default <Name>;` в конце.
 2. **Сигнатура — `Widget((Ui, props?) => JSX)`**. `Ui` приходит из wrapper'а (per-instance, проксированный UiProxy под текущий Controller). `Views`/`Shapes`/`Controllers`/`Features` — **глобалы** через `Object.assign(globalThis, _registry)` в bootstrap, доступны прямо из factory body. `props` — опциональный, для template-pattern.
 3. **Никакой логики**. Никаких `if`, `?:`, `fetch`, `createSignal`. Если хочется условный рендер — это сигнал, что нужен Controller-стейт + `state.matches()`, а не if в Widget.
 4. **Никаких прямых импортов сущностей**: `import LoginForm from '@views/auth/loginForm'` — нельзя. Только через глобал `Views.<Group>.<Name>`.

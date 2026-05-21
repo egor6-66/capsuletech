@@ -12,9 +12,18 @@ Stateless UI-kit для capsule: ~15 primitives (Button, Input, Card, Field, Tog
 
 ## Зона ответственности
 
+### Категории src/
+
+| Категория | Что | Примеры |
+|---|---|---|
+| `primitives/` | Atoms — stateless semantic wrappers над HTML-элементами. Не знают о TanStack/Kobalte внутри. | Button, Input, Card, Table, Field, Layout/* |
+| `composites/` | Higher-level assembled components с встроенным smart-flow. Инкапсулируют library deps (e.g. TanStack Table внутри DataTable). Stateful (createSignal внутри), но stateless в смысле бизнес-логики (только UI-state). | DataTable |
+| `wrappers/` | Internal animation/status wrappers. | animate, status |
+
 ### Owns
 
-- `packages/web/ui/src/primitives/` — все primitives: button, input, label, card, field, flex, grid, list, navigation, separator, slot, toggle, typography, matrix, wrappers/* (animate, resizable как internal `flex/_resize/`).
+- `packages/web/ui/src/primitives/` — все primitives: button, input, label, card, field, flex, grid, list, navigation, separator, slot, table, toggle, typography, matrix, wrappers/* (animate, resizable как internal `flex/_resize/`).
+- `packages/web/ui/src/composites/` — assembled higher-level components: DataTable (инкапсулирует `@tanstack/solid-table`).
 - `packages/web/ui/.storybook/` — Storybook config (`main.ts`, `vite.config.ts`, `preview.ts`).
 - `packages/web/ui/.babelrc` — Babel config для CVA.
 - `packages/web/ui/vite.config.mts` — build config (multi-entry, один subpath per primitive).
@@ -45,17 +54,51 @@ import { Grid } from '@capsuletech/web-ui/grid';
 
 ### Subpath exports (через `package.json.exports`)
 
-`./button`, `./card`, `./field`, `./flex`, `./grid`, `./input`, `./label`, `./layout` (deprecated alias на matrix), `./list`, `./matrix`, `./navigation`, `./separator`, `./slot`, `./toggle`, `./typography`, `./wrappers`.
+`./button`, `./card`, `./field`, `./flex`, `./grid`, `./input`, `./label`, `./layout` (deprecated alias на matrix), `./list`, `./matrix`, `./navigation`, `./separator`, `./slot`, `./table`, `./toggle`, `./typography`, `./wrappers`, `./dataTable`.
 
 ### Layout namespace
 
 `Layout` экспортирован НЕ как single component — это **namespace через web-core**: `Ui.Layout.Grid`, `Ui.Layout.Flex`, `Ui.Layout.Matrix`. Сборка namespace происходит в `web-core/src/ui-kit/imports.tsx`.
 
-### Matrix slots — typed inline objects
+### Matrix slots — только object form (BREAKING v0.3.0)
 
-`Ui.Layout.Matrix slots={{ ... }}` принимает inline-objects напрямую (без helper'а). Symbol-brand discriminator в `IResizableSlotConfig` дискриминирует `JSX.Element | IResizableSlotConfig` так что TS autocomplete показывает поля config'а (`children/resizable/initialSize/...`) для object-literal-form.
+`Ui.Layout.Matrix slots={{ ... }}` принимает **только** object-форму `{ children, resizable?, initialSize?, minSize?, maxSize? }`.
+
+**BREAKING (v0.3.0):** JSX-shorthand `header: <Header />` удалён. `SlotValue = IResizableSlotConfig` (не union с `JSX.Element`). Symbol-brand discriminator тоже удалён.
+
+Миграция: `main: <X />` → `main: { children: <X /> }`.
 
 **Это контракт.** Изменение subpath layout / API primitive — breaking change для consumer'ов.
+
+### List — три режима (2026-05-21)
+
+`Ui.List` теперь поддерживает три режима:
+
+1. **Render-prop (classic):** `items={array} children={(item, idx) => JSX}` — прежний render-prop паттерн. Рендерит `<div>`.
+2. **Batch mode (новый):** `data={array} as={Component} itemProps?={(item) => propsObj}` — Shape-first; `<For>` внутри, рендерит `<ul>`.
+3. **Semantic:** просто `children` (plain JSX) — рендерит `<ul>`.
+
+Backward compat: существующий код с `items + children` продолжает работать.
+
+### DataTable — infinite scroll + IColumn (2026-05-21)
+
+**Новый prop `infinite`:**
+- `infinite?: boolean | { itemHeight?, overscan?, threshold? }` — opt-in virtual scroll через `@tanstack/solid-virtual`.
+- По умолчанию: `itemHeight: 36, overscan: 5, threshold: 5`.
+- Когда включён — `pagination` игнорируется на уровне TanStack Table.
+
+**Новый callback `onLoadMore?: () => void`:**
+- Триггерится когда виртуализатор доходит до последних `threshold` строк.
+- Server-side pagination / "load more" pattern.
+
+**Новый тип `IColumn<TData>`:**
+- `accessorKey` сужен до `keyof TData & string` (не просто `string`).
+- `IDataTableProps.columns` принимает `IColumn<TData>[]` вместо `ColumnDef<TData>[]`.
+- Экспортируется из barrel'я: `import type { IColumn } from '@capsuletech/web-ui'`.
+
+**`pagination` — deprecated (не удалён):**
+- Продолжает работать для маленьких датасетов когда `infinite` не задан.
+- Для больших датасетов предпочитать `infinite`.
 
 ## Quirks / gotchas
 
@@ -65,7 +108,7 @@ import { Grid } from '@capsuletech/web-ui/grid';
 
 - **`class-variance-authority`** — в **direct dependencies**, не peer. cva вызывается на runtime внутри primitives, поэтому запекаем в каждый user'ский bundle. Это **dual-package hazard** на чистом ESM, но cva stateless — два экземпляра не конфликтуют.
 
-- **`@kobalte/core`, `@tanstack/solid-virtual`** — **peer dependencies** (singleton runtime). User должен иметь их в node_modules через CLI app template (`auto-install-peers=true`).
+- **`@kobalte/core`, `@tanstack/solid-virtual`, `@tanstack/solid-table`** — **peer dependencies** (singleton runtime). User должен иметь их в node_modules через CLI app template (`auto-install-peers=true`). `@tanstack/solid-table` также добавлен в devDependencies для Storybook stories (примеры с `createSolidTable`, sorting, pagination, row-selection).
 
 - **`@corvu/resizable`** — в dependencies (запекается в dist). Внутреннее использование в Flex resize режиме (`flex/_resize/primitives.tsx`).
 
@@ -81,18 +124,26 @@ import { Grid } from '@capsuletech/web-ui/grid';
 
 - [ ] **Завести `docs/_meta/web-ui.md` AI anchor** — без него Claude-инстансы перечитывают весь README. (priority: high)
 - [ ] **Покрытие unit-тестами** — сейчас опираемся на Storybook visual + capsule-test smoke. Unit-тестов для CVA variants практически нет. (priority: medium)
+- [ ] **Vitest Solid transform** — `vitest.config.ts` не конфигурирует `vite-plugin-solid`, поэтому `.tsx` файлы (JSX) нельзя импортировать в тестах. Нужно добавить `plugins: [solidPlugin()]` в vitest config чтобы разблокировать DOM-рендер тесты для Table (createSolidTable smoke) и других compound primitives. (priority: medium)
 - [ ] **Visual regression через Chromatic / Playwright** — Storybook есть, но visual diff'ы не запускаются. (priority: low)
 - [ ] **A11y audit primitives** — Kobalte даёт базу, но Card / Field / Layout — наши, требуют проверки. (priority: medium)
 - [x] **Layout → Matrix rename + namespace** — Grid/Flex/Matrix объединены под `Ui.Layout` (2026-05-20).
 - [x] **Flex получил resize mode** — corvu wrapped, deprecate'нул отдельный Resizable (2026-05-20).
 - [x] **Matrix.slot() helper удалён** — symbol-brand discriminator на inline objects (2026-05-20).
+- [x] **Matrix.SlotValue → только IResizableSlotConfig** — JSX-shorthand удалён, union убран, IDE-autocomplete исправлен (2026-05-21).
+- [x] **List batch mode** — `data + as + itemProps` opt-in; backward compat сохранён (2026-05-21).
+- [x] **DataTable infinite scroll** — `@tanstack/solid-virtual` virtualizer, `onLoadMore` callback, `IColumn<TData>` typed wrapper (2026-05-21).
 
 ## Test coverage
 
 | Тип | Где | Что покрывает |
 |---|---|---|
 | Stories | `src/primitives/**/*.stories.tsx` | visual + interactive по всем primitives и variants |
-| Unit | — | пробел — minimal coverage |
+| Stories | `src/composites/dataTable/dataTable.stories.tsx` | Basic / WithSorting / WithPagination / WithPaginationCustomSize / WithSelection / WithToolbar / Full / EmptyState / EmptyStateDefault / WithInfinite / WithInfiniteCustomHeight / WithInfiniteLoading |
+| Unit | `src/primitives/layout/matrix/__tests__/normalizeSlot.test.ts` | normalizeSlot: undefined/null/object-form/resizable/type-level |
+| Unit | `src/primitives/table/__tests__/table.test.ts` | interface structural contracts, data-state sentinel documentation (7 tests). Full DOM/render coverage pending vitest Solid transform (see backlog). |
+| Unit | `src/primitives/list/__tests__/list.test.ts` | IListRenderProps / IListBatchProps / IListSemanticProps / IListProps union / IVirtualListProps structural contracts (18 tests). |
+| Unit | `src/composites/dataTable/__tests__/dataTable.test.ts` | IDataTableProps structural contracts, IColumn typed wrapper, ColumnDef re-export, infinite options, onLoadMore callback, pagination defaults (18 tests). Full DOM/render coverage pending vitest Solid transform. |
 | E2E (косвенно) | `packages/cli/e2e/smoke.mjs` | bootstrap + базовый рендер через capsule-test |
 
 **Перед изменением primitive contract'а:**

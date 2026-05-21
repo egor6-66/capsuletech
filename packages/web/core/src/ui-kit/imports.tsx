@@ -54,5 +54,18 @@ export const Field = Object.assign(FieldBase, {
   Title: createLazy(() => import('@capsuletech/web-ui/field/parts'), 'FieldTitle'),
 });
 
+// 7. DataTable — smart table (sorting/pagination/selection/filtering), no sub-components
+export const DataTable = createLazy(() => import('@capsuletech/web-ui/dataTable'), 'DataTable');
+
+// 6. Компонент Table со вложенными частями
+const TableBase = createLazy(() => import('@capsuletech/web-ui/table'), 'Table');
+export const Table = Object.assign(TableBase, {
+  Header: createLazy(() => import('@capsuletech/web-ui/table'), 'TableHeader'),
+  Body:   createLazy(() => import('@capsuletech/web-ui/table'), 'TableBody'),
+  Row:    createLazy(() => import('@capsuletech/web-ui/table'), 'TableRow'),
+  Head:   createLazy(() => import('@capsuletech/web-ui/table'), 'TableHead'),
+  Cell:   createLazy(() => import('@capsuletech/web-ui/table'), 'TableCell'),
+});
+
 // Реэкспорт сторонних утилит
 export { Link } from '@tanstack/solid-router';

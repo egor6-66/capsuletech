@@ -51,11 +51,32 @@ const remapPrimitivesDtsPlugin = (outDir: string): Plugin => ({
     }
     rmSync(primitivesDir, { recursive: true, force: true });
 
-    // dist/index.d.ts ссылается на ./primitives — перенацеливаем на ./components.
+    // То же самое для composites/ — мерджим в components/.
+    const compositesDir = resolve(distDir, 'composites');
+    if (existsSync(compositesDir)) {
+      for (const entry of readdirSync(compositesDir)) {
+        const from = resolve(compositesDir, entry);
+        let isDir = false;
+        try {
+          isDir = statSync(from).isDirectory();
+        } catch {
+          continue;
+        }
+        if (isDir) {
+          cpSync(from, resolve(componentsDir, entry), { recursive: true });
+        }
+        // composites/index.d.ts is intentionally not merged to avoid
+        // overwriting the primitives index.d.ts already moved above.
+      }
+      rmSync(compositesDir, { recursive: true, force: true });
+    }
+
+    // dist/index.d.ts ссылается на ./primitives и ./composites — перенацеливаем на ./components.
     const rootDts = resolve(distDir, 'index.d.ts');
     if (existsSync(rootDts)) {
       const src = readFileSync(rootDts, 'utf8');
-      const patched = src.replace(/(['"])\.\/primitives\1/g, '$1./components$1');
+      let patched = src.replace(/(['"])\.\/primitives\1/g, '$1./components$1');
+      patched = patched.replace(/(['"])\.\/composites\1/g, '$1./components$1');
       if (patched !== src) writeFileSync(rootDts, patched, 'utf8');
     }
   },
@@ -93,7 +114,7 @@ const addComponentEntries = (
 /** Набор имён папок, которые являются группировщиками (не листовыми компонентами). */
 const GROUP_DIRS = new Set(['layout']);
 
-const SRC_DIRS = ['primitives', 'components'] as const;
+const SRC_DIRS = ['primitives', 'components', 'composites'] as const;
 const componentEntries: Record<string, string> = {};
 for (const srcName of SRC_DIRS) {
   const srcDir = resolve(__dirname, 'src', srcName);

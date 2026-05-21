@@ -182,6 +182,151 @@ describe('ViewUi — Navigation compound: sub-components preserved with meta', (
 });
 
 // ---------------------------------------------------------------------------
+// Compile-time: Table compound — added to ViewUi + WidgetUi (2026-05-21)
+// Guards: Table root + all 5 sub-components accept IUiMetaProps in both namespaces.
+// ---------------------------------------------------------------------------
+
+describe('ViewUi — Table compound: root and sub-components preserved with meta', () => {
+  it('Ui.Table is a function', () => {
+    expectTypeOf<ViewUi['Table']>().toBeFunction();
+  });
+
+  it('Ui.Table accepts IUiMetaProps (meta prop)', () => {
+    type TableProps = Parameters<ViewUi['Table']>[0];
+    expectTypeOf<TableProps>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.Table.Header is a function', () => {
+    expectTypeOf<ViewUi['Table']['Header']>().toBeFunction();
+  });
+
+  it('Ui.Table.Header accepts meta prop', () => {
+    type HeaderProps = Parameters<ViewUi['Table']['Header']>[0];
+    expectTypeOf<HeaderProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Table.Body is a function', () => {
+    expectTypeOf<ViewUi['Table']['Body']>().toBeFunction();
+  });
+
+  it('Ui.Table.Body accepts meta prop', () => {
+    type BodyProps = Parameters<ViewUi['Table']['Body']>[0];
+    expectTypeOf<BodyProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Table.Row is a function', () => {
+    expectTypeOf<ViewUi['Table']['Row']>().toBeFunction();
+  });
+
+  it('Ui.Table.Row accepts meta prop', () => {
+    type RowProps = Parameters<ViewUi['Table']['Row']>[0];
+    expectTypeOf<RowProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Table.Head is a function', () => {
+    expectTypeOf<ViewUi['Table']['Head']>().toBeFunction();
+  });
+
+  it('Ui.Table.Head accepts meta prop', () => {
+    type HeadProps = Parameters<ViewUi['Table']['Head']>[0];
+    expectTypeOf<HeadProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Table.Cell is a function', () => {
+    expectTypeOf<ViewUi['Table']['Cell']>().toBeFunction();
+  });
+
+  it('Ui.Table.Cell accepts meta prop', () => {
+    type CellProps = Parameters<ViewUi['Table']['Cell']>[0];
+    expectTypeOf<CellProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+});
+
+describe('WidgetUi — Table compound: root and sub-components preserved with meta', () => {
+  it('Ui.Table is a function', () => {
+    expectTypeOf<WidgetUi['Table']>().toBeFunction();
+  });
+
+  it('Ui.Table accepts IUiMetaProps (meta prop)', () => {
+    type TableProps = Parameters<WidgetUi['Table']>[0];
+    expectTypeOf<TableProps>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.Table.Header is a function (not lost after WithMetaProps)', () => {
+    expectTypeOf<WidgetUi['Table']['Header']>().toBeFunction();
+  });
+
+  it('Ui.Table.Header accepts meta prop', () => {
+    type HeaderProps = Parameters<WidgetUi['Table']['Header']>[0];
+    expectTypeOf<HeaderProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Table.Body is a function', () => {
+    expectTypeOf<WidgetUi['Table']['Body']>().toBeFunction();
+  });
+
+  it('Ui.Table.Body accepts meta prop', () => {
+    type BodyProps = Parameters<WidgetUi['Table']['Body']>[0];
+    expectTypeOf<BodyProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Table.Row is a function', () => {
+    expectTypeOf<WidgetUi['Table']['Row']>().toBeFunction();
+  });
+
+  it('Ui.Table.Row accepts meta prop', () => {
+    type RowProps = Parameters<WidgetUi['Table']['Row']>[0];
+    expectTypeOf<RowProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Table.Head is a function', () => {
+    expectTypeOf<WidgetUi['Table']['Head']>().toBeFunction();
+  });
+
+  it('Ui.Table.Head accepts meta prop', () => {
+    type HeadProps = Parameters<WidgetUi['Table']['Head']>[0];
+    expectTypeOf<HeadProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Table.Cell is a function', () => {
+    expectTypeOf<WidgetUi['Table']['Cell']>().toBeFunction();
+  });
+
+  it('Ui.Table.Cell accepts meta prop', () => {
+    type CellProps = Parameters<WidgetUi['Table']['Cell']>[0];
+    expectTypeOf<CellProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Compile-time: DataTable — simple callable (no sub-components)
+// Added to ViewUi + WidgetUi (2026-05-21). DataTable<TData> is a generic
+// function; WithMetaProps callable-branch handles it via (props: P) => R match.
+// ---------------------------------------------------------------------------
+
+describe('ViewUi — DataTable: is callable and accepts IUiMetaProps', () => {
+  it('Ui.DataTable is a function', () => {
+    expectTypeOf<ViewUi['DataTable']>().toBeFunction();
+  });
+
+  it('Ui.DataTable accepts IUiMetaProps (meta prop)', () => {
+    type DataTableProps = Parameters<ViewUi['DataTable']>[0];
+    expectTypeOf<DataTableProps>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+describe('WidgetUi — DataTable: is callable and accepts IUiMetaProps', () => {
+  it('Ui.DataTable is a function', () => {
+    expectTypeOf<WidgetUi['DataTable']>().toBeFunction();
+  });
+
+  it('Ui.DataTable accepts IUiMetaProps (meta prop)', () => {
+    type DataTableProps = Parameters<WidgetUi['DataTable']>[0];
+    expectTypeOf<DataTableProps>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Runtime: ViewWrapper + UiProxy does not crash when meta is passed
 // (the actual prop stripping is in UiProxy; here we verify no runtime error)
 // ---------------------------------------------------------------------------

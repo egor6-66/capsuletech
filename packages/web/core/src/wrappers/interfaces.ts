@@ -13,11 +13,13 @@ import type {
   Animate,
   Button,
   Card,
+  DataTable,
   Field,
   Input,
   Layout,
   List,
   Navigation,
+  Table,
 } from '@capsuletech/web-ui';
 import type { Component, JSX, JSXElement } from 'solid-js';
 
@@ -128,11 +130,13 @@ type ViewUiRaw = {
   List: typeof List;
   Navigation: typeof Navigation;
   Animate: typeof Animate;
+  Table: typeof Table;
+  DataTable: typeof DataTable;
 };
 
 type Outlet = () => JSXElement;
 
-type WidgetUiRaw = { Card: typeof Card; Outlet: Outlet; Animate: typeof Animate; Layout: typeof Layout };
+type WidgetUiRaw = { Card: typeof Card; Outlet: Outlet; Animate: typeof Animate; Layout: typeof Layout; Table: typeof Table; DataTable: typeof DataTable };
 type PageUiRaw = { Layout: typeof Layout; Outlet: Outlet; Animate: typeof Animate };
 
 /** Ui namespace доступный внутри View factory — все компоненты принимают IUiMetaProps. */
@@ -426,8 +430,6 @@ export type {
   IShapeComponentProps,
   IShapeDefinition,
   IShapeFactory,
-  IShapeRender,
-  IShapeTemplateProps,
   IShapeUi,
   IShapeWrapper,
   ShapeItem,

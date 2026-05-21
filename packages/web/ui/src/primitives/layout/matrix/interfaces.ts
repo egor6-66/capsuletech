@@ -4,15 +4,7 @@ import type { AnimateVariant } from '../../wrappers/animate';
 import type { matrixCva } from './variants';
 
 /**
- * Невидимый для пользователя brand-дискриминатор.
- * Позволяет TS однозначно выбрать ветку `IResizableSlotConfig` в union
- * при написании `sidebar: { }` — автокомплит предлагает children/resizable/...
- * вместо Node-полей JSX.Element.
- */
-declare const __slotConfigBrand: unique symbol;
-
-/**
- * Конфигурация слота, который участвует в Resizable-группе.
+ * Конфигурация одного слота Matrix.
  *
  * Применяется в горизонтальных (sidebar/main/rightBar) и вертикальных
  * (header/footer) resize-группах. Если `resizable: true` — слот становится
@@ -22,19 +14,16 @@ declare const __slotConfigBrand: unique symbol;
  * ```tsx
  * slots={{
  *   sidebar: { children: <Sidebar />, resizable: true, initialSize: 0.2 },
- *   main:    <Main />,
+ *   main:    { children: <Main /> },
  * }}
  * ```
  */
 export interface IResizableSlotConfig {
-  /** @internal brand-discriminator — не задавай вручную */
-  readonly [__slotConfigBrand]?: true;
   children: JSX.Element;
   /**
-   * **Opt-in.** По умолчанию `false` — object-форма без явного флага визуально
-   * идентична JSX-форме (статический блок с дефолтными классами).
+   * **Opt-in.** По умолчанию `false` — слот рендерится статическим блоком.
    *
-   * Чтобы слот реально стал resizable-панелью, нужно поставить `true`.
+   * Чтобы слот стал resizable-панелью (corvu), нужно поставить `true`.
    */
   resizable?: boolean;
   initialSize?: number;
@@ -43,15 +32,13 @@ export interface IResizableSlotConfig {
 }
 
 /**
- * Значение одного слота. Принимается двумя формами:
+ * Значение одного слота — только object form `{ children, resizable?, initialSize?, minSize?, maxSize? }`.
  *
- *  1. `IResizableSlotConfig` — `{ children, resizable?, initialSize?, minSize?, maxSize? }`.
- *  2. `JSX.Element` — обычный компонент/JSX напрямую.
- *
- * TS-автокомплит при написании `sidebar: { }` подскажет поля
- * `IResizableSlotConfig` благодаря symbol-brand дискриминатору.
+ * **BREAKING (v0.3.0):** JSX-shorthand `header: <Header />` больше НЕ работает —
+ * единый object-формат даёт IDE-autocomplete на поля без factory-обёртки.
+ * Для слота без resize: `header: { children: <Header /> }`.
  */
-export type SlotValue = IResizableSlotConfig | JSX.Element;
+export type SlotValue = IResizableSlotConfig;
 
 /**
  * Набор слотов для Matrix.

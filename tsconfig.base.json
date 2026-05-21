@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "typeRoots": ["./node_modules/@types"],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
     "moduleResolution": "Bundler",
     "module": "ESNext",
     "target": "ESNext",
@@ -18,42 +20,105 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {
-      "@capsuletech/web-core/create": ["packages/web/core/src/create/index.ts"],
-      "@capsuletech/web-core/providers": ["packages/web/core/src/providers/index.ts"],
-      "@capsuletech/web-core": ["packages/web/core/src/index.ts"],
-      "@capsuletech/web-state": ["packages/web/state/src/index.ts"],
-      "@capsuletech/web-renderer": ["packages/web/renderer/src/index.ts"],
-      "@capsuletech/web-dnd": ["packages/web/dnd/src/index.ts"],
-      "@capsuletech/web-map": ["packages/web/map/src/index.ts"],
-      "@capsuletech/web-editor": ["packages/web/editor/src/index.ts"],
-      "@capsuletech/web-editor/manifests": ["packages/web/editor/src/manifests/index.ts"],
-      "@capsuletech/web-editor/state": ["packages/web/editor/src/state/index.ts"],
-      "@capsuletech/web-editor/inspector": ["packages/web/editor/src/inspector/index.ts"],
-      "@capsuletech/web-profiler": ["packages/web/profiler/src/index.ts"],
-      "@capsuletech/web-query/app-config": ["packages/web/query/src/app-config.ts"],
-      "@capsuletech/web-query": ["packages/web/query/src/index.ts"],
-      "@capsuletech/web-remote": ["packages/web/remote/src/index.ts"],
-      "@capsuletech/web-router": ["packages/web/router/src/index.ts"],
-      "@capsuletech/web-style": ["packages/web/style/src/index.ts"],
-      "@capsuletech/web-style/editor": ["packages/web/style/src/editor/index.ts"],
-      "@capsuletech/web-style/css": ["packages/web/style/src/index.css"],
-      "@capsuletech/web-style/themes": ["packages/web/style/src/themes/index.css"],
-      "@capsuletech/web-style/themes/*": ["packages/web/style/src/themes/*"],
-      "@capsuletech/web-ui": ["packages/web/ui/src/index.ts"],
+      "@capsuletech/web-core/create": [
+        "packages/web/core/src/create/index.ts"
+      ],
+      "@capsuletech/web-core/providers": [
+        "packages/web/core/src/providers/index.ts"
+      ],
+      "@capsuletech/web-core": [
+        "packages/web/core/src/index.ts"
+      ],
+      "@capsuletech/web-state": [
+        "packages/web/state/src/index.ts"
+      ],
+      "@capsuletech/web-renderer": [
+        "packages/web/renderer/src/index.ts"
+      ],
+      "@capsuletech/web-dnd": [
+        "packages/web/dnd/src/index.ts"
+      ],
+      "@capsuletech/web-map": [
+        "packages/web/map/src/index.ts"
+      ],
+      "@capsuletech/web-editor": [
+        "packages/web/editor/src/index.ts"
+      ],
+      "@capsuletech/web-editor/manifests": [
+        "packages/web/editor/src/manifests/index.ts"
+      ],
+      "@capsuletech/web-editor/state": [
+        "packages/web/editor/src/state/index.ts"
+      ],
+      "@capsuletech/web-editor/inspector": [
+        "packages/web/editor/src/inspector/index.ts"
+      ],
+      "@capsuletech/web-profiler": [
+        "packages/web/profiler/src/index.ts"
+      ],
+      "@capsuletech/web-query/app-config": [
+        "packages/web/query/src/app-config.ts"
+      ],
+      "@capsuletech/web-query": [
+        "packages/web/query/src/index.ts"
+      ],
+      "@capsuletech/web-remote": [
+        "packages/web/remote/src/index.ts"
+      ],
+      "@capsuletech/web-router": [
+        "packages/web/router/src/index.ts"
+      ],
+      "@capsuletech/web-style": [
+        "packages/web/style/src/index.ts"
+      ],
+      "@capsuletech/web-style/editor": [
+        "packages/web/style/src/editor/index.ts"
+      ],
+      "@capsuletech/web-style/css": [
+        "packages/web/style/src/index.css"
+      ],
+      "@capsuletech/web-style/themes": [
+        "packages/web/style/src/themes/index.css"
+      ],
+      "@capsuletech/web-style/themes/*": [
+        "packages/web/style/src/themes/*"
+      ],
+      "@capsuletech/web-ui": [
+        "packages/web/ui/src/index.ts"
+      ],
       "@capsuletech/web-ui/*": [
         "packages/web/ui/src/primitives/*",
         "packages/web/ui/src/primitives/layout/*",
-        "packages/web/ui/src/components/*"
+        "packages/web/ui/src/components/*",
+        "packages/web/ui/src/composites/*"
       ],
-      "@capsuletech/cli": ["packages/cli/src/index.ts"],
-      "@capsuletech/cli/*": ["packages/cli/*"],
-      "@capsuletech/compliance": ["packages/builders/compliance/src/index.ts"],
-      "@capsuletech/vite-builder": ["packages/builders/vite/src/index.ts"],
-      "@capsuletech/lib-builder": ["packages/builders/lib/src/index.ts"],
-      "@capsuletech/shared-zod": ["packages/shared/zod/src/index.ts"],
-      "@capsuletech/canvas-host": ["packages/canvas/host/src/index.ts"],
-      "@capsuletech/canvas-ui": ["packages/canvas/ui/src/index.ts"],
-      "@capsuletech/canvas-three": ["packages/canvas/three/src/index.ts"]
+      "@capsuletech/cli": [
+        "packages/cli/src/index.ts"
+      ],
+      "@capsuletech/cli/*": [
+        "packages/cli/*"
+      ],
+      "@capsuletech/compliance": [
+        "packages/builders/compliance/src/index.ts"
+      ],
+      "@capsuletech/vite-builder": [
+        "packages/builders/vite/src/index.ts"
+      ],
+      "@capsuletech/lib-builder": [
+        "packages/builders/lib/src/index.ts"
+      ],
+      "@capsuletech/shared-zod": [
+        "packages/shared/zod/src/index.ts"
+      ],
+      "@capsuletech/canvas-host": [
+        "packages/canvas/host/src/index.ts"
+      ],
+      "@capsuletech/canvas-ui": [
+        "packages/canvas/ui/src/index.ts"
+      ],
+      "@capsuletech/canvas-three": [
+        "packages/canvas/three/src/index.ts"
+      ]
     }
   }
 }

@@ -125,6 +125,9 @@ import { BaseProviders } from '@capsuletech/web-core/providers';
 - [x] **Wrapper signatures упрощены до `(Ui, props?)`** — registry-args убраны, `Views`/`Widgets`/`Shapes`/`Controllers`/`Features` — глобалы. `ShapeUiContext` revert (несёт только Ui, без Views-merge). Generic `<P>` для типизации props в Shape `as`-pattern (2026-05-21).
 - [x] **`IUiMetaProps` + `WithMetaProps<T>` добавлены** — `meta`/`payload`/`dynamicMeta`/`modifiers` теперь типизированы на уровне `ViewUi`/`WidgetUi`/`PageUi`. TS2322 на `<Ui.Input meta={...} />` устранён. Источник: `src/wrappers/interfaces.ts`. Тест: `src/wrappers/__tests__/ui-meta-props.test.tsx` (2026-05-21).
 - [x] **Compound sub-components restored in `WithMetaProps`** — `Card.Header`, `Card.Title`, `Card.Content`, `Card.Description`, `Card.Footer`, `Field.Label`, `Field.Content`, `Field.Group`, `Navigation.List`, `Navigation.Item` и т.д. больше не теряются после augmentation. Введён helper `StaticProps<T>` (`K extends keyof Function ? never : K`). Callable-ветка теперь возвращает intersection callable + `WithMetaProps<StaticProps<T[K]>>`. Layout (`{ Grid, Flex, Matrix }`) не регрессирует — идёт через `extends object` ветку. 136 тестов green (2026-05-21).
+- [x] **`Table` добавлен в `Ui` namespace** — lazy compound (`Table` + `Table.Header/Body/Row/Head/Cell`) зарегистрирован в `ui-kit/imports.tsx`; тип `typeof Table` добавлен в `ViewUiRaw` и `WidgetUiRaw` → `WithMetaProps` автоматически покрывает все 5 sub-components. 24 новых характеризационных теста в `src/wrappers/__tests__/ui-meta-props.test.tsx`. 160 тестов green (2026-05-21).
+- [x] **`DataTable` добавлен в `Ui` namespace** — lazy primitive из `@capsuletech/web-ui/dataTable`; тип `typeof DataTable` добавлен в `ViewUiRaw` и `WidgetUiRaw`. Нет sub-components (`Object.assign` не нужен). Generic `<TData>` функция корректно проходит через `WithMetaProps` callable-ветку. 4 новых характеризационных теста в `src/wrappers/__tests__/ui-meta-props.test.tsx`. 164 теста green (2026-05-21).
+- [x] **BREAKING (v0.4.0): Shape per-item iteration removed** — `<For each>` убран из Shape wrapper. `props: (item) => ...` mapper и `children` render-prop удалены. Shape передаёт весь массив `data` + extras из definition в `as`-batch-template целиком. Итерация — ответственность batch-template (`Ui.List` / `Ui.DataTable`). Реактивность сохранена через `splitProps` + `mergeProps`. `IShapeTemplateProps` и `IShapeRender` удалены из публичного API. 17 новых характеризационных тестов в `src/wrappers/shape/__tests__/wrapper.test.tsx`. 181 тест green (2026-05-21).
 
 ## Test coverage
 
@@ -135,6 +138,7 @@ import { BaseProviders } from '@capsuletech/web-core/providers';
 | Unit | `src/engine/__tests__/derivation.test.ts` | `deriveName`, `deriveInputType`, `TAG_TO_INPUT_TYPE` |
 | Unit | `src/engine/__tests__/getTargetData.test.ts` | `getTargetData` edge cases |
 | Unit | `src/wrappers/shape/__tests__/ui-tracker.test.ts` | Shape ui-tracker регрессии |
+| Unit (jsdom) | `src/wrappers/shape/__tests__/wrapper.test.tsx` | Shape batch flow: data pass-through, defaults, as override, extras merge, path-tracker, null, reactivity |
 | Unit (jsdom) | `src/wrappers/__tests__/view-props.test.tsx` | View `(Ui, props)` signature, generic `<P>`, Shape `as` Dynamic-pattern, reactivity |
 | Unit (types+jsdom) | `src/wrappers/__tests__/ui-meta-props.test.tsx` | `IUiMetaProps` shape, `WithMetaProps` application to ViewUi/WidgetUi, runtime no-crash |
 | E2E (косвенно) | capsule-test smoke fixture | bootstrap + routing + Controller round-trip |

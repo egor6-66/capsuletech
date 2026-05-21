@@ -96,6 +96,8 @@ Bin:
 
 16. **`gitCommit` action делает `git add -A`.** Закоммитит всё включая `.env`. Удобно по UX, опасно "по уму" — `src/actions/git.ts`.
 
+18. **`welcome.tsx.template` — Matrix slot object-form only (2026-05-21).** `@capsuletech/web-ui` breaking change: `SlotValue` теперь только `IResizableSlotConfig` (object form). JSX-shorthand `slots={{ main: <X /> }}` больше не работает. Шаблон обновлён на `slots={{ main: { children: <X /> } }}`.
+
 17. **`desktop dev/build` — positional bug.** `url` и `version` не являются настоящими positional args в commander-дереве. Передаются как option flags, но UX промпт подразумевает positional.
 
 ## План рефакторинга / оптимизаций

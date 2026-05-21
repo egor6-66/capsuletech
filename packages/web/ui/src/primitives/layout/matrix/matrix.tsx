@@ -219,6 +219,16 @@ const renderResize = (
     <footer class={matrixSlots.resizeFooter}>{footer.children}</footer>
   ) : null;
 
+  // Build horizontal items ONCE before JSX — inlining the call inside JSX would
+  // cause the Solid compiler to wrap it in a `get items()` getter, which gets
+  // evaluated on every `props.items` access inside Flex/ResizableFlex (at least
+  // 4× per render: itemsMode, hasResizable, sizes memo, For loop, Show when).
+  // Each call creates fresh JSX nodes and re-inserts slot.children DOM nodes,
+  // which moves them out of the already-rendered Panel → slot content disappears.
+  const horizontalItems = useHorizontalResize
+    ? buildHorizontalItems(sidebar, main, rightBar, animated, router)
+    : null;
+
   // Middle row — horizontal Flex (resizable or static).
   // NB: используем inline style `height: 100%` вместо `flex-1`, потому что
   // middle row может быть вложен в corvu Panel (block-display, не flex), где
@@ -227,7 +237,7 @@ const renderResize = (
     <div class="grid grid-rows-[1fr] overflow-hidden" style={{ height: '100%', width: '100%' }}>
       <Flex
         orientation="horizontal"
-        items={buildHorizontalItems(sidebar, main, rightBar, animated, router)}
+        items={horizontalItems!}
         withHandle
       />
     </div>
@@ -355,8 +365,7 @@ const MatrixImpl = (props: IMatrixProps) => {
  * - **Resize**: если хотя бы один slot имеет `resizable: true` — включается
  *   горизонтальный и/или вертикальный `<Flex items={...}>` (thin wrapper над corvu).
  *
- * Слот передаётся двумя формами:
- *   - `sidebar: <MySidebar />` — JSX напрямую
- *   - `sidebar: { children: <MySidebar />, resizable: true, initialSize: 0.2 }` — с resize-конфигом
+ * Слот передаётся только object-формой: `{ children, resizable?, initialSize?, minSize?, maxSize? }`.
+ * JSX-shorthand (`sidebar: <MySidebar />`) удалён в v0.3.0 — используй `{ children: <MySidebar /> }`.
  */
 export const Matrix = MatrixImpl;
