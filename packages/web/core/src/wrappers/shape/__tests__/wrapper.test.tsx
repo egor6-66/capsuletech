@@ -291,7 +291,7 @@ describe('Shape batch flow — path-tracker resolves via ShapeUiContext', () => 
     const MyShape = Shape(() => ({
       schema: z.array(z.string()),
       defaults: [],
-      as: tracker.MyGroup.MyTpl, // path-tracker captured at factory time
+      as: tracker.MyGroup.MyTpl as any, // path-tracker captured at factory time
     }));
 
     cleanup = render(
@@ -312,7 +312,7 @@ describe('Shape batch flow — path-tracker resolves via ShapeUiContext', () => 
     const MyShape = Shape(() => ({
       schema: z.array(z.string()),
       defaults: [],
-      as: tracker.SomeGroup.NonExistent,
+      as: tracker.SomeGroup.NonExistent as any,
     }));
 
     cleanup = render(
@@ -349,7 +349,7 @@ describe('Shape batch flow — no template renders null', () => {
     const MyShape = Shape(() => ({
       schema: z.array(z.string()),
       defaults: [],
-      as: tracker.SomeComponent,
+      as: tracker.SomeComponent as any,
     }));
 
     // No ShapeUiContext provided — useShapeUi() returns null

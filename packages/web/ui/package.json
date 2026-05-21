@@ -218,8 +218,11 @@
   "devDependencies": {
     "@capsuletech/lib-builder": "workspace:*",
     "@capsuletech/vite-builder": "workspace:*",
+    "@capsuletech/web-router": "workspace:*",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/solid-table": "^8.21.3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "jsdom": "~29.1.1",
     "lucide-solid": "^1.16.0",
     "storybook": "^10",
     "storybook-solidjs-vite": "^10",
