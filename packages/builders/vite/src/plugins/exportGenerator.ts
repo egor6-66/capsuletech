@@ -6,7 +6,7 @@ import { walkFiles, watcherManager } from '../utils';
 import { LAYER_TO_NAMESPACE } from './constants';
 
 interface Leaf {
-  /** Layer dir-key: `widgets` | `entities` | `controllers` | `features`. */
+  /** Layer dir-key: `widgets` | `views` | `controllers` | `features`. */
   layer: string;
   /** Импорт-путь, например `@widgets/forms/_auth`. */
   importPath: string;
