@@ -1,4 +1,4 @@
-const Hello = Entity(({ Button }) => (
+const Hello = View(({ Button }) => (
   <Button meta={{ tags: ['click'] }}>Нажми меня</Button>
 ));
 

@@ -1,8 +1,8 @@
-export type Layer = 'pages' | 'entities' | 'controllers' | 'features' | 'widgets' | 'shapes';
+export type Layer = 'pages' | 'views' | 'controllers' | 'features' | 'widgets' | 'shapes';
 
 export const LAYER_LABELS: Record<Layer, string> = {
   pages: 'Page',
-  entities: 'Entity',
+  views: 'View',
   controllers: 'Controller',
   features: 'Feature',
   widgets: 'Widget',
@@ -15,7 +15,7 @@ export const LAYER_LABELS: Record<Layer, string> = {
  */
 export const LAYER_ICONS: Record<Layer, string> = {
   pages: '📄',
-  entities: '🧱',
+  views: '🧱',
   controllers: '🎮',
   features: '🪄',
   widgets: '🧰',
@@ -30,7 +30,7 @@ export const layerTemplates: Record<Layer, (Name: string) => string> = {
 export default ${Name};
 `,
 
-  entities: (Name) => `const ${Name} = Entity(({ Button }) => (
+  views: (Name) => `const ${Name} = View(({ Button }) => (
   <Button meta={{ tags: ['click'] }}>${Name}</Button>
 ));
 
@@ -57,7 +57,7 @@ export default ${Name};
 export default ${Name};
 `,
 
-  widgets: (Name) => `const ${Name} = Widget((Ui, _Features, _Controllers, _Entities) => (
+  widgets: (Name) => `const ${Name} = Widget((Ui, _Features, _Controllers, _Views) => (
   <div>${Name}</div>
 ));
 

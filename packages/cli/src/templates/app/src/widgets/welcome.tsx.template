@@ -1,4 +1,4 @@
-const Welcome = Widget((Ui, _Features, _Controllers, Entities) => (
+const Welcome = Widget((Ui, _Features, _Controllers, Views) => (
   <Ui.Animate variant="fade" duration={0.3}>
     <Ui.Card class="w-full max-w-md">
       <Ui.Card.Header>
@@ -8,7 +8,7 @@ const Welcome = Widget((Ui, _Features, _Controllers, Entities) => (
         </Ui.Card.Description>
       </Ui.Card.Header>
       <Ui.Card.Content>
-        <Entities.Hello />
+        <Views.Hello />
       </Ui.Card.Content>
     </Ui.Card>
   </Ui.Animate>

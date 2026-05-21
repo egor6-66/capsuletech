@@ -89,7 +89,7 @@ export const createCommands: Command[] = [
     action: createLib,
   },
   layerCommand('pages'),
-  layerCommand('entities'),
+  layerCommand('views'),
   layerCommand('controllers'),
   layerCommand('features'),
   layerCommand('widgets'),
