@@ -152,34 +152,37 @@ backend/
 
 | Слой | Папка | Что это | Wrapper |
 |---|---|---|---|
-| **Entity** | `entities/` | Stateless UI. Только Solid JSX + `data-meta`. Не знает про XState, API, router. | `Entity(({ Field, Button, ... }) => JSX)` |
+| **View** | `views/` | Stateless UI в виде JSX. Только Solid JSX + `data-meta`. Не знает про XState, API, router. | `View(({ Field, Button, ... }, Shapes) => JSX)` |
+| **Shape** | `shapes/` | Stateless UI в виде schema+mapper (zod + item→template). Равноправный leaf с View, для repeating data. | `Shape((z, ui) => ({ schema, defaults?, as?, props? }))` |
 | **Controller** | `controllers/` | Поведение на FSM-схеме. Через Proxy перехватывает `onClick`/`onInput` у потомков. | `Controller((services) => ({ initial, states }))` |
 | **Feature** | `features/` | Domain logic / side effects. Только тут разрешены API. | `Feature((services) => ({ initial, states }))` |
-| **Widget** | `widgets/` | Композиция Entity + Controller. Единственное место, где можно «склеивать». | `Widget(({ Card, ... }) => JSX)` |
-| **Page** | `pages/` | Корневой layout, оборачивает Widget. | `Page(({ Layout, Outlet }) => JSX)` |
+| **Widget** | `widgets/` | Композиция View / Shape + Controller / Feature. Единственное место, где можно «склеивать». | `Widget(({ Card, Layout, ... }, features, controllers, views) => JSX)` |
+| **Page** | `pages/` | Корневой layout, оборачивает Widget. | `Page(({ Layout, Outlet }, widgets) => JSX)` |
 
-Имена `Page`, `Widget`, `Entity`, `Controller`, `Feature` — **глобальные**, инжектятся через `unplugin-auto-import`. В коде их **не импортируют**.
+> **Note**: имя `Entity` зарезервировано под **будущий domain data layer** (User, Product — zod schema + meta, без UI). UI JSX-leaf теперь называется **View** (PR #109).
+
+Имена `Page`, `Widget`, `View`, `Shape`, `Controller`, `Feature` — **глобальные**, инжектятся через `unplugin-auto-import`. В коде их **не импортируют**.
 
 Слоты других слоёв приходят **позиционными аргументами** в wrapper-функцию (см. `packages/web/core/src/wrappers/interfaces.ts`):
-- `Widget((ui, features, controllers, entities) => JSX)` — flat-имена: `widgets/forms/auth.tsx` → `FormsAuth`, `entities/viewer/loginForm.tsx` → `ViewerLoginForm`
+- `Widget((ui, features, controllers, views) => JSX)` — **nested namespace по структуре папок**: `widgets/forms/auth.tsx` → `Widgets.Forms.Auth`, `views/viewer/loginForm.tsx` → `Views.Viewer.LoginForm`, `views/auth/loginForm.tsx` → `Views.Auth.LoginForm`. Папка = namespace-уровень, имя файла = leaf. **Не** flat (`Views.AuthLoginForm` — неправильно). Корневые файлы без папки: `views/hello.tsx` → `Views.Hello`.
 - `Page((ui, widgets) => JSX)`
-- `Entity((ui) => JSX)`, `Controller(() => schema)`, `Feature((api) => schema)`
+- `View((ui, shapes) => JSX)`, `Shape((z, ui) => ({...}))`, `Controller(() => schema)`, `Feature((api) => schema)`
 
 Типы слотов живут в `CapsuleSlots` (`.capsule/@types/slots.d.ts`, генерится `ExportGeneratorPlugin`'ом). Каждое property типизировано как `typeof import('@<layer>/...').default` — Ctrl+Click ведёт в источник.
 
-**Конвенция:** каждый файл уровня (Widget/Page/Entity/Controller/Feature) **обязан** заканчиваться `export default <Name>;`. Без этого: (а) HMR продолжит работать (плагин добавит при отсутствии), (б) **но TS не увидит default и сломается типизация slot-кодгена**. Пиши export руками — это даёт навигацию Ctrl+Click и корректные типы.
+**Конвенция:** каждый файл уровня (Widget/Page/View/Shape/Controller/Feature) **обязан** заканчиваться `export default <Name>;`. Без этого: (а) HMR продолжит работать (плагин добавит при отсутствии), (б) **но TS не увидит default и сломается типизация slot-кодгена**. Пиши export руками — это даёт навигацию Ctrl+Click и корректные типы.
 
 ## Ключевая механика
 
 ### UiProxy (`packages/web/core/src/engine/ui-proxy.tsx`)
-Когда `Entity` рендерится внутри `Controller`, базовый UI-kit оборачивается в Proxy. Политика **C — own meta opt-in**: побочные эффекты (регистрация в store, event-binding) активируются **только** если на JSX-узле явно задан `meta`. Структурные обёртки (`Field`, `Field.Label` и т.д.) проходят сквозным рендером.
+Когда `View` или `Shape` рендерится внутри `Controller`, базовый UI-kit оборачивается в Proxy. Политика **C — own meta opt-in**: побочные эффекты (регистрация в store, event-binding) активируются **только** если на JSX-узле явно задан `meta`. Структурные обёртки (`Field`, `Field.Label` и т.д.) проходят сквозным рендером.
 
 Для элементов с `meta`:
 - `id = createUniqueId()` (стабильный) + `createEffect` для re-register на изменение props + `onCleanup` для unregister;
 - автоподписка на 6 событий: `onClick`, `onInput`, `onChange`, `onBlur`, `onFocus`, `onKeyDown`;
 - дедупликация bubbling через event-marker `__capsule_<eventName>__`;
 - инжект реактивных `class` (с подмесом `store.styles[name]`), `disabled` (из `store.loading`), `name` (выведенного из `meta.tags`);
-- `target` собирается с `meta` (из inner JSX), `dynamicMeta` (из outer Entity-prop), `key`/`modifiers` для keyboard.
+- `target` собирается с `meta` (из inner JSX), `dynamicMeta` (из outer View-prop), `key`/`modifiers` для keyboard.
 
 ### ControllerProxy (`packages/web/core/src/engine/controller-proxy.ts`)
 - Текущий стейт **читается из XState**: `state.value`. Собственного runtime нет.
@@ -210,9 +213,9 @@ backend/
 Подробнее в `docs/01-architecture/golden-rules.md`. Сжато:
 
 1. **No Upward Imports.** Нижний слой не импортирует верхний.
-2. **No Horizontal Imports.** `Entity.A` не импортирует `Entity.B`. `Controller.A` не знает о `Controller.B`. Только композиция в Widget или цепочка через `next()` к родительской Feature.
-3. **Stateless Entity.** Никакого состояния, никаких импортов кроме Solid и типов.
-4. **Composition Only in Widgets.** Одна Entity не может «жёстко» использовать другую — только через children/slots на уровне Widget.
+2. **No Horizontal Imports.** `View.A` не импортирует `View.B`. `Controller.A` не знает о `Controller.B`. Только композиция в Widget или цепочка через `next()` к родительской Feature.
+3. **Stateless View / Shape.** Никакого состояния, никаких импортов кроме Solid и типов.
+4. **Composition Only in Widgets.** Одна View не может «жёстко» использовать другую — только через children/slots на уровне Widget.
 
 ✅ Правила **enforced линтером** через `@capsuletech/compliance` (Vite-плагин `CompliancePlugin`, режим `warn`). При нарушении — warning в логе dev-сервера с file:line:column + hint что делать. См. ADR 004.
 
@@ -245,7 +248,8 @@ _На текущий момент пусто — последняя итерац
 
 | Агент | Модель | Когда вызывать |
 |---|---|---|
-| `entity` | Haiku | новая Entity (stateless UI) |
+| `view` | Haiku | новая View (stateless UI в JSX) |
+| `shape` | Haiku | новый Shape (stateless UI в виде schema + mapper) |
 | `widget` | Haiku | новый Widget (композиция) |
 | `page` | Haiku | новая Page (Layout + слоты) |
 | `ui-component` | Haiku | новый компонент в `@capsuletech/web-ui` |
@@ -264,8 +268,8 @@ Agent(subagent_type='entity', prompt='LoginForm with email/password/submit')
 ## Когда работаешь над задачей
 
 1. Сначала пойми, какой это **слой** — это определяет, какие импорты разрешены и какой wrapper использовать.
-2. Если это новый артефакт типового слоя (Entity / Widget / Controller / Feature / Page / UI-component) — **делегируй субагенту**, не пиши сам.
-3. Если задача про связь между Entity — это автоматически задача про Widget.
+2. Если это новый артефакт типового слоя (View / Shape / Widget / Controller / Feature / Page / UI-component) — **делегируй субагенту**, не пиши сам.
+3. Если задача про связь между View — это автоматически задача про Widget.
 3. Если задача про API/IO — это автоматически задача про Feature.
 4. Если правишь wrapper в `core/wrappers` — обнови соответствующую страницу в `docs/07-binding/`.
 5. Если правишь vite-плагин — обнови `docs/08-system/vite-plugins.md`.
