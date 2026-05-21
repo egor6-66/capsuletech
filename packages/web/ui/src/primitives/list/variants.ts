@@ -18,7 +18,7 @@ export const listVariants = cva('flex w-full', {
 });
 
 export const listItemVariants = cva(
-  'flex items-center px-3 py-2 rounded-md text-sm transition-colors cursor-pointer outline-none shrink-0',
+  'flex items-center px-cell py-cell-tight rounded-md text-sm transition-colors duration-fast cursor-pointer outline-none shrink-0',
   {
     variants: {
       variant: {

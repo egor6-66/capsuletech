@@ -115,6 +115,32 @@ Defaults: `itemHeight: 36`, `overscan: 5`, `threshold: 5`.
 
 `pagination` remains working for small datasets (non-deprecated in API; deprecated in JSDoc only).
 
+### 0.5.0 — Table scroll context removed (2026-05-22)
+
+**Breaking: `Table` primitive no longer owns its scroll context.**
+
+Old behaviour: `TableImpl` rendered `<div class="relative w-full overflow-auto scrollbar-hover">` — always created a scroll container.
+
+New behaviour: `<div class="relative w-full">` — no overflow. Scroll is parent responsibility.
+
+Migration for standalone `<Table>` usage (without an outer scrollable parent):
+```tsx
+// Before (Table self-scrolled)
+<Table>...</Table>
+
+// After — wrap in explicit scroll container
+<div class="overflow-auto">
+  <Table>...</Table>
+</div>
+```
+
+No change needed when `<Table>` is inside `<Ui.Layout.Matrix>` main slot (already `overflow-auto`), `InfiniteTable` scroll div (its own `overflow-auto`), or any other established scroll container.
+
+`DataTable` non-infinite mode: scroll provided by parent (Matrix main slot / story decorator).
+`DataTable` infinite mode (`InfiniteTable`): has its own `overflow-auto` wrapper for virtualizer — unchanged.
+
+Storybook stories updated: `table.stories.tsx` and `dataTable.stories.tsx` decorators now use `<div class="overflow-auto p-4">`.
+
 ### 0.3.0 — composites/ category + DataTable (2026-05-21)
 
 **New: `src/composites/` category.** Third category alongside `primitives/` and `wrappers/`.

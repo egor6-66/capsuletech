@@ -230,16 +230,28 @@ const renderResize = (
     : null;
 
   // Middle row — horizontal Flex (resizable or static).
-  // NB: используем inline style `height: 100%` вместо `flex-1`, потому что
-  // middle row может быть вложен в corvu Panel (block-display, не flex), где
-  // `flex-1` не работает и wrapper схлопывается до content size.
+  // NB: используем `position:absolute; inset:0` containment вместо `h-full`/`flex-1`,
+  // потому что corvu Root измеряет rootSize через ResizeObserver (offsetHeight/offsetWidth)
+  // на своём DOM-элементе. Если родительский контейнер — CSS Grid track или flex item
+  // без явной высоты, `h-full` (height:100%) не даёт корню правильные размеры: браузер
+  // сначала вычисляет высоту flex-item по content, затем h-full резолвится в эту же
+  // content-height. Итог — corvu Root 1200+px, Panel flex-basis:70% = 840px, main
+  // получает content size вместо Panel size. Absolute inset:0 зажимает элемент
+  // в positioned ancestor без участия percentage-height цепочки.
+  // When middleRow lives directly in the outer `flex-col` wrapper (horizontal-only resize,
+  // no vertical Flex), it must use `flex-1 min-h-0` so it fills remaining height like the
+  // static path. When embedded in a vertical corvu Panel (block container), `flex-1` has no
+  // effect, but `h-full` resolves to the Panel's computed height (flex-basis establishes a
+  // definite size). Using `h-full flex-1 min-h-0` covers both contexts simultaneously.
   const middleRow: JSX.Element = useHorizontalResize ? (
-    <div class="grid grid-rows-[1fr] overflow-hidden" style={{ height: '100%', width: '100%' }}>
-      <Flex
-        orientation="horizontal"
-        items={horizontalItems!}
-        withHandle
-      />
+    <div class="relative h-full min-h-0 flex-1 overflow-hidden">
+      <div class="absolute inset-0">
+        <Flex
+          orientation="horizontal"
+          items={horizontalItems!}
+          withHandle
+        />
+      </div>
     </div>
   ) : (
     <div class="flex min-h-0 flex-1 overflow-hidden">
@@ -277,11 +289,17 @@ const renderResize = (
       });
     }
 
+    // Vertical Flex root also needs absolute containment — same rootSize issue:
+    // the outer flex-1 div does not propagate an explicit height for h-full to
+    // resolve against, so corvu Root grows to content. `relative` + `absolute inset-0`
+    // breaks the chain and gives corvu a stable, viewport-anchored measure target.
     return (
       <div class="flex h-full w-full flex-col">
         {fixedHeader}
-        <div class="min-h-0 flex-1 grid grid-rows-[1fr] overflow-hidden">
-          <Flex orientation="vertical" items={verticalItems} withHandle />
+        <div class="relative min-h-0 flex-1 overflow-hidden">
+          <div class="absolute inset-0">
+            <Flex orientation="vertical" items={verticalItems} withHandle />
+          </div>
         </div>
         {fixedFooter}
       </div>

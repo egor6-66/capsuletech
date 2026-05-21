@@ -24,7 +24,7 @@ export const TableRow = (props: ITableRowProps) => {
   return (
     <tr
       class={cn(
-        'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
+        'border-b transition-colors duration-fast hover:bg-muted/50 data-[state=selected]:bg-muted',
         local.class,
       )}
       {...others}
@@ -37,7 +37,7 @@ export const TableHead = (props: ITableHeadProps) => {
   return (
     <th
       class={cn(
-        'h-12 px-4 text-left align-middle font-medium text-muted-foreground',
+        'px-cell py-cell-tight text-left align-middle font-medium text-sm text-muted-foreground',
         local.class,
       )}
       {...others}
@@ -47,5 +47,5 @@ export const TableHead = (props: ITableHeadProps) => {
 
 export const TableCell = (props: ITableCellProps) => {
   const [local, others] = splitProps(props, ['class']);
-  return <td class={cn('p-4 align-middle', local.class)} {...others} />;
+  return <td class={cn('px-cell py-cell-tight align-middle text-sm', local.class)} {...others} />;
 };

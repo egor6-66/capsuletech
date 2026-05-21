@@ -9,7 +9,7 @@ export const variants = {
   },
 };
 
-export const cardCva = cva('rounded-xl border bg-card text-card-foreground shadow', {
+export const cardCva = cva('rounded-lg border bg-card text-card-foreground shadow', {
   variants,
 
   defaultVariants: {

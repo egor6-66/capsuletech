@@ -98,4 +98,60 @@ describe('Matrix — resize mode slot children', () => {
     expect(footerEl).not.toBeNull();
     expect(footerEl!.querySelector('[data-testid="ftr-content"]')).not.toBeNull();
   });
+
+  it('overflowing main content does not expand vertical panel past flex-basis (min-h-0 regression)', () => {
+    // 50 tall rows in main — without min-h-0 on ResizablePanel the middle-row panel
+    // would grow to intrinsic content height and push footer below viewport.
+    const manyRows = Array.from({ length: 50 }, (_, i) => (
+      <div data-testid={`row-${i}`} style={{ height: '38px' }}>
+        Row {i}
+      </div>
+    ));
+
+    cleanup = render(
+      () => (
+        <Matrix
+          style={{ width: '800px', height: '500px' }}
+          slots={{
+            header: { children: <div data-testid="hdr">Header</div> },
+            main: {
+              children: <div data-testid="main-content">{manyRows}</div>,
+              resizable: true,
+              initialSize: 0.7,
+            },
+            rightBar: {
+              children: <div data-testid="rb-content">Right</div>,
+              resizable: true,
+              initialSize: 0.3,
+            },
+            footer: {
+              children: <div data-testid="ftr-content">Footer</div>,
+              resizable: true,
+              initialSize: 0.3,
+            },
+          }}
+        />
+      ),
+      container,
+    );
+
+    // Footer panel must be rendered and contain its content — if the middle-row
+    // panel expands past its flex-basis and steals all available height, the
+    // footer panel collapses to 0 and the footer element may not be findable.
+    const footerEl = container.querySelector('footer');
+    expect(footerEl).not.toBeNull();
+    expect(footerEl!.querySelector('[data-testid="ftr-content"]')).not.toBeNull();
+
+    // Verify each vertical Panel has min-h-0 AND overflow-hidden class set (structural assertion).
+    // min-h-0  → allows the panel to shrink below intrinsic content size.
+    // overflow-hidden → clips panel content at the panel boundary so panels never
+    //   visually overlap each other during resize (the overlap regression).
+    const panels = container.querySelectorAll('[data-corvu-resizable-panel]');
+    // There are at least 2 vertical panels (middle-row + footer).
+    expect(panels.length).toBeGreaterThanOrEqual(2);
+    for (const panel of panels) {
+      expect(panel.classList.contains('min-h-0')).toBe(true);
+      expect(panel.classList.contains('overflow-hidden')).toBe(true);
+    }
+  });
 });

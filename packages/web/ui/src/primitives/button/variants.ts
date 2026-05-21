@@ -11,15 +11,15 @@ export const variants = {
     link: 'text-primary underline-offset-4 hover:underline',
   },
   size: {
-    default: 'h-auto px-layout py-component',
-    sm: 'h-8 rounded-md px-3 text-xs',
-    lg: 'h-10 rounded-md px-8',
+    default: 'h-auto px-button py-button-sm',
+    sm: 'h-auto rounded-md px-button-sm py-cell-tight text-xs',
+    lg: 'h-auto rounded-md px-button-lg py-button',
     icon: 'h-9 w-9 p-0',
   },
 };
 
 export const buttonCva = cva(
-  'cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors duration-fast focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants,
     defaultVariants: {

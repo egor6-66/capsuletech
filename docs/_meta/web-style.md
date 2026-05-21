@@ -1,6 +1,6 @@
 ---
 tags: [meta, web-style]
-updated: 2026-05-20
+updated: 2026-05-22
 ---
 
 # web-style AI anchor
@@ -15,14 +15,37 @@ Full context: `.claude/agents/owner-web-style.md` (system prompt of owner agent)
 
 | File | Role |
 |---|---|
-| `src/index.css` | Entry CSS: `@import tailwindcss` + `@source` directives + `@theme inline` |
+| `src/index.css` | Design token scales (spacing, typography, radii, motion) + `@theme inline` Tailwind mappings + base styles |
 | `src/index.ts` | Barrel: createStyle, cn, merge, STATUS_VARIABLES, ThemeSwitcher |
 | `src/createStyle.ts` | CVA wrapper (reactive, getter-based) |
 | `src/constants.ts` | STATUS_VARIABLES (success/warning/error/info) |
 | `src/utils.ts` | cn (clsx+tailwind-merge), merge (deep style merger) |
 | `src/switcher/` | ThemeSwitcher component |
 | `src/editor/` | ThemeEditor (subpath /editor, separate bundle) |
-| `src/themes/` | CSS theme files (CSS vars, OKLCH palette) |
+| `src/themes/` | CSS theme files (CSS vars, OKLCH palette) — colors + fonts + radius anchor + `--spacing` + `--tracking-normal` |
+
+## Design token architecture (Phase 1, 2026-05-22)
+
+All non-color tokens live in `src/index.css :root`. Themes set color variables + `--radius` + `--spacing` + `--tracking-normal` only.
+
+### Naming conventions
+
+- Raw spacing scale: `--space-{0..8}` (geometric, 0.25rem base)
+- Semantic spacing: `--space-cell`, `--space-button`, `--space-input`, `--space-field`, `--space-card`, `--space-section`, `--space-layout`, `--space-component`, `--space-container`
+- Font sizes: `--font-size-{xs|sm|base|lg|xl|2xl|3xl|4xl|5xl}` — named `--font-size-*` (not `--text-*`) to avoid collision with Tailwind `@theme inline --text-*`
+- Line heights: `--leading-{none|tight|snug|normal|relaxed|loose}`
+- Radii: `--radius-{xs|sm|md|lg|xl|2xl|3xl|full}` — calculated from per-theme `--radius` anchor
+- Motion durations: `--motion-{instant|fast|normal|slow|slower}`
+- Motion easings: `--ease-{linear|in|out|in-out|spring|bounce}`
+- Compound transitions: `--transition-{colors|opacity|transform|shadow|all}`
+
+### Density system
+
+`--density: 1` in `:root`. `.compact` sets `--density: 0.75`, `.comfortable` sets `--density: 1.25`. All semantic spacing tokens are `calc(--space-{n} * var(--density))`.
+
+### Backward compat aliases (Phase 2 migration pending)
+
+Old names still resolve: `--spacing-base/layout/component/container`, `--layout-padding`, `--component-padding`, `--text-base-size`, `--font-size-h1/h2/p`, `--transition-ui`.
 
 ## @source path design (pnpm-aware)
 

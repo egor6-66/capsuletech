@@ -146,7 +146,7 @@ function InfiniteTable<TData>(props: {
   return (
     <div
       ref={scrollEl}
-      class="relative overflow-auto"
+      class="relative overflow-auto scrollbar-hover"
       style={{ height: '400px' }}
     >
       {/* Spacer: tells the browser the full scroll height */}
@@ -283,7 +283,7 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
   return (
     <div class={local.class}>
       <Show when={local.toolbar !== undefined}>
-        <div class="mb-3">{local.toolbar}</div>
+        <div class="mb-component">{local.toolbar}</div>
       </Show>
 
       <Show when={!isEmpty()} fallback={<EmptyState message={local.emptyMessage} />}>
@@ -309,7 +309,7 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
 
       {/* Pagination controls (only when infinite is NOT enabled) */}
       <Show when={local.pagination && !local.infinite}>
-        <div class="mt-3 flex items-center justify-between text-sm">
+        <div class="mt-component flex items-center justify-between text-sm">
           <span class="text-muted-foreground">
             Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
           </span>

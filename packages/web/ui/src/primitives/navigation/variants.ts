@@ -34,17 +34,17 @@ export const navigationListCva = cva('flex w-full', {
 export const navigationItemVariants = {
   variant: {
     default:
-      'text-foreground/70 transition-colors hover:text-foreground hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md',
+      'text-foreground/70 transition-colors duration-fast hover:text-foreground hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md',
     active: 'text-foreground bg-accent/10 border-b-2 border-primary font-medium hover:bg-accent/20',
   },
   size: {
-    default: 'px-layout py-component text-sm',
-    lg: 'px-6 py-4 text-base',
+    default: 'px-button py-cell text-sm',
+    lg: 'px-button-lg py-cell-loose text-base',
   },
 };
 
 export const navigationItemCva = cva(
-  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors duration-fast focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
   {
     variants: navigationItemVariants,
     defaultVariants: {

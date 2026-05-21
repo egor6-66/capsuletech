@@ -95,7 +95,7 @@ const meta = {
   tags: ['autodocs'],
   decorators: [
     (Story: () => import('solid-js').JSX.Element) => (
-      <div class="p-4">
+      <div class="overflow-auto p-4">
         {Story()}
       </div>
     ),

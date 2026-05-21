@@ -4,7 +4,11 @@ import { cva } from '@capsuletech/web-style';
  * Корневой контейнер Resizable. `data-orientation` ставит сам corvu —
  * Tailwind-селекторы переключают direction.
  */
-export const resizableRootCva = cva('flex size-full data-[orientation=vertical]:flex-col');
+// `overflow-hidden` ensures the root never expands beyond its positioned container
+// (important when nested inside absolute inset-0 wrappers in Matrix layouts).
+export const resizableRootCva = cva(
+  'flex size-full overflow-hidden data-[orientation=vertical]:flex-col',
+);
 
 /**
  * Handle между двумя панелями. Длинная строка скопирована из shadcn/solid-ui;

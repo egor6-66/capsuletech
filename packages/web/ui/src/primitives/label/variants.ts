@@ -10,7 +10,7 @@ export const variants = {
 };
 
 export const labelCva = cva(
-  'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+  'text-sm font-medium leading-snug peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
   {
     variants,
     defaultVariants: {

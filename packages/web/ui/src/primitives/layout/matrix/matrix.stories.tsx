@@ -174,3 +174,104 @@ export const ResizableEverything: Story = {
     />
   ),
 };
+
+/**
+ * InteractiveResize — воспроизводит сценарий из sandbox `/workspace`:
+ * фиксированный header + resizable main (длинный список) + resizable rightBar
+ * + resizable footer. Проверяемые паттерны вручную:
+ *
+ *  1. **Scroll в main**: контент (30 строк × 36px ≈ 1080px) выходит за высоту
+ *     Panel → должна появиться вертикальная полоса прокрутки внутри main.
+ *
+ *  2. **No overlap при resize**: тяни vertical handle (footer ↑) — footer
+ *     должен расти, middle-row — уменьшаться, без наложения блоков.
+ *
+ *  3. **Horizontal resize**: тяни handle между main и rightBar — пропорции
+ *     меняются, содержимое clip'ится без «вытекания».
+ *
+ * После фикса (overflow-hidden на ResizablePanel) оба паттерна работают корректно.
+ */
+export const InteractiveResize: Story = {
+  name: 'resizable · interactive (scroll + no overlap)',
+  render: () => (
+    <Matrix
+      slots={{
+        header: { children: <MockHeader /> },
+        main: {
+          children: (
+            <div class="h-full w-full overflow-auto">
+              <div class="sticky top-0 border-b bg-card px-4 py-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Users — 30 rows · scroll me · drag handles
+              </div>
+              {Array.from({ length: 30 }, (_, i) => (
+                <div class="flex items-center border-b px-4 py-2 text-sm hover:bg-muted/40">
+                  <span class="w-12 font-mono text-muted-foreground">{i + 1}</span>
+                  <span class="flex-1">User {i + 1}</span>
+                  <span class="text-muted-foreground">user{i + 1}@example.com</span>
+                </div>
+              ))}
+            </div>
+          ),
+          resizable: true,
+          initialSize: 0.8,
+          minSize: 0.3,
+        },
+        rightBar: {
+          children: <MockRightBar />,
+          resizable: true,
+          initialSize: 0.2,
+          minSize: 0.12,
+        },
+        footer: {
+          children: <MockFooter />,
+          resizable: true,
+          initialSize: 0.3,
+          minSize: 0.06,
+        },
+      }}
+    />
+  ),
+};
+
+/**
+ * Regression: overflowing main content must NOT expand the corvu Panel past its
+ * initialSize ratio. main.overflow-auto should scroll inside the panel; footer
+ * should remain at ~30% height regardless of how many rows are in main.
+ *
+ * Before the fix (no `min-h-0` on ResizablePanel) the middle-row Panel grew to
+ * content height and the footer Panel collapsed to min-content (~21 px).
+ */
+export const WithOverflowingMain: Story = {
+  name: 'resizable · overflowing main (regression)',
+  render: () => (
+    <Matrix
+      slots={{
+        header: { children: <MockHeader /> },
+        main: {
+          children: (
+            <div class="h-full w-full overflow-auto">
+              {Array.from({ length: 50 }, (_, i) => (
+                <div class="border-b px-4 py-2 text-sm">Row {i + 1} — placeholder content</div>
+              ))}
+            </div>
+          ),
+          resizable: true,
+          initialSize: 0.7,
+          minSize: 0.2,
+        },
+        rightBar: {
+          children: <MockRightBar />,
+          resizable: true,
+          initialSize: 0.3,
+          minSize: 0.15,
+        },
+        footer: {
+          children: <MockFooter />,
+          resizable: true,
+          initialSize: 0.3,
+          minSize: 0.08,
+        },
+      }}
+    />
+  ),
+};

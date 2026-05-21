@@ -8,8 +8,8 @@ const createCardPart = (defaultClass: string) => {
   };
 };
 
-export const CardHeader = createCardPart('flex flex-col space-y-1.5 p-container');
-export const CardTitle = createCardPart('font-semibold leading-none tracking-tight');
-export const CardDescription = createCardPart('text-sm text-muted-foreground');
-export const CardContent = createCardPart('p-container');
-export const CardFooter = createCardPart('flex items-center p-container');
+export const CardHeader = createCardPart('flex flex-col space-y-1.5 px-card py-card-tight');
+export const CardTitle = createCardPart('font-semibold leading-tight tracking-tight text-lg');
+export const CardDescription = createCardPart('text-sm leading-normal text-muted-foreground');
+export const CardContent = createCardPart('px-card pb-card');
+export const CardFooter = createCardPart('flex items-center px-card pb-card');

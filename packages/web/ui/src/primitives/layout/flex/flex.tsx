@@ -93,6 +93,7 @@ const ResizableFlex = (props: IResizableFlexProps) => {
               minSize={item.minSize}
               maxSize={item.maxSize}
               collapsible={item.collapsible}
+              class="min-h-0 min-w-0 overflow-hidden"
             >
               {item.children}
             </ResizablePanel>

@@ -3,25 +3,111 @@ name: "@capsuletech/web-style"
 owner-agent: owner-web-style
 group: web_base
 status: pre-1.0
-last-updated: 2026-05-20
+last-updated: 2026-05-22
 ---
 
 # @capsuletech/web-style
 
-Styling-слой capsule: 11 design-system theme'ов (CSS-variables), runtime helpers (createStyle, cn, merge), ThemeSwitcher/ThemeEditor компоненты. **Не** Tailwind entry-point — entry живёт в app's `.capsule/styles.css` (builders scaffold).
+Styling-слой capsule: 11 design-system theme'ов (CSS-variables), полная система design tokens (spacing, typography, radii, motion), runtime helpers (createStyle, cn, merge), ThemeSwitcher/ThemeEditor компоненты. **Не** Tailwind entry-point — entry живёт в app's `.capsule/styles.css` (builders scaffold).
 
 ## Зона ответственности
 
 ### Owns
 
 - `packages/web/style/src/themes/*.css` — 11 themes (black, damon, deepPurple, lightGreen, minimalNeutral, openprofile, pasteelement, shopifyRed, tiesen, vescrow, zen) + `themes/index.css` barrel.
+- `packages/web/style/src/index.css` — design token scales + `@theme inline` Tailwind mappings. Главный CSS entry.
 - `packages/web/style/src/createStyle.ts` — CVA wrapper.
 - `packages/web/style/src/cn.ts`, `merge.ts` — class-name utilities.
 - `packages/web/style/src/constants.ts` — STATUS_VARIABLES и подобные tokens.
 - `packages/web/style/src/editor/` — ThemeSwitcher, ThemeEditor компоненты (subpath `./editor`).
-- `packages/web/style/src/index.css` — **deprecated stub** (пустой) для backwards compat.
+- **Scrollbar styling** — global thin WebKit/Firefox scrollbar + `.scrollbar-hover` opt-in hover-reveal utility (defined in `src/index.css`). Tokens: `--scrollbar-size`, `--scrollbar-thumb`, `--scrollbar-thumb-hover`, `--scrollbar-track`.
 - `packages/web/style/vite.config.mts` — build config + `copy-css` plugin.
 - `packages/web/style/package.json` — exports.
+
+## Design tokens (Phase 1 — 2026-05-22)
+
+Все токены живут в `src/index.css`. Структура:
+
+### Spacing scale (`--space-{n}`)
+
+Geometric scale, base `0.25rem` (4px). Компоненты **не используют** raw scale напрямую — используют semantic tokens.
+
+| Token | Value | px |
+|---|---|---|
+| `--space-0` | 0 | 0 |
+| `--space-1` | 0.25rem | 4 |
+| `--space-2` | 0.5rem | 8 |
+| `--space-3` | 0.75rem | 12 |
+| `--space-4` | 1rem | 16 |
+| `--space-5` | 1.5rem | 24 |
+| `--space-6` | 2rem | 32 |
+| `--space-7` | 3rem | 48 |
+| `--space-8` | 4rem | 64 |
+
+### Density system
+
+`--density: 1` (default). Все semantic spacing tokens умножаются на `--density`.
+
+| Class | `--density` | Effect |
+|---|---|---|
+| (none) | 1 | default |
+| `.compact` | 0.75 | 25% tighter |
+| `.comfortable` | 1.25 | 25% looser |
+
+### Semantic spacing tokens (density-aware)
+
+Компоненты ссылаются на эти токены. `--space-cell`, `--space-button`, `--space-input`, `--space-field`, `--space-card`, `--space-section`, `--space-layout`, `--space-component`, `--space-container`.
+
+### Typography scale (`--font-size-{n}`)
+
+Named `--font-size-*` (not `--text-*`) to avoid collision with Tailwind's `@theme inline --text-*` namespace.
+
+| Token | Value | px |
+|---|---|---|
+| `--font-size-xs` | 0.75rem | 12 |
+| `--font-size-sm` | 0.875rem | 14 |
+| `--font-size-base` | 1rem | 16 |
+| `--font-size-lg` | 1.125rem | 18 |
+| `--font-size-xl` | 1.25rem | 20 |
+| `--font-size-2xl` | 1.5rem | 24 |
+| `--font-size-3xl` | 1.875rem | 30 |
+| `--font-size-4xl` | 2.25rem | 36 |
+| `--font-size-5xl` | 3rem | 48 |
+
+Line heights: `--leading-none/tight/snug/normal/relaxed/loose`.
+
+### Radii scale
+
+Anchored to per-theme `--radius`. Full scale: `--radius-xs` through `--radius-3xl` + `--radius-full: 9999px`.
+
+### Motion tokens
+
+Duration: `--motion-instant(75ms)`, `--motion-fast(150ms)`, `--motion-normal(250ms)`, `--motion-slow(400ms)`, `--motion-slower(600ms)`.
+
+Easing: `--ease-linear/in/out/in-out/spring/bounce`.
+
+Compound: `--transition-colors`, `--transition-opacity`, `--transition-transform`, `--transition-shadow`, `--transition-all`.
+
+### Tailwind v4 `@theme inline` mappings
+
+| Tailwind utility | Maps via `@theme inline` to |
+|---|---|
+| `p-1`, `m-2`, `gap-3`, etc. | `--spacing: var(--spacing)` (per-theme, default 0.25rem) |
+| `p-cell`, `p-button`, etc. | semantic `--spacing-cell`, `--spacing-button`, etc. |
+| `text-xs` … `text-5xl` | `--text-{n}: var(--font-size-{n})` |
+| `leading-tight` … `leading-loose` | `--leading-{n}: var(--leading-{n})` |
+| `tracking-tight` … `tracking-widest` | relative to per-theme `--tracking-normal` |
+| `rounded-xs` … `rounded-full` | `--radius-{n}: var(--radius-{n})` |
+| `duration-instant` … `duration-slower` | `--duration-{n}: var(--motion-{n})` |
+| `ease-in`, `ease-spring`, etc. | `--ease-{n}: var(--ease-{n})` |
+
+### Backward compat aliases (until Phase 2 migration)
+
+These stay in `:root` so existing primitives don't break:
+- `--spacing-base`, `--spacing-layout`, `--spacing-component`, `--spacing-container` → new space tokens
+- `--layout-padding`, `--component-padding` → `--space-layout` / `--space-component` (used by matrix variants)
+- `--text-base-size`, `--font-size-h1`, `--font-size-h2`, `--font-size-p` → new font-size tokens
+- `--transition-ui` → `--transition-all`
 
 ### Не трогает
 

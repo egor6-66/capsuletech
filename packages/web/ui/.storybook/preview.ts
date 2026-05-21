@@ -39,12 +39,35 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    density: {
+      name: 'Density',
+      description: 'Component density (controls --density multiplier)',
+      defaultValue: 'default',
+      toolbar: {
+        icon: 'zoom',
+        items: [
+          { value: 'default', title: 'Default (1×)' },
+          { value: 'compact', title: 'Compact (0.75×)' },
+          { value: 'comfortable', title: 'Comfortable (1.25×)' },
+        ],
+        dynamicTitle: true,
+      },
+    },
   },
   decorators: [
     (Story, context) => {
       document.documentElement.classList.add('dark');
       const theme = (context.globals.theme as string | undefined) ?? DEFAULT_THEME;
       document.documentElement.setAttribute('data-theme', theme);
+
+      // Density — toggle .compact / .comfortable on <html>.
+      // CSS in index.css defines `.compact { --density: 0.75 }` etc.
+      const density = (context.globals.density as string | undefined) ?? 'default';
+      document.documentElement.classList.remove('compact', 'comfortable');
+      if (density !== 'default') {
+        document.documentElement.classList.add(density);
+      }
+
       return Story();
     },
   ],
