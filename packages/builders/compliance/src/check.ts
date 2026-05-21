@@ -213,7 +213,7 @@ export const check = (absPath: string, code: string, opts: ICheckOptions = {}): 
 };
 
 const LAYER_ORDER: Record<Exclude<Layer, null | 'system' | 'test'>, number> = {
-  entity: 0,
+  view: 0,
   controller: 1,
   feature: 2,
   widget: 3,

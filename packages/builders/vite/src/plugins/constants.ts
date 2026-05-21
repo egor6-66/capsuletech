@@ -9,15 +9,18 @@
  */
 
 /**
- * Имена wrapper-функций уровня (Page/Widget/Entity/Controller/Feature/Shape).
+ * Имена wrapper-функций уровня (Page/Widget/View/Controller/Feature/Shape).
  * Используются:
  *   - HMRWrappingPlugin (раскручивает `const X = Wrapper(...)` для HMR)
  *   - AutoImport в `capsuleConfig` (делает их глобальными в TSX-файлах)
+ *
+ * NB: `Entity` → `View` (PR #109). Папка `entities/` → `views/`. Namespace
+ * `Entities` остаётся как пустой placeholder для будущего domain layer.
  */
 export const WRAPPER_NAMES = [
   'Page',
   'Widget',
-  'Entity',
+  'View',
   'Controller',
   'Feature',
   'Shape',
@@ -42,9 +45,17 @@ export const DEFINE_FACTORIES = {
  *
  * Mapping слой-dir → namespace для slot-генерации.
  */
+/**
+ * Mapping слой-dir → namespace для slot-генерации.
+ *
+ * NB: `entities` → `views` (PR #109, Entity→View rename).
+ * `Entities` больше не генерируется из этого маппинга — ExportGeneratorPlugin
+ * добавляет `export const Entities = {}` вручную как пустой placeholder для
+ * будущего domain layer.
+ */
 export const LAYER_TO_NAMESPACE = {
   widgets: 'Widgets',
-  entities: 'Entities',
+  views: 'Views',
   controllers: 'Controllers',
   features: 'Features',
   shapes: 'Shapes',

@@ -113,7 +113,7 @@ const renderRuntime = (leaves: Leaf[]): string => {
   }
 
   // Эмитим ВСЕ слои, даже пустые: иначе wrapper-сигнатура
-  // `Widget((Ui, Features, Controllers, Entities, Shapes) => …)` упадёт с
+  // `Widget((Ui, Features, Controllers, Views, Shapes) => …)` упадёт с
   // `Shapes is not defined`, когда у app'а нет ни одного shape-файла.
   const layerOrder = Object.keys(LAYER_TO_NAMESPACE);
   for (const layer of layerOrder) {
@@ -136,6 +136,13 @@ const renderRuntime = (leaves: Leaf[]): string => {
     lines.push(`export const ${namespace} = {\n${entries}\n};`);
     lines.push('');
   }
+
+  // Placeholder для future domain layer (Entity factory).
+  // `Entities` больше не маппится на файловую папку — сохраняем как пустой
+  // объект, чтобы Widget-сигнатуры, ожидающие `Entities` 4-м аргументом,
+  // не падали на `Entities is not defined`.
+  lines.push('export const Entities = {};');
+  lines.push('');
 
   return lines.join('\n');
 };
@@ -185,6 +192,11 @@ const renderTypes = (leaves: Leaf[]): string => {
     lines.push(props);
     lines.push('  }');
   }
+
+  // Placeholder interface для future domain layer (Entity factory).
+  // Сохраняем `Entities` как пустой interface чтобы web-core мог
+  // augment'ить его в будущем без breaking change.
+  lines.push('  interface Entities {}');
 
   lines.push('}');
   lines.push('export {};');

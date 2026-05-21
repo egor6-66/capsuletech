@@ -17,9 +17,9 @@ const COMMON: RegExp[] = [
 ];
 
 export const RUNTIME_ALLOWED: Record<Exclude<Layer, null | 'system' | 'test'>, RegExp[]> = {
-  entity: [
+  view: [
     ...COMMON,
-    // только Solid и стиль — Entity максимально изолирована
+    // только Solid и стиль — View максимально изолирована (stateless UI leaf)
   ],
 
   controller: [
@@ -62,12 +62,14 @@ export const RUNTIME_ALLOWED: Record<Exclude<Layer, null | 'system' | 'test'>, R
 
 /**
  * Защита от cross-layer импортов через alias-prefix:
- * `@entities/*` из не-widget — горизонталь / upward.
+ * `@views/*` из не-widget — горизонталь / upward.
  * `@features/*` из non-widget — upward.
  * И т.д.
+ *
+ * NB: `@entities/` удалён (директория переименована в `views/`, PR #109).
  */
 export const LAYER_PREFIXES: Record<string, Exclude<Layer, null | 'system' | 'test'>> = {
-  '@entities/': 'entity',
+  '@views/': 'view',
   '@controllers/': 'controller',
   '@features/': 'feature',
   '@widgets/': 'widget',
@@ -76,16 +78,16 @@ export const LAYER_PREFIXES: Record<string, Exclude<Layer, null | 'system' | 'te
 
 /**
  * Какому слою разрешено импортировать какой alias-prefix.
- * `widget` может тащить `@entities/`, `@controllers/`, `@features/` — это его роль.
+ * `widget` может тащить `@views/`, `@controllers/`, `@features/` — это его роль.
  * Все остальные — не могут импортировать соседей по слою.
  */
 export const CROSS_LAYER_ALLOWED: Record<
   Exclude<Layer, null | 'system' | 'test'>,
   Set<Exclude<Layer, null | 'system' | 'test'>>
 > = {
-  entity: new Set(),
+  view: new Set(),
   controller: new Set(),
   feature: new Set(),
-  widget: new Set(['entity', 'controller', 'feature']),
+  widget: new Set(['view', 'controller', 'feature']),
   page: new Set(['widget']),
 };

@@ -4,8 +4,8 @@ import './app-config.gen';
 import * as _registry from './registry/wrappers';
 import { routeTree } from './routes/routeTree.gen';
 
-// Кладём registry-объекты (Widgets, Entities, Controllers, Features, Shapes)
-// на globalThis. Wrapper'ы в @capsuletech/web-core (Page/Widget/Entity) читают
+// Кладём registry-объекты (Widgets, Views, Controllers, Features, Shapes, Entities)
+// на globalThis. Wrapper'ы в @capsuletech/web-core (Page/Widget/View) читают
 // их оттуда — это работает после публикации пакета в npm, когда AutoImport
 // уже не может транспилировать собранный dist.
 Object.assign(globalThis, _registry);

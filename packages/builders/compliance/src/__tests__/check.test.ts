@@ -7,13 +7,13 @@ import { check } from '../check';
  * добавлении новой category было сразу видно, где её прибить.
  */
 
-const ENTITY_PATH = '/repo/apps/sandbox/src/entities/_auth/loginForm.tsx';
+const VIEW_PATH = '/repo/apps/sandbox/src/views/_auth/loginForm.tsx';
 const CONTROLLER_PATH = '/repo/apps/sandbox/src/controllers/auth.ts';
 const FEATURE_PATH = '/repo/apps/sandbox/src/features/auth.ts';
 const WIDGET_PATH = '/repo/apps/sandbox/src/widgets/forms/auth.tsx';
 const PAGE_PATH = '/repo/apps/sandbox/src/pages/home.tsx';
 const SYSTEM_PATH = '/repo/packages/web/core/src/index.ts';
-const TEST_PATH = '/repo/apps/sandbox/src/entities/_auth/loginForm.test.tsx';
+const TEST_PATH = '/repo/apps/sandbox/src/views/_auth/loginForm.test.tsx';
 
 describe('check — skipped layers', () => {
   it('returns [] for system files (packages/*)', () => {
@@ -31,7 +31,7 @@ describe('check — skipped layers', () => {
 
 describe('check — allowed imports (no violations)', () => {
   it('entity importing solid-js → ok', () => {
-    expect(check(ENTITY_PATH, "import { createSignal } from 'solid-js';")).toEqual([]);
+    expect(check(VIEW_PATH, "import { createSignal } from 'solid-js';")).toEqual([]);
   });
 
   it('controller importing xstate → ok', () => {
@@ -47,32 +47,32 @@ describe('check — allowed imports (no violations)', () => {
   });
 
   it('relative imports are always allowed (intra-group)', () => {
-    expect(check(ENTITY_PATH, "import { x } from './sibling';")).toEqual([]);
+    expect(check(VIEW_PATH, "import { x } from './sibling';")).toEqual([]);
   });
 
   it('type-only imports are skipped (no runtime link)', () => {
-    expect(check(ENTITY_PATH, "import type { Anything } from 'xstate';")).toEqual([]);
+    expect(check(VIEW_PATH, "import type { Anything } from 'xstate';")).toEqual([]);
   });
 });
 
 describe('check — disallowed-import', () => {
-  it('entity importing xstate → disallowed-import', () => {
-    const violations = check(ENTITY_PATH, "import { createMachine } from 'xstate';");
+  it('view importing xstate → disallowed-import', () => {
+    const violations = check(VIEW_PATH, "import { createMachine } from 'xstate';");
     expect(violations).toHaveLength(1);
     expect(violations[0].kind).toBe('disallowed-import');
     expect(violations[0].source).toBe('xstate');
-    expect(violations[0].layer).toBe('entity');
+    expect(violations[0].layer).toBe('view');
   });
 
-  it('entity importing arbitrary lib → disallowed-import', () => {
-    const violations = check(ENTITY_PATH, "import axios from 'axios';");
+  it('view importing arbitrary lib → disallowed-import', () => {
+    const violations = check(VIEW_PATH, "import axios from 'axios';");
     expect(violations[0]?.kind).toBe('disallowed-import');
   });
 });
 
 describe('check — upward-import', () => {
-  it('entity importing @features/* → upward-import', () => {
-    const violations = check(ENTITY_PATH, "import { x } from '@features/auth';");
+  it('view importing @features/* → upward-import', () => {
+    const violations = check(VIEW_PATH, "import { x } from '@features/auth';");
     expect(violations).toHaveLength(1);
     expect(violations[0].kind).toBe('upward-import');
   });
@@ -84,9 +84,9 @@ describe('check — upward-import', () => {
 });
 
 describe('check — horizontal-import', () => {
-  it('entity importing @entities/<other-group> → horizontal (via cross-layer rule)', () => {
-    // Entity has empty CROSS_LAYER_ALLOWED — any @entities/* import is forbidden.
-    const violations = check(ENTITY_PATH, "import { Other } from '@entities/_header';");
+  it('view importing @views/<other-group> → horizontal (via cross-layer rule)', () => {
+    // View has empty CROSS_LAYER_ALLOWED — any @views/* import is forbidden.
+    const violations = check(VIEW_PATH, "import { Other } from '@views/_header';");
     expect(violations).toHaveLength(1);
     expect(violations[0].kind).toBe('horizontal-import');
   });
@@ -97,8 +97,8 @@ describe('check — horizontal-import', () => {
     expect(violations[0].kind).toBe('horizontal-import');
   });
 
-  it('widget importing @entities/<group> → allowed (composition role)', () => {
-    expect(check(WIDGET_PATH, "import { Form } from '@entities/_auth';")).toEqual([]);
+  it('widget importing @views/<group> → allowed (composition role)', () => {
+    expect(check(WIDGET_PATH, "import { Form } from '@views/_auth';")).toEqual([]);
   });
 
   it('page importing @widgets/* → allowed', () => {
@@ -114,8 +114,8 @@ describe('check — side-effect-fetch', () => {
     expect(violations[0].source).toBe('fetch');
   });
 
-  it('entity calling axios.get → side-effect-fetch', () => {
-    const violations = check(ENTITY_PATH, 'function go() { axios.get("/x"); }');
+  it('view calling axios.get → side-effect-fetch', () => {
+    const violations = check(VIEW_PATH, 'function go() { axios.get("/x"); }');
     expect(violations[0]?.kind).toBe('side-effect-fetch');
   });
 
@@ -138,7 +138,7 @@ describe('check — unknown-alias (meta.tags)', () => {
     const code = `
       const x = <Field meta={{ tags: ['@unknown'] }} />;
     `;
-    const violations = check(ENTITY_PATH, code, { aliasKeys });
+    const violations = check(VIEW_PATH, code, { aliasKeys });
     expect(violations).toHaveLength(1);
     expect(violations[0].kind).toBe('unknown-alias');
     expect(violations[0].source).toBe('@unknown');
@@ -148,26 +148,26 @@ describe('check — unknown-alias (meta.tags)', () => {
     const code = `
       const x = <Field meta={{ tags: ['@login-form', 'submit'] }} />;
     `;
-    expect(check(ENTITY_PATH, code, { aliasKeys })).toEqual([]);
+    expect(check(VIEW_PATH, code, { aliasKeys })).toEqual([]);
   });
 
   it('plain tags (no @-prefix) are ignored', () => {
     const code = `
       const x = <Field meta={{ tags: ['submit', 'email'] }} />;
     `;
-    expect(check(ENTITY_PATH, code, { aliasKeys })).toEqual([]);
+    expect(check(VIEW_PATH, code, { aliasKeys })).toEqual([]);
   });
 
   it('skips alias check when aliasKeys is not provided', () => {
     const code = `const x = <Field meta={{ tags: ['@anything'] }} />;`;
-    expect(check(ENTITY_PATH, code)).toEqual([]);
+    expect(check(VIEW_PATH, code)).toEqual([]);
   });
 });
 
 describe('check — extraAllowed option', () => {
   it('merges extra allowlist for the target layer', () => {
-    const violations = check(ENTITY_PATH, "import { thing } from 'lodash-es';", {
-      extraAllowed: { entity: [/^lodash-es$/] },
+    const violations = check(VIEW_PATH, "import { thing } from 'lodash-es';", {
+      extraAllowed: { view: [/^lodash-es$/] },
     });
     expect(violations).toEqual([]);
   });
@@ -175,7 +175,7 @@ describe('check — extraAllowed option', () => {
 
 describe('check — dynamic import()', () => {
   it('treats dynamic import as runtime import', () => {
-    const violations = check(ENTITY_PATH, "const m = await import('xstate');");
+    const violations = check(VIEW_PATH, "const m = await import('xstate');");
     expect(violations).toHaveLength(1);
     expect(violations[0].kind).toBe('disallowed-import');
   });
@@ -183,7 +183,7 @@ describe('check — dynamic import()', () => {
 
 describe('check — parser resilience', () => {
   it('swallows parse errors and returns []', () => {
-    expect(check(ENTITY_PATH, 'this is not valid (((( syntax')).toEqual([]);
+    expect(check(VIEW_PATH, 'this is not valid (((( syntax')).toEqual([]);
   });
 });
 
@@ -202,7 +202,7 @@ describe('check — parser resilience', () => {
 describe('check — @capsuletech/web-* package names (regression)', () => {
   describe('web-style allowed everywhere', () => {
     it.each([
-      ['entity', ENTITY_PATH],
+      ['view', VIEW_PATH],
       ['controller', CONTROLLER_PATH],
       ['feature', FEATURE_PATH],
       ['widget', WIDGET_PATH],
@@ -254,8 +254,8 @@ describe('check — @capsuletech/web-* package names (regression)', () => {
     it('page can import @capsuletech/web-ui', () => {
       expect(check(PAGE_PATH, "import { Layout } from '@capsuletech/web-ui';")).toEqual([]);
     });
-    it('entity CANNOT import @capsuletech/web-ui (entity is stateless leaf)', () => {
-      const v = check(ENTITY_PATH, "import { Card } from '@capsuletech/web-ui';");
+    it('view CANNOT import @capsuletech/web-ui (view is stateless leaf)', () => {
+      const v = check(VIEW_PATH, "import { Card } from '@capsuletech/web-ui';");
       expect(v).toHaveLength(1);
       expect(v[0].kind).toBe('disallowed-import');
     });
@@ -272,7 +272,7 @@ describe('check — @capsuletech/web-* package names (regression)', () => {
       ['@capsuletech/ui', WIDGET_PATH],
       ['@capsuletech/state', CONTROLLER_PATH],
       ['@capsuletech/router', CONTROLLER_PATH],
-      ['@capsuletech/style', ENTITY_PATH],
+      ['@capsuletech/style', VIEW_PATH],
     ])('legacy "%s" → disallowed-import', (pkg, path) => {
       const v = check(path, `import { x } from '${pkg}';`);
       expect(v).toHaveLength(1);

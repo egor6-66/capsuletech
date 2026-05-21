@@ -16,7 +16,7 @@ import { classify, extractGroup } from '../classify';
 describe('classify', () => {
   describe('HCA layers (POSIX paths)', () => {
     it.each([
-      ['entity', '/repo/apps/sandbox/src/entities/_auth/loginForm.tsx'],
+      ['view', '/repo/apps/sandbox/src/views/_auth/loginForm.tsx'],
       ['controller', '/repo/apps/sandbox/src/controllers/auth.ts'],
       ['feature', '/repo/apps/sandbox/src/features/auth.ts'],
       ['widget', '/repo/apps/sandbox/src/widgets/forms/auth.tsx'],
@@ -27,10 +27,8 @@ describe('classify', () => {
   });
 
   describe('HCA layers (Windows backslash paths)', () => {
-    it('resolves entity on Windows path', () => {
-      expect(classify('D:\\repo\\apps\\sandbox\\src\\entities\\_auth\\loginForm.tsx')).toBe(
-        'entity',
-      );
+    it('resolves view on Windows path', () => {
+      expect(classify('D:\\repo\\apps\\sandbox\\src\\views\\_auth\\loginForm.tsx')).toBe('view');
     });
     it('resolves widget on Windows path', () => {
       expect(classify('D:\\repo\\apps\\agent\\src\\widgets\\forms\\auth.tsx')).toBe('widget');
@@ -62,7 +60,7 @@ describe('classify', () => {
       '.spec.ts',
       '.spec.tsx',
     ])('test pattern (%s) → "test"', (suffix) => {
-      expect(classify(`/repo/apps/sandbox/src/entities/foo${suffix}`)).toBe('test');
+      expect(classify(`/repo/apps/sandbox/src/views/foo${suffix}`)).toBe('test');
     });
   });
 
@@ -82,10 +80,8 @@ describe('classify', () => {
 });
 
 describe('extractGroup', () => {
-  it('extracts group name for entity', () => {
-    expect(extractGroup('/repo/apps/sandbox/src/entities/_auth/loginForm.tsx', 'entity')).toBe(
-      '_auth',
-    );
+  it('extracts group name for view', () => {
+    expect(extractGroup('/repo/apps/sandbox/src/views/_auth/loginForm.tsx', 'view')).toBe('_auth');
   });
 
   it('extracts group name for widget', () => {
@@ -93,7 +89,7 @@ describe('extractGroup', () => {
   });
 
   it('returns null when no group dir (file directly in layer root)', () => {
-    expect(extractGroup('/repo/apps/sandbox/src/entities/loose.tsx', 'entity')).toBeNull();
+    expect(extractGroup('/repo/apps/sandbox/src/views/loose.tsx', 'view')).toBeNull();
   });
 
   it.each(['system', 'test', null] as const)('returns null for %s layer', (layer) => {
@@ -102,7 +98,7 @@ describe('extractGroup', () => {
 
   it('works on Windows backslash paths', () => {
     expect(
-      extractGroup('D:\\repo\\apps\\sandbox\\src\\entities\\_auth\\loginForm.tsx', 'entity'),
+      extractGroup('D:\\repo\\apps\\sandbox\\src\\views\\_auth\\loginForm.tsx', 'view'),
     ).toBe('_auth');
   });
 

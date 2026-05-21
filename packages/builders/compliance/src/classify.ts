@@ -8,7 +8,7 @@
  */
 
 export type Layer =
-  | 'entity'
+  | 'view'
   | 'controller'
   | 'feature'
   | 'widget'
@@ -22,7 +22,7 @@ const CAPSULE_GEN = /[\\/]\.capsule[\\/]/;
 const NODE_MODULES = /[\\/]node_modules[\\/]/;
 
 const LAYER_RX: Array<[Layer, RegExp]> = [
-  ['entity', /[\\/]apps[\\/][^\\/]+[\\/]src[\\/]entities[\\/]/],
+  ['view', /[\\/]apps[\\/][^\\/]+[\\/]src[\\/]views[\\/]/],
   ['controller', /[\\/]apps[\\/][^\\/]+[\\/]src[\\/]controllers[\\/]/],
   ['feature', /[\\/]apps[\\/][^\\/]+[\\/]src[\\/]features[\\/]/],
   ['widget', /[\\/]apps[\\/][^\\/]+[\\/]src[\\/]widgets[\\/]/],
@@ -51,8 +51,8 @@ export const classify = (absPath: string): Layer => {
 export const extractGroup = (absPath: string, layer: Layer): string | null => {
   if (!layer || layer === 'system' || layer === 'test') return null;
   const layerNamePlural =
-    layer === 'entity'
-      ? 'entities'
+    layer === 'view'
+      ? 'views'
       : layer === 'controller'
         ? 'controllers'
         : layer === 'feature'
