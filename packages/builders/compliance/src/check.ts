@@ -63,7 +63,7 @@ export const check = (absPath: string, code: string, opts: ICheckOptions = {}): 
     if (isTypeOnly) return; // type-only не создаёт runtime-связи
     if (source.startsWith('.')) return; // относительный импорт — внутри пакета/группы, ок
 
-    // Cross-layer через @entities/, @controllers/, @features/, @widgets/, @pages/
+    // Cross-layer через @views/, @controllers/, @features/, @widgets/, @pages/
     for (const [prefix, targetLayer] of Object.entries(LAYER_PREFIXES)) {
       if (!source.startsWith(prefix)) continue;
       const allowedTargets = CROSS_LAYER_ALLOWED[layer];

@@ -2,7 +2,7 @@
   "@pages/*": ["src/pages/*"],
   "@widgets/*": ["src/widgets/*"],
   "@features/*": ["src/features/*"],
-  "@entities/*": ["src/entities/*"],
+  "@views/*": ["src/views/*"],
   "@controllers/*": ["src/controllers/*"],
   "@shapes/*": ["src/shapes/*"]
 }

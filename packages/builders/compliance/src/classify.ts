@@ -45,7 +45,7 @@ export const classify = (absPath: string): Layer => {
 
 /**
  * Извлечь идентификатор группы внутри слоя — для проверок горизонтальных импортов.
- * `apps/sandbox/src/entities/_auth/loginForm.tsx` → `'_auth'`
+ * `apps/sandbox/src/views/_auth/loginForm.tsx` → `'_auth'`
  * Если группа не определена — возвращает `null`.
  */
 export const extractGroup = (absPath: string, layer: Layer): string | null => {
