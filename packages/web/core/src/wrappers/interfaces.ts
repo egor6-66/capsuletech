@@ -25,7 +25,7 @@ import type { Component, JSX, JSXElement } from 'solid-js';
 // UI-вкус: что приходит wrapper'ам в первый позиционный аргумент.
 // -----------------------------------------------------------------------------
 
-type EntityUi = {
+type ViewUi = {
   Field: typeof Field;
   Button: typeof Button;
   Input: typeof Input;
@@ -36,7 +36,7 @@ type EntityUi = {
 
 type Outlet = () => JSXElement;
 
-type WidgetUi = { Card: typeof Card; Outlet: Outlet; Animate: typeof Animate };
+type WidgetUi = { Card: typeof Card; Outlet: Outlet; Animate: typeof Animate; Layout: typeof Layout };
 type PageUi = { Layout: typeof Layout; Outlet: Outlet; Animate: typeof Animate };
 
 /**
@@ -50,7 +50,14 @@ type PageUi = { Layout: typeof Layout; Outlet: Outlet; Animate: typeof Animate }
  */
 declare global {
   interface Widgets {}
+  /**
+   * Placeholder для будущего domain data layer (User, Product — zod schema + meta).
+   * Не используется wrappers'ами — зарезервировано под domain-entities.
+   * UI JSX-leaf переехал в Views.
+   */
   interface Entities {}
+  /** UI JSX-leaf реестр (бывший Entities). Заполняется codegen'ом. */
+  interface Views {}
   interface Controllers {}
   interface Features {}
   interface Shapes {}
@@ -62,25 +69,25 @@ declare global {
 type Wrapper<T extends (...args: any[]) => JSX.Element> = (component: T) => Component<any>;
 
 /**
- * Entity: stateless UI. Позиционные аргументы:
- * 1. UI-примитивы entity-уровня (Field, Button, Input, List, Navigation).
+ * View: stateless UI. Позиционные аргументы:
+ * 1. UI-примитивы view-уровня (Field, Button, Input, List, Navigation).
  * 2. Shapes — реестр data-шейпов (zod-схемы + дефолты + render-prop'ы).
  */
-export type IEntityRenderer = (ui: EntityUi, shapes: Shapes) => JSX.Element;
-export type IEntityWrapper = Wrapper<IEntityRenderer>;
+export type IViewRenderer = (ui: ViewUi, shapes: Shapes) => JSX.Element;
+export type IViewWrapper = Wrapper<IViewRenderer>;
 
 /**
  * Widget: композиция всего что ниже. Позиционные аргументы:
  * 1. UI-примитивы widget-уровня
  * 2. Features
  * 3. Controllers
- * 4. Entities
+ * 4. Views
  */
 export type IWidgetRenderer = (
   ui: WidgetUi,
   features: Features,
   controllers: Controllers,
-  entities: Entities,
+  views: Views,
 ) => JSX.Element;
 export type IWidgetWrapper = Wrapper<IWidgetRenderer>;
 

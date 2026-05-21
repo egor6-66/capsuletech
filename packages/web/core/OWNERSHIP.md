@@ -3,12 +3,14 @@ name: "@capsuletech/web-core"
 owner-agent: owner-web-core
 group: web_base
 status: pre-1.0
-last-updated: 2026-05-20
+last-updated: 2026-05-21
 ---
 
 # @capsuletech/web-core
 
-Корневой пакет HCA-фреймворка: шесть wrapper-функций (Entity/Widget/Page/Controller/Feature/Shape), Proxy-механика (UiProxy + ControllerProxy), провайдеры (BaseProviders), DOM-bootstrap (createRoot) и реестр UI-примитивов (ui-kit/imports).
+Корневой пакет HCA-фреймворка: шесть wrapper-функций (View/Widget/Page/Controller/Feature/Shape), Proxy-механика (UiProxy + ControllerProxy), провайдеры (BaseProviders), DOM-bootstrap (createRoot) и реестр UI-примитивов (ui-kit/imports).
+
+> **BREAKING (v0.2.0):** `Entity` → `View`, `EntityUi` → `ViewUi`, `IEntityWrapper` → `IViewWrapper`, `IEntityRenderer` → `IViewRenderer`, `IWidgetRenderer` 4-й arg `entities` → `views`, global registry `Entities` (placeholder для domain layer) + новый `Views`. ShapeUiContext поднят в Widget/Page — Shape первоклассный leaf. `Layout` добавлен в `WidgetUi`. Consumer updates требуют отдельных PR (owner-builders, owner-cli, architect для docs).
 
 ## Зона ответственности
 
@@ -41,17 +43,18 @@ last-updated: 2026-05-20
 
 ```ts
 import {
-  Entity, Widget, Page, Controller, Feature, Shape, // 6 wrapper-функций
-  Providers,                                          // namespace: { BaseProviders }
-  useShapeUi,                                         // hook для Shape consumer'ов
-  type ITarget, type IHandlerApi,                     // user-facing типы
-  type IDefineStateSchema, type IStateHandlers,       // schema-типы
-  type IServices, type IWrapperProps,                 // injected types
-  type INext, type IStateApi,                         // handler-API helpers
+  View, Widget, Page, Controller, Feature, Shape, // 6 wrapper-функций
+  Providers,                                        // namespace: { BaseProviders }
+  useShapeUi,                                       // hook для Shape consumer'ов
+  type ITarget, type IHandlerApi,                   // user-facing типы
+  type IDefineStateSchema, type IStateHandlers,     // schema-типы
+  type IServices, type IWrapperProps,               // injected types
+  type INext, type IStateApi,                       // handler-API helpers
+  type IViewWrapper, type IViewRenderer,            // View-specific types
 } from '@capsuletech/web-core';
 ```
 
-Wrapper-имена (`Entity/Widget/Page/Controller/Feature/Shape`) — **глобальные в apps** через AutoImport. В app-коде их явно не импортируют, но они должны экспортироваться из barrel чтобы AutoImport мог их инжектить.
+Wrapper-имена (`View/Widget/Page/Controller/Feature/Shape`) — **глобальные в apps** через AutoImport. В app-коде их явно не импортируют, но они должны экспортироваться из barrel чтобы AutoImport мог их инжектить.
 
 ### `./create` (`src/create/index.ts`)
 
@@ -110,6 +113,9 @@ import { BaseProviders } from '@capsuletech/web-core/providers';
 - [x] **Двойной FSM** — XState теперь единственный runtime (ADR 001 + 008, 2026-05).
 - [x] **Дедупликация event-bubbling** — event-marker `__capsule_<name>__` (2026-05).
 - [x] **CSS удалён из пакета** — перенесён в builders scaffold (2026-05).
+- [x] **Entity → View rename** — `View` = UI JSX-leaf, `Entity` зарезервирован под domain data layer (2026-05-21).
+- [x] **ShapeUiContext поднят в Widget/Page** — Shape первоклассный leaf из любого слоя (2026-05-21).
+- [x] **Layout добавлен в WidgetUi** — `Ui.Layout.Matrix` доступен в Widget (2026-05-21).
 
 ## Test coverage
 

@@ -1,7 +1,7 @@
 /**
  * Slot-резолвер: единая точка доступа к глобальным реестрам слотов
- * (Widgets/Entities/Controllers/Features/Shapes). Раньше каждый wrapper
- * (entity/widget/page) переопределял свой `getXxx` локально — 5 копий одной
+ * (Widgets/Views/Controllers/Features/Shapes). Раньше каждый wrapper
+ * (view/widget/page) переопределял свой `getXxx` локально — 5 копий одной
  * и той же функции. См. A-3 в architecture findings.
  *
  * **Почему через globalThis.** До npm-публикации реестры приходили через
@@ -13,10 +13,16 @@
  * Будущая итерация (см. A-2/A-3 в cleanup-plan) — мигрировать на явную
  * регистрацию через `BaseProviders` props/context, без globalThis. Тогда этот
  * модуль станет thin-wrapper'ом над React-style context-провайдером.
+ *
+ * NOTE: `Entities` остаётся в RegistryMap как placeholder для будущего domain
+ * data layer; UI JSX-leaf реестр переехал в `Views`.
  */
 
 type RegistryMap = {
   Widgets: Widgets;
+  /** UI JSX-leaf реестр (бывший Entities). */
+  Views: Views;
+  /** Placeholder для будущего domain data layer. */
   Entities: Entities;
   Controllers: Controllers;
   Features: Features;

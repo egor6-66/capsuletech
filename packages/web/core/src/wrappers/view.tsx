@@ -2,20 +2,20 @@ import { useCtx } from '../engine/ctx';
 import { getGlobalRegistry } from '../engine/registry';
 import { UiProxy } from '../engine/ui-proxy';
 import { Ui as BaseUi } from '../ui-kit';
-import type { IEntityWrapper } from './interfaces';
+import type { IViewWrapper } from './interfaces';
 import { ShapeUiContext } from './shape';
 
-export const EntityWrapper: IEntityWrapper = (Component) => {
-  return function Entity(wrapperProps) {
+export const ViewWrapper: IViewWrapper = (Component) => {
+  return function View(wrapperProps) {
     const ctx = useCtx();
 
-    // A-4: Entity вне Controller-tree — UiProxy не активируется, никакая meta
+    // A-4: View вне Controller-tree — UiProxy не активируется, никакая meta
     // не регистрируется в store и не получает event-binding. Это разрешённый
-    // случай (Entity может рендериться, например, в Storybook), но для
+    // случай (View может рендериться, например, в Storybook), но для
     // user-кода это обычно ошибка интеграции. DEV-only warn.
     if ((import.meta as { env?: { DEV?: boolean } }).env?.DEV && !ctx) {
       console.warn(
-        '[Entity] rendered outside of Controller — UiProxy is disabled, ' +
+        '[View] rendered outside of Controller — UiProxy is disabled, ' +
           'any meta-tagged elements in this subtree will be decorative ' +
           '(no event binding, no store registration).',
       );
