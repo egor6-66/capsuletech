@@ -23,6 +23,11 @@ storybook-static
 .claude/worktrees
 .claude/settings.local.json
 # NOTE: .claude/agents/ is TRACKED — shared agent prompts for the team.
+
+# Local test/playground apps inside monorepo — workspace-mode framework dev,
+# not framework-developer scope (apps/ otherwise tracked). Used to debug
+# framework changes without publish-cycle. Personal, never committed.
+/apps/sandbox/
 .nx/polygraph
 ctx
 .aider*

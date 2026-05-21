@@ -79,10 +79,28 @@ export interface IUiMetaProps {
 }
 
 /**
+ * Вспомогательный тип: из callable-значения извлекает только «прикреплённые»
+ * статические свойства — те ключи `T`, которые не входят в прототип `Function`
+ * (`name`, `length`, `call`, `apply`, `bind`, `prototype`, `toString` и т.д.).
+ *
+ * Используется внутри `WithMetaProps` чтобы сохранить `Card.Header`, `Field.Label`,
+ * `Navigation.Item` и т.п. после augmentation callable-сигнатуры с `IUiMetaProps`.
+ *
+ * Пример: `typeof Card` = `Component<ICardProps> & { Header: ...; Title: ...; ... }`
+ * После применения — intersection callable + mapped static props.
+ */
+type StaticProps<T> = {
+  [K in keyof T as K extends keyof Function ? never : K]: T[K];
+};
+
+/**
  * Применяет `IUiMetaProps` к каждому компоненту в Ui-namespace рекурсивно.
  *
  * Правила маппинга:
- *  - Callable `(props: P) => R` → `(props: P & IUiMetaProps) => R`
+ *  - Callable `(props: P) => R` без attached statics → `(props: P & IUiMetaProps) => R`
+ *  - Callable `(props: P) => R` с attached statics (Card, Field, Navigation) →
+ *    `((props: P & IUiMetaProps) => R) & WithMetaProps<StaticProps<T[K]>>`
+ *    Статические sub-компоненты тоже рекурсивно augment'ятся `IUiMetaProps`.
  *  - Plain object (Layout namespace `{ Grid, Flex, Matrix }`) → рекурсивный
  *    `WithMetaProps<T[K]>`
  *  - Всё остальное (Outlet, примитивы) → без изменений
@@ -93,7 +111,7 @@ export interface IUiMetaProps {
  */
 type WithMetaProps<T> = {
   [K in keyof T]: T[K] extends (props: infer P) => infer R
-    ? (props: P & IUiMetaProps) => R
+    ? ((props: P & IUiMetaProps) => R) & WithMetaProps<StaticProps<T[K]>>
     : T[K] extends object
       ? WithMetaProps<T[K]>
       : T[K];

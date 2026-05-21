@@ -81,7 +81,9 @@ import { BaseProviders } from '@capsuletech/web-core/providers';
 
 ## Quirks / gotchas
 
-- **`IUiMetaProps` живёт в web-core, не в web-ui.** `meta`, `payload`, `dynamicMeta`, `modifiers` — props UiProxy-layer (перехватываются в `wrapComponent`, в реальный DOM не попадают). web-ui — чистый DOM/style primitive, HCA-aware props там неуместны. `WithMetaProps<T>` — mapped type в `wrappers/interfaces.ts`, применяется к `ViewUiRaw` / `WidgetUiRaw` / `PageUiRaw` → `ViewUi` / `WidgetUi` / `PageUi`. Источник: `src/wrappers/interfaces.ts:94–100`.
+- **`IUiMetaProps` живёт в web-core, не в web-ui.** `meta`, `payload`, `dynamicMeta`, `modifiers` — props UiProxy-layer (перехватываются в `wrapComponent`, в реальный DOM не попадают). web-ui — чистый DOM/style primitive, HCA-aware props там неуместны. `WithMetaProps<T>` — mapped type в `wrappers/interfaces.ts`, применяется к `ViewUiRaw` / `WidgetUiRaw` / `PageUiRaw` → `ViewUi` / `WidgetUi` / `PageUi`. Источник: `src/wrappers/interfaces.ts` (helper `StaticProps<T>` + `WithMetaProps<T>`).
+
+- **Compound sub-components (`Card.Header`, `Field.Label`, `Navigation.Item`, …) сохраняются через `StaticProps<T>`.** `WithMetaProps` для callable `T[K]` возвращает intersection: `((props: P & IUiMetaProps) => R) & WithMetaProps<StaticProps<T[K]>>`. `StaticProps<T>` отфильтровывает встроенные ключи прототипа `Function` (`K extends keyof Function ? never : K`), оставляя только пользовательские attached properties. Рекурсивное применение `WithMetaProps` к `StaticProps` гарантирует что `Card.Header`, `Field.Label` и т.д. тоже принимают `meta`. Регрессия: до PR #119 callable-ветка возвращала только `(props: P & IUiMetaProps) => R` без attached statics.
 
 - **`createRoot` ≠ Solid `createRoot`.** Наш — render-фабрика (`render(Bootstrap, container)` + `data-theme` inject). Solid'ская — для реактивного scope без рендера. Часто путают. Источник: `src/create/createRoot.ts`.
 
@@ -122,6 +124,7 @@ import { BaseProviders } from '@capsuletech/web-core/providers';
 - [x] **Layout добавлен в WidgetUi** — `Ui.Layout.Matrix` доступен в Widget (2026-05-21).
 - [x] **Wrapper signatures упрощены до `(Ui, props?)`** — registry-args убраны, `Views`/`Widgets`/`Shapes`/`Controllers`/`Features` — глобалы. `ShapeUiContext` revert (несёт только Ui, без Views-merge). Generic `<P>` для типизации props в Shape `as`-pattern (2026-05-21).
 - [x] **`IUiMetaProps` + `WithMetaProps<T>` добавлены** — `meta`/`payload`/`dynamicMeta`/`modifiers` теперь типизированы на уровне `ViewUi`/`WidgetUi`/`PageUi`. TS2322 на `<Ui.Input meta={...} />` устранён. Источник: `src/wrappers/interfaces.ts`. Тест: `src/wrappers/__tests__/ui-meta-props.test.tsx` (2026-05-21).
+- [x] **Compound sub-components restored in `WithMetaProps`** — `Card.Header`, `Card.Title`, `Card.Content`, `Card.Description`, `Card.Footer`, `Field.Label`, `Field.Content`, `Field.Group`, `Navigation.List`, `Navigation.Item` и т.д. больше не теряются после augmentation. Введён helper `StaticProps<T>` (`K extends keyof Function ? never : K`). Callable-ветка теперь возвращает intersection callable + `WithMetaProps<StaticProps<T[K]>>`. Layout (`{ Grid, Flex, Matrix }`) не регрессирует — идёт через `extends object` ветку. 136 тестов green (2026-05-21).
 
 ## Test coverage
 

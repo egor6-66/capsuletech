@@ -95,6 +95,93 @@ describe('WidgetUi — IUiMetaProps injected into component props', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Compile-time: compound (namespace) components — static sub-props preserved
+// Regression guard for PR #119: WithMetaProps must not strip Card.Header,
+// Field.Label, Navigation.Item etc. when augmenting the callable signature.
+// ---------------------------------------------------------------------------
+
+describe('ViewUi — Field compound: sub-components preserved with meta', () => {
+  it('Ui.Field.Label is a function (not lost after WithMetaProps)', () => {
+    expectTypeOf<ViewUi['Field']['Label']>().toBeFunction();
+  });
+
+  it('Ui.Field.Label accepts IUiMetaProps (meta prop)', () => {
+    type LabelProps = Parameters<ViewUi['Field']['Label']>[0];
+    expectTypeOf<LabelProps>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.Field.Content is a function', () => {
+    expectTypeOf<ViewUi['Field']['Content']>().toBeFunction();
+  });
+
+  it('Ui.Field.Content accepts meta prop', () => {
+    type ContentProps = Parameters<ViewUi['Field']['Content']>[0];
+    expectTypeOf<ContentProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Field.Group is a function', () => {
+    expectTypeOf<ViewUi['Field']['Group']>().toBeFunction();
+  });
+
+  it('Ui.Field.Label accepts meta prop', () => {
+    type LabelProps = Parameters<ViewUi['Field']['Label']>[0];
+    expectTypeOf<LabelProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+});
+
+describe('WidgetUi — Card compound: sub-components preserved with meta', () => {
+  it('Ui.Card.Header is a function (not lost after WithMetaProps)', () => {
+    expectTypeOf<WidgetUi['Card']['Header']>().toBeFunction();
+  });
+
+  it('Ui.Card.Header accepts meta prop', () => {
+    type HeaderProps = Parameters<WidgetUi['Card']['Header']>[0];
+    expectTypeOf<HeaderProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Card.Title is a function', () => {
+    expectTypeOf<WidgetUi['Card']['Title']>().toBeFunction();
+  });
+
+  it('Ui.Card.Title accepts meta prop', () => {
+    type TitleProps = Parameters<WidgetUi['Card']['Title']>[0];
+    expectTypeOf<TitleProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Card.Content is a function', () => {
+    expectTypeOf<WidgetUi['Card']['Content']>().toBeFunction();
+  });
+
+  it('Ui.Card.Description is a function', () => {
+    expectTypeOf<WidgetUi['Card']['Description']>().toBeFunction();
+  });
+
+  it('Ui.Card.Footer is a function', () => {
+    expectTypeOf<WidgetUi['Card']['Footer']>().toBeFunction();
+  });
+});
+
+describe('ViewUi — Navigation compound: sub-components preserved with meta', () => {
+  it('Ui.Navigation.List is a function', () => {
+    expectTypeOf<ViewUi['Navigation']['List']>().toBeFunction();
+  });
+
+  it('Ui.Navigation.List accepts meta prop', () => {
+    type ListProps = Parameters<ViewUi['Navigation']['List']>[0];
+    expectTypeOf<ListProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+
+  it('Ui.Navigation.Item is a function', () => {
+    expectTypeOf<ViewUi['Navigation']['Item']>().toBeFunction();
+  });
+
+  it('Ui.Navigation.Item accepts meta prop', () => {
+    type ItemProps = Parameters<ViewUi['Navigation']['Item']>[0];
+    expectTypeOf<ItemProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Runtime: ViewWrapper + UiProxy does not crash when meta is passed
 // (the actual prop stripping is in UiProxy; here we verify no runtime error)
 // ---------------------------------------------------------------------------
