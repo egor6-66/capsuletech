@@ -22,11 +22,12 @@ export const ViewWrapper: IViewWrapper = (Component) => {
     }
 
     const Ui = ctx ? UiProxy(BaseUi, ctx, wrapperProps) : BaseUi;
-    // ShapeUiContext.Provider даёт Shape'ам доступ к проксированному Ui —
-    // это нужно для резолва `definition.as` (path-tracker) в правильный
-    // wrapped-компонент с UiProxy-event-binding'ом.
+    // ShapeUiContext.Provider даёт Shape'ам доступ к проксированному Ui +
+    // Views registry. Combined namespace: { ...Ui, Views } позволяет Shape'у
+    // ссылаться как на Ui-примитивы (`ui.Field`), так и на Views (`ui.Views.Forms.Field`).
+    const shapeUiNs = { ...(Ui as object), Views: getGlobalRegistry('Views') } as any;
     return (
-      <ShapeUiContext.Provider value={Ui}>
+      <ShapeUiContext.Provider value={shapeUiNs}>
         {Component(Ui as any, getGlobalRegistry('Shapes'))}
       </ShapeUiContext.Provider>
     );

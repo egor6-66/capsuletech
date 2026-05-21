@@ -7,10 +7,11 @@ import { ShapeUiContext } from './shape';
 export const PageWrapper: IPageWrapper = (Component) => {
   return function Page() {
     // Позиционные аргументы: ui (Layout + Outlet), widgets.
-    // ShapeUiContext.Provider даёт Shape'ам доступ к Ui — Shape первоклассный
-    // leaf, рендерится из Page без обёртки в View.
+    // ShapeUiContext.Provider даёт Shape'ам доступ к combined namespace:
+    // { ...Ui, Views } — backward-compat ui.Field + новый ui.Views.Forms.Field.
+    const shapeUiNs = { ...(Ui as object), Views: getGlobalRegistry('Views') } as any;
     return (
-      <ShapeUiContext.Provider value={Ui}>
+      <ShapeUiContext.Provider value={shapeUiNs}>
         {Component({ ...(Ui as any), Outlet } as any, getGlobalRegistry('Widgets'))}
       </ShapeUiContext.Provider>
     );

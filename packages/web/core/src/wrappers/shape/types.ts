@@ -12,10 +12,20 @@ export interface IShapeTemplateProps {
 
 /**
  * Path-tracker для второго аргумента factory'и (`ui`). Структурно — выглядит
- * как Ui-namespace (`ui.Navigation.Item`), реально — Proxy, фиксирующий путь.
- * Резолв реального компонента происходит в момент рендера через `ShapeUiContext`.
+ * как объединённый namespace:
+ *  - top-level: Ui primitives (`ui.Field`, `ui.Button`) — backward-compat;
+ *  - `ui.Views.<Group>.<Name>` — user-defined composite Views.
+ *
+ * Реально — Proxy, фиксирующий путь. Резолв реального компонента происходит
+ * в момент рендера через `ShapeUiContext` (combined namespace `{ ...Ui, Views }`).
+ *
+ * Тип намеренно гибкий (Record<string, any>) — tracker — это Proxy без реальной
+ * структуры; `Views` описана отдельным ключом для IDE-подсказки.
  */
-export type IShapeUi = Record<string, any>;
+export type IShapeUi = Record<string, any> & {
+  /** Views registry — composite user Views (`ui.Views.Forms.Field`). */
+  Views: Record<string, any>;
+};
 
 /** Определение Shape — то что возвращает factory-функция. */
 export interface IShapeDefinition<S extends ZodArray<ZodTypeAny> = ZodArray<ZodTypeAny>> {

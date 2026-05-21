@@ -141,3 +141,65 @@ describe('integration: tracker → path → resolve', () => {
     expect(resolveByPath(realUi, path!)).toBeUndefined();
   });
 });
+
+describe('integration: Views-namespace — combined ShapeUiContext namespace', () => {
+  /**
+   * Симулирует combined namespace, который View/Widget/Page кладут в ShapeUiContext:
+   *   { ...Ui, Views: getGlobalRegistry('Views') }
+   *
+   * Shape factory может ссылаться через path-tracker как на Ui primitive (`ui.Field`),
+   * так и на View (`ui.Views.Forms.Field`). resolveByPath работает одинаково —
+   * просто ходит по dot-path через combined object.
+   */
+  const MockFormsFieldView = 'MOCK_FORMS_FIELD_VIEW';
+  const MockCardView = 'MOCK_CARD_VIEW';
+
+  const combinedNs = {
+    // Ui primitives at top level (backward-compat)
+    Field: 'UI_FIELD',
+    Button: 'UI_BUTTON',
+    // Views registry under 'Views' key
+    Views: {
+      Forms: {
+        Field: MockFormsFieldView,
+      },
+      Card: MockCardView,
+    },
+  };
+
+  it('backward-compat: ui.Field still resolves to Ui primitive', () => {
+    const tracker = createUiTracker();
+    const definitionAs = tracker.Field;
+    const path = getTrackerPath(definitionAs);
+    expect(path).toEqual(['Field']);
+    expect(resolveByPath(combinedNs, path!)).toBe('UI_FIELD');
+  });
+
+  it('ui.Views.Forms.Field resolves to composite View', () => {
+    const tracker = createUiTracker();
+    const definitionAs = tracker.Views.Forms.Field;
+    const path = getTrackerPath(definitionAs);
+    expect(path).toEqual(['Views', 'Forms', 'Field']);
+    expect(resolveByPath(combinedNs, path!)).toBe(MockFormsFieldView);
+  });
+
+  it('ui.Views.Card resolves to top-level View group entry', () => {
+    const tracker = createUiTracker();
+    const definitionAs = tracker.Views.Card;
+    const path = getTrackerPath(definitionAs);
+    expect(path).toEqual(['Views', 'Card']);
+    expect(resolveByPath(combinedNs, path!)).toBe(MockCardView);
+  });
+
+  it('missing View resolves to undefined without throwing', () => {
+    const tracker = createUiTracker();
+    const definitionAs = tracker.Views.NonExistent.Deep;
+    const path = getTrackerPath(definitionAs);
+    expect(resolveByPath(combinedNs, path!)).toBeUndefined();
+  });
+
+  it('tracker path for ui.Views.Forms.Field is exactly 3 segments', () => {
+    const tracker = createUiTracker();
+    expect(getTrackerPath(tracker.Views.Forms.Field)).toEqual(['Views', 'Forms', 'Field']);
+  });
+});
