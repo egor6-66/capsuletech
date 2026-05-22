@@ -8,9 +8,11 @@ name = "capsule-server"
 path = "src/main.rs"
 
 [dependencies]
+capsule-core = { path = "../core" }
 capsule-ollama = { path = "../ollama" }
+capsule-mcp = { path = "../mcp" }
+capsule-native-tools = { path = "../native-tools" }
 capsule-fs = { path = "../../fs" }
-capsule-tools = { path = "../tools" }
 axum = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }
@@ -19,8 +21,11 @@ tower-http = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }
-futures-util = "0.3"
+async-trait = { workspace = true }
+futures-util = { workspace = true }
+tokio-stream = { workspace = true }
 async-stream = "0.3"
-tokio-stream = "0.1"
 uuid = { version = "1", features = ["v4", "serde"] }
-regex = "1"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }

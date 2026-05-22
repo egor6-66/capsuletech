@@ -1,5 +1,5 @@
 [package]
-name = "capsule-tools"
+name = "capsule-core"
 edition.workspace = true
 version.workspace = true
 
@@ -7,9 +7,8 @@ version.workspace = true
 path = "src/lib.rs"
 
 [dependencies]
-capsule-fs = { path = "../../fs" }
-capsule-ollama = { path = "../ollama" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }
+async-trait = { workspace = true }
+futures-util = { workspace = true }

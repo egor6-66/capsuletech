@@ -3,8 +3,10 @@ resolver = "2"
 members = [
   "fs",
   "desktop",
+  "scriber/core",
   "scriber/ollama",
-  "scriber/tools",
+  "scriber/mcp",
+  "scriber/native-tools",
   "scriber/server",
 ]
 
@@ -23,6 +25,9 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum = "0.7"
 tower-http = { version = "0.5", features = ["cors", "trace"] }
+async-trait = "0.1"
+futures-util = "0.3"
+tokio-stream = "0.1"
 
 [profile.dev]
 opt-level = 0

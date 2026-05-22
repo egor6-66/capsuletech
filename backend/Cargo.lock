@@ -322,6 +322,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "capsule-core"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "capsule-desktop"
 version = "0.0.1"
 dependencies = [
@@ -345,11 +356,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "capsule-mcp"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "capsule-core",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
+name = "capsule-native-tools"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "capsule-core",
+ "capsule-fs",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
 name = "capsule-ollama"
 version = "0.0.1"
 dependencies = [
  "async-stream",
+ "async-trait",
  "bytes",
+ "capsule-core",
  "futures-util",
  "reqwest 0.12.28",
  "serde",
@@ -364,32 +402,23 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-stream",
+ "async-trait",
  "axum",
+ "capsule-core",
  "capsule-fs",
+ "capsule-mcp",
+ "capsule-native-tools",
  "capsule-ollama",
- "capsule-tools",
  "futures-util",
- "regex",
  "serde",
  "serde_json",
  "tokio",
  "tokio-stream",
+ "tower",
  "tower-http 0.5.2",
  "tracing",
  "tracing-subscriber",
  "uuid",
-]
-
-[[package]]
-name = "capsule-tools"
-version = "0.0.1"
-dependencies = [
- "capsule-fs",
- "capsule-ollama",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "tracing",
 ]
 
 [[package]]

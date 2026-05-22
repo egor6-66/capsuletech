@@ -1,5 +1,5 @@
 [package]
-name = "capsule-ollama"
+name = "capsule-mcp"
 edition.workspace = true
 version.workspace = true
 
@@ -8,12 +8,8 @@ path = "src/lib.rs"
 
 [dependencies]
 capsule-core = { path = "../core" }
-reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 async-trait = { workspace = true }
-futures-util = { workspace = true }
-async-stream = "0.3"
-bytes = "1"
