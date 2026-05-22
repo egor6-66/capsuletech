@@ -5,7 +5,12 @@ import { ShapeUiContext } from './shape';
 
 export const PageWrapper: IPageWrapper = (Component) => {
   return function Page(wrapperProps) {
-    const pageUi = { Layout: (Ui as any).Layout, Outlet, Animate: (Ui as any).Animate } as any;
+    const pageUi = {
+      ...(Ui as any),
+      Layout: (Ui as any).Layout,
+      Outlet,
+      Animate: (Ui as any).Animate,
+    } as any;
     return (
       <ShapeUiContext.Provider value={pageUi}>
         {Component(pageUi, wrapperProps)}

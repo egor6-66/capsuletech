@@ -20,9 +20,7 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "dependencies": {},
   "peerDependencies": {
-    "maplibre-gl": "^5.0.0",
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
@@ -30,12 +28,15 @@
     "@capsuletech/vite-builder": "workspace:*",
     "@testing-library/jest-dom": "^6.9.1",
     "jsdom": "~29.1.1",
-    "maplibre-gl": "^5.0.0",
     "solid-js": "^1.9.0",
     "vite-plugin-solid": "^2.11.12"
   },
   "publishConfig": {
     "access": "public",
     "packageManager": "pnpm"
+  },
+  "dependencies": {
+    "maplibre-gl": "^4",
+    "solid-map-gl": "^1.13.0"
   }
 }

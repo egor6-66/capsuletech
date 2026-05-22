@@ -336,6 +336,60 @@ describe('WidgetUi — ThemeSwitcher: is callable and accepts IUiMetaProps', () 
 });
 
 // ---------------------------------------------------------------------------
+// Compile-time: DarkModeToggle — plain callable (no sub-components)
+// Added to ViewUi + WidgetUi alongside ThemeSwitcher (2026-05-22).
+// ---------------------------------------------------------------------------
+
+describe('ViewUi — DarkModeToggle: is callable and accepts IUiMetaProps', () => {
+  it('Ui.DarkModeToggle is a function', () => {
+    expectTypeOf<ViewUi['DarkModeToggle']>().toBeFunction();
+  });
+
+  it('Ui.DarkModeToggle accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['DarkModeToggle']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+describe('WidgetUi — DarkModeToggle: is callable and accepts IUiMetaProps', () => {
+  it('Ui.DarkModeToggle is a function', () => {
+    expectTypeOf<WidgetUi['DarkModeToggle']>().toBeFunction();
+  });
+
+  it('Ui.DarkModeToggle accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['DarkModeToggle']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Compile-time: MapView — plain callable (no sub-components)
+// Added to ViewUi + WidgetUi from @capsuletech/web-map (2026-05-22).
+// ---------------------------------------------------------------------------
+
+describe('ViewUi — MapView: is callable and accepts IUiMetaProps', () => {
+  it('Ui.MapView is a function', () => {
+    expectTypeOf<ViewUi['MapView']>().toBeFunction();
+  });
+
+  it('Ui.MapView accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['MapView']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+describe('WidgetUi — MapView: is callable and accepts IUiMetaProps', () => {
+  it('Ui.MapView is a function', () => {
+    expectTypeOf<WidgetUi['MapView']>().toBeFunction();
+  });
+
+  it('Ui.MapView accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['MapView']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Runtime: ViewWrapper + UiProxy does not crash when meta is passed
 // (the actual prop stripping is in UiProxy; here we verify no runtime error)
 // ---------------------------------------------------------------------------
