@@ -57,9 +57,9 @@ last-updated: 2026-05-22
 
 ## Quirks / gotchas
 
-1. **0-size container crash** (`src/MapView.tsx:96–111`) — **IN-PROGRESS / этот PR**.
-   MapLibre читает `container.clientWidth/clientHeight` синхронно в конструкторе `new Map(...)`. Если контейнер ещё не имеет размеров (resizable slot, CSS transition, Suspense), бросает `Invalid LngLat object: (NaN, NaN)`.
-   Fix: `ResizeObserver`-gated mount — `new Map(...)` вызывается только когда `contentRect.width > 0 && height > 0`. Если размер уже есть на mount — инициализация синхронная. Если контейнер никогда не получит размеры — pending-state без ошибки.
+1. **0-size container crash / `jumpTo` NaN** (`src/MapView.tsx`) — maplibre 5+ вызывает `jumpTo({center})` прямо в конструкторе `new Map(...)`, даже без terrain. Если container имеет transient 0-size на момент вызова, projection matrix ещё не инициализирована → `camera.unproject()` → `NaN` → `"Invalid LngLat object: (NaN, NaN)"`.
+   **DO NOT pass `center` or `maxBounds` to the maplibre constructor.** Выставлять только после `'load'` через `setCenter`/`setMaxBounds` (так и сделано).
+   Дополнительная защита: `hasValidDimensions` guard в `init()` — конструктор не вызывается пока `clientWidth/clientHeight > 0`.
 
 2. **`maplibre-gl.css` не подключается автоматически** — consumer сам обязан сделать `import 'maplibre-gl/dist/maplibre-gl.css'`. Без этого карта рендерится, но без UI-контролов и стилей.
 

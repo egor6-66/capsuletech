@@ -23,8 +23,13 @@ export const DarkModeToggle = (props: IProps) => {
     const el = props.target ?? document.documentElement;
     if (dark) {
       el.classList.add('dark');
+      // Дублируем `.dark` на <body> — некоторые сторонние пакеты (solid-map-gl)
+      // наблюдают именно `document.body.classList` через MutationObserver и
+      // не реагируют на изменения у <html>.
+      document.body?.classList.add('dark');
     } else {
       el.classList.remove('dark');
+      document.body?.classList.remove('dark');
     }
   };
 

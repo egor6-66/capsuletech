@@ -71,6 +71,10 @@ export const DarkModeToggle = createLazy(
   () => import('@capsuletech/web-style'),
   'DarkModeToggle',
 );
+export const MapView = createLazy(
+  () => import('@capsuletech/web-map'),
+  'MapView',
+);
 
 // Реэкспорт сторонних утилит
 export { Link } from '@tanstack/solid-router';
