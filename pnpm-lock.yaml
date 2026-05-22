@@ -123,6 +123,9 @@ importers:
       '@capsuletech/web-editor':
         specifier: workspace:*
         version: link:../../packages/web/editor
+      '@capsuletech/web-map':
+        specifier: workspace:*
+        version: link:../../packages/web/map
       '@capsuletech/web-profiler':
         specifier: workspace:*
         version: link:../../packages/web/profiler
@@ -162,6 +165,9 @@ importers:
       '@xstate/solid':
         specifier: ^2.0.0
         version: 2.0.0(solid-js@1.9.12)(xstate@5.31.1)
+      maplibre-gl:
+        specifier: ^5.0.0
+        version: 5.24.0
       solid-js:
         specifier: 1.9.12
         version: 1.9.12
@@ -586,10 +592,6 @@ importers:
         version: link:../../builders/vite
 
   packages/web/map:
-    dependencies:
-      solid-js:
-        specifier: 1.9.12
-        version: 1.9.12
     devDependencies:
       '@capsuletech/lib-builder':
         specifier: workspace:*
@@ -597,9 +599,21 @@ importers:
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite
+      '@testing-library/jest-dom':
+        specifier: ^6.9.1
+        version: 6.9.1
+      jsdom:
+        specifier: ~29.1.1
+        version: 29.1.1
       maplibre-gl:
         specifier: ^5.0.0
         version: 5.24.0
+      solid-js:
+        specifier: 1.9.12
+        version: 1.9.12
+      vite-plugin-solid:
+        specifier: ^2.11.12
+        version: 2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
 
   packages/web/profiler:
     dependencies:
