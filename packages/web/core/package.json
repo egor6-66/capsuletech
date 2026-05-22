@@ -19,7 +19,8 @@
     "@capsuletech/web-query": "workspace:*",
     "@capsuletech/shared-zod": "workspace:*",
     "@capsuletech/vite-builder": "workspace:*",
-    "@capsuletech/web-style": "workspace:*"
+    "@capsuletech/web-style": "workspace:*",
+    "@capsuletech/web-map": "workspace:*"
   },
   "peerDependencies": {
     "solid-js": "^1.9.5",

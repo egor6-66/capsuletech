@@ -518,6 +518,9 @@ importers:
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite
+      '@capsuletech/web-map':
+        specifier: workspace:*
+        version: link:../map
       '@capsuletech/web-profiler':
         specifier: workspace:*
         version: link:../profiler
