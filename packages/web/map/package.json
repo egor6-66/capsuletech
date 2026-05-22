@@ -16,7 +16,9 @@
   ],
   "scripts": {
     "build": "vite build",
-    "dev": "vite build --watch"
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {},
   "peerDependencies": {
@@ -26,7 +28,11 @@
   "devDependencies": {
     "@capsuletech/lib-builder": "workspace:*",
     "@capsuletech/vite-builder": "workspace:*",
-    "maplibre-gl": "^5.0.0"
+    "@testing-library/jest-dom": "^6.9.1",
+    "jsdom": "~29.1.1",
+    "maplibre-gl": "^5.0.0",
+    "solid-js": "^1.9.0",
+    "vite-plugin-solid": "^2.11.12"
   },
   "publishConfig": {
     "access": "public",
