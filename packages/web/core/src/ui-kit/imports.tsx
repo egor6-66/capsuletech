@@ -23,13 +23,6 @@ export const List = createLazy(() => import('@capsuletech/web-ui/list'), 'List')
 export const Animate = createLazy(() => import('@capsuletech/web-ui/wrappers'), 'Animate');
 export const Resizable = createLazy(() => import('@capsuletech/web-ui/wrappers'), 'Resizable');
 
-// 5. Компонент Navigation с подкомпонентами
-const NavigationBase = createLazy(() => import('@capsuletech/web-ui/navigation'), 'Navigation');
-export const Navigation = Object.assign(NavigationBase, {
-  List: createLazy(() => import('@capsuletech/web-ui/navigation'), 'NavigationList'),
-  Item: createLazy(() => import('@capsuletech/web-ui/navigation'), 'NavigationItem'),
-});
-
 // 3. Компонент Card со вложенными частями
 const CardBase = createLazy(() => import('@capsuletech/web-ui/card'), 'Card');
 export const Card = Object.assign(CardBase, {
@@ -66,6 +59,14 @@ export const Table = Object.assign(TableBase, {
   Head:   createLazy(() => import('@capsuletech/web-ui/table'), 'TableHead'),
   Cell:   createLazy(() => import('@capsuletech/web-ui/table'), 'TableCell'),
 });
+
+// ThemeSwitcher из @capsuletech/web-style (plain Solid component, не web-ui primitive).
+// Субпасс ./switcher отсутствует в package.json web-style — импортируем из основного
+// barrel (framework gap, делегировано architect для добавления subpath в web-style).
+export const ThemeSwitcher = createLazy(
+  () => import('@capsuletech/web-style'),
+  'ThemeSwitcher',
+);
 
 // Реэкспорт сторонних утилит
 export { Link } from '@tanstack/solid-router';

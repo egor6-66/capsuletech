@@ -18,9 +18,9 @@ import type {
   Input,
   Layout,
   List,
-  Navigation,
   Table,
 } from '@capsuletech/web-ui';
+import type { ThemeSwitcher } from '@capsuletech/web-style';
 import type { Component, JSX, JSXElement } from 'solid-js';
 
 // -----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ type StaticProps<T> = {
  *
  * Правила маппинга:
  *  - Callable `(props: P) => R` без attached statics → `(props: P & IUiMetaProps) => R`
- *  - Callable `(props: P) => R` с attached statics (Card, Field, Navigation) →
+ *  - Callable `(props: P) => R` с attached statics (Card, Field) →
  *    `((props: P & IUiMetaProps) => R) & WithMetaProps<StaticProps<T[K]>>`
  *    Статические sub-компоненты тоже рекурсивно augment'ятся `IUiMetaProps`.
  *  - Plain object (Layout namespace `{ Grid, Flex, Matrix }`) → рекурсивный
@@ -128,15 +128,15 @@ type ViewUiRaw = {
   Button: typeof Button;
   Input: typeof Input;
   List: typeof List;
-  Navigation: typeof Navigation;
   Animate: typeof Animate;
   Table: typeof Table;
   DataTable: typeof DataTable;
+  ThemeSwitcher: typeof ThemeSwitcher;
 };
 
 type Outlet = () => JSXElement;
 
-type WidgetUiRaw = { Card: typeof Card; Outlet: Outlet; Animate: typeof Animate; Layout: typeof Layout; Table: typeof Table; DataTable: typeof DataTable };
+type WidgetUiRaw = { Card: typeof Card; Outlet: Outlet; Animate: typeof Animate; Layout: typeof Layout; Table: typeof Table; DataTable: typeof DataTable; ThemeSwitcher: typeof ThemeSwitcher };
 type PageUiRaw = { Layout: typeof Layout; Outlet: Outlet; Animate: typeof Animate };
 
 /** Ui namespace доступный внутри View factory — все компоненты принимают IUiMetaProps. */
@@ -434,3 +434,6 @@ export type {
   IShapeWrapper,
   ShapeItem,
 } from './shape/types';
+
+// Re-export Entity types для удобства потребителей.
+export type { IEntityDefinition, IEntityFactory, IEntityWrapper } from './entity/types';

@@ -13,7 +13,7 @@ last-verified: 2026-05-21
 
 ## TL;DR
 
-Корневой пакет HCA-фреймворка. Шесть wrapper-функций (`View`, `Widget`, `Page`, `Shape`, `Controller`, `Feature`) поверх двух Proxy-движков: **UiProxy** (per-instance event-binding + meta-registration) и **ControllerProxy** (FSM-aware dispatch с auto-bubbling через `next()`). `createRoot()` — DOM-bootstrap (`render` + theme-injection). `BaseProviders` — composition корневых providers (RouterProvider + VitalsMonitoring). `Ui` — namespace lazy-импортов всех web-ui примитивов через `createLazy()`.
+Корневой пакет HCA-фреймворка. **Семь** wrapper-функций: `View`, `Widget`, `Page`, `Shape`, `Controller`, `Feature` (UI/logic слои) + `Entity` (domain data layer — plain config, не компонент). Поверх двух Proxy-движков: **UiProxy** (per-instance event-binding + meta-registration) и **ControllerProxy** (FSM-aware dispatch с auto-bubbling через `next()`). `createRoot()` — DOM-bootstrap (`render` + theme-injection). `BaseProviders` — composition корневых providers (RouterProvider + VitalsMonitoring). `Ui` — namespace lazy-импортов всех web-ui примитивов через `createLazy()`.
 
 **Семантика wrapper-args (v0.3.0+)**: `(Ui, props?)` для UI-слоёв, `(services)` для logic-слоёв. Всё остальное — глобалы через `Object.assign(globalThis, _registry)` в bootstrap. См. ADR 002 + commit 477b0fb.
 
@@ -21,7 +21,9 @@ last-verified: 2026-05-21
 
 | Файл | Что |
 |---|---|
-| `packages/web/core/src/index.ts` | публичный barrel: 6 wrappers + `useShapeUi` + `Providers` namespace + типы |
+| `packages/web/core/src/index.ts` | публичный barrel: 7 wrappers + `useShapeUi` + `Providers` namespace + типы |
+| `packages/web/core/src/wrappers/entity/wrapper.ts` | `Entity` — domain data layer factory. Plain config (не компонент). `Object.freeze(factory(z))`. |
+| `packages/web/core/src/wrappers/entity/types.ts` | `IEntityDefinition`, `IEntityFactory`, `IEntityWrapper` |
 | `packages/web/core/src/wrappers/view.tsx` | `ViewWrapper` — простой leaf, UiProxy под ControllerContext, ShapeUiContext.Provider |
 | `packages/web/core/src/wrappers/widget.tsx` | `WidgetWrapper` — добавляет `Outlet` в Ui, ShapeUiContext.Provider |
 | `packages/web/core/src/wrappers/page.tsx` | `PageWrapper` — `{ Layout, Outlet, Animate }` в Ui, ShapeUiContext.Provider |
@@ -44,7 +46,8 @@ last-verified: 2026-05-21
 
 ```ts
 import {
-  View, Widget, Page, Controller, Feature, Shape,    // 6 wrappers (глобалы через AutoImport в apps)
+  View, Widget, Page, Controller, Feature, Shape,    // 6 UI/logic wrappers (глобалы через AutoImport в apps)
+  Entity,                                             // domain data layer wrapper (глобал через AutoImport — pending owner-builders)
   Providers,                                          // namespace { BaseProviders }
   useShapeUi,                                         // hook — Ui namespace из ShapeUiContext
   type ITarget, type IHandlerApi,
@@ -53,15 +56,22 @@ import {
   type INext, type IStateApi,
   type IViewWrapper, type IViewRenderer,
   type IUiMetaProps, type ITagMeta,                  // UiProxy meta-props для Ui-компонентов
+  type IEntityDefinition, type IEntityWrapper,        // Entity-specific types
 } from '@capsuletech/web-core';
 
 import { createRoot } from '@capsuletech/web-core/create';
 import { BaseProviders } from '@capsuletech/web-core/providers';
 ```
 
-### Wrapper-сигнатуры (v0.3.0)
+### Wrapper-сигнатуры (v0.3.0+)
 
 ```ts
+// Domain data layer — НЕ компонент, plain frozen config object
+Entity((z: CapsuleZ) => {
+  schema: ZodType;          // любая zod-схема (обычно z.array(z.object(...)))
+  defaults?: TData;         // sample fixtures для разработки и тестов
+}): { schema: ZodType; defaults?: TData }   // возвращает ровно то что вернула factory (frozen)
+
 View<P>((Ui: ViewUi, props: P) => JSX.Element): Component<P>
 Widget<P>((Ui: WidgetUi, props: P) => JSX.Element): Component<P>
 Page<P>((Ui: PageUi, props: P) => JSX.Element): Component<P>
@@ -138,13 +148,17 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 
 ## Известные грабли
 
+19. **`Entity` — единственный wrapper без Solid-компонента.** Все остальные wrappers (`View`, `Widget`, `Page`, `Controller`, `Feature`, `Shape`) возвращают `Component<P>`. `Entity` возвращает **frozen plain object** `{ schema, defaults? }`. HMRWrappingPlugin не трогает `entities/` файлы (нет `const X = Wrapper(...)` component pattern). UiProxy и ControllerProxy к Entity не применяются — это pure data layer. AutoImport делает `Entity` глобальным через `WRAPPER_NAMES` (owner-builders добавляет). Codegen `Entities.*` — через `ExportGeneratorPlugin` scan `entities/` (owner-builders добавляет).
+
+20. **Типизация `Entities.*` глобала пока пуста.** `interface Entities {}` в `wrappers/interfaces.ts` — placeholder. Заполняется через codegen (ExportGeneratorPlugin scan `entities/` → `.capsule/@types/slots.d.ts`). До добавления owner-builders: `Entities.Users` будет `any`; после — `typeof import('@entities/users').default`.
+
 1. **`createRoot` ≠ Solid `createRoot`.** Наш — render-фабрика (`render(Bootstrap, container)` + `data-theme` inject). Solid'ская — для реактивного scope без рендера. Часто путают. Источник: `src/create/createRoot.ts`.
 
 2. **CSS удалён из пакета.** `createRoot` больше не делает `import './styles.css'`. Приложение само импортирует `.capsule/styles.css` (генерится `ScaffoldPlugin` из builders). Если CSS не применяется — смотри `bootstrap.tsx.template` в vite-builder scaffold.
 
 3. **`Providers` — namespace, не named export.** `import { Providers } from '@capsuletech/web-core'; <Providers.BaseProviders>`. Расширяемая namespace для будущих `Providers.TestingProvider`. Не плющи в named.
 
-4. **`Ui.Layout` — plain object**, не вызываемый компонент. `{ Grid, Flex, Matrix }` — три lazy-компонента. Источник: `src/ui-kit/imports.tsx:17`. В отличие от него, `Ui.Table` — вызываемый compound (`Object.assign(TableBase, { Header, Body, Row, Head, Cell })`), доступен в `ViewUi` и `WidgetUi`. `Ui.DataTable` — простой callable (без sub-components), доступен в `ViewUi` и `WidgetUi`. Generic `<TData>` — TS инферирует тип строки из `data`/`columns` props. Subpath: `@capsuletech/web-ui/dataTable`.
+4. **`Ui.Layout` — plain object**, не вызываемый компонент. `{ Grid, Flex, Matrix }` — три lazy-компонента. Источник: `src/ui-kit/imports.tsx:17`. В отличие от него, `Ui.Table` — вызываемый compound (`Object.assign(TableBase, { Header, Body, Row, Head, Cell })`), доступен в `ViewUi` и `WidgetUi`. `Ui.DataTable` — простой callable (без sub-components), доступен в `ViewUi` и `WidgetUi`. Generic `<TData>` — TS инферирует тип строки из `data`/`columns` props. Subpath: `@capsuletech/web-ui/dataTable`. `Ui.ThemeSwitcher` — plain callable из `@capsuletech/web-style` (localStorage persistence + `data-theme` на `<html>`), доступен в `ViewUi` и `WidgetUi`. Импортируется из main barrel (subpath `./switcher` — framework gap в web-style, pending architect).
 
 5. **Все `Ui.*` — lazy через `createLazy`.** Обёртка над `lazy(() => import(...).then(m => ({ default: m[name] })))`. Нужен `<Suspense>` вокруг дерева. `createRoot` оборачивает в Suspense автоматически.
 
@@ -158,7 +172,7 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 
 16. **`IUiMetaProps` (`meta`/`payload`/`dynamicMeta`/`modifiers`) — UiProxy-layer, не web-ui.** `<Ui.Input meta={{tags:['email']}} />` типизируется через `WithMetaProps<ViewUiRaw>` в `wrappers/interfaces.ts`. UiProxy перехватывает эти props в `wrapComponent` и не прокидывает их в реальный DOM-компонент. web-ui компоненты их не знают — типы расширяются здесь (web-core), не там. Источник: `src/wrappers/interfaces.ts`.
 
-17. **Compound sub-components (`Card.Header`, `Field.Label`, `Navigation.Item`, …) сохраняются через `StaticProps<T>`.** `WithMetaProps` для callable `T[K]` возвращает `((props: P & IUiMetaProps) => R) & WithMetaProps<StaticProps<T[K]>>`. `StaticProps<T>` — `{ [K in keyof T as K extends keyof Function ? never : K]: T[K] }` — отфильтровывает `name/length/bind/call/apply/prototype` из Function.prototype. Рекурсия через `WithMetaProps<StaticProps<...>>` гарантирует что `Card.Header` тоже принимает `meta`. `Layout` (plain object) идёт через `extends object` ветку — не затронут. Источник: `src/wrappers/interfaces.ts` (`StaticProps` + `WithMetaProps`).
+17. **Compound sub-components (`Card.Header`, `Field.Label`, …) сохраняются через `StaticProps<T>`.** `WithMetaProps` для callable `T[K]` возвращает `((props: P & IUiMetaProps) => R) & WithMetaProps<StaticProps<T[K]>>`. `StaticProps<T>` — `{ [K in keyof T as K extends keyof Function ? never : K]: T[K] }` — отфильтровывает `name/length/bind/call/apply/prototype` из Function.prototype. Рекурсия через `WithMetaProps<StaticProps<...>>` гарантирует что `Card.Header` тоже принимает `meta`. `Layout` (plain object) идёт через `extends object` ветку — не затронут. Источник: `src/wrappers/interfaces.ts` (`StaticProps` + `WithMetaProps`). `Ui.Navigation` удалён (2026-05-22, primitive deleted from web-ui).
 
 10. **8 workspace deps.** `web-core` зависит от `web-profiler`, `web-router`, `web-state`, `web-ui`, `web-query`, `shared-zod`, `vite-builder`, `web-style`. При изменении контрактов в любом из них — координируй с owner'ом.
 
@@ -178,7 +192,9 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 
 | Хочу… | Куда лезть |
 |---|---|
-| Добавить новый primitive в `Ui` (например `Dialog`) | `src/ui-kit/imports.tsx` (lazy + `Object.assign` для compound) + тип в `ViewUiRaw`/`WidgetUiRaw` в `src/wrappers/interfaces.ts` + характеризационные тесты в `src/wrappers/__tests__/ui-meta-props.test.tsx` |
+| Добавить новый Entity (domain data) | `apps/<app>/src/entities/<name>.ts` → `Entity((z) => ({ schema, defaults? }))` + `export default`. Codegen подхватит в `Entities.*`. `z.infer<typeof Entities.X.schema>` для типа. |
+| Расширить IEntityDefinition (validators, relations) | `packages/web/core/src/wrappers/entity/types.ts` → добавить поле в `IEntityDefinition`. При breaking change — bump major. |
+| Добавить новый primitive в `Ui` (например `Dialog`) | `src/ui-kit/imports.tsx` (lazy + `Object.assign` для compound) + тип в `ViewUiRaw`/`WidgetUiRaw` в `src/wrappers/interfaces.ts` + характеризационные тесты в `src/wrappers/__tests__/ui-meta-props.test.tsx`. Если primitive из другого пакета (не web-ui), проверь наличие subpath в его `package.json exports` и `tsconfig.base.json paths` — иначе импортируй из main barrel (прецедент: `ThemeSwitcher` из `@capsuletech/web-style`). |
 | Добавить новый wrapper-слой (например `Adapter`) | `WRAPPER_NAMES` в `packages/builders/vite/src/plugins/constants.ts` (SSOT для AutoImport, делает owner-builders) + новый wrapper в `packages/web/core/src/wrappers/` + публичный API в `index.ts` + AI-anchor entry |
 | Добавить новое поле в `ITarget` (например `meta.section`) | `packages/web/core/src/wrappers/interfaces.ts > ITarget` + сборщик `target` в `engine/ui-proxy.tsx` + опционально `engine/derivation.ts` если выводится из tags. Tests! |
 | Добавить новый handler-event (`onScroll`) | `engine/ui-proxy.tsx > EVENT_HANDLERS` + (опц) `engine/derivation.ts > TAG_TO_INPUT_TYPE`. ADR 009. Tests! |

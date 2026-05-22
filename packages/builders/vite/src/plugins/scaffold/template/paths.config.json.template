@@ -4,5 +4,6 @@
   "@features/*": ["src/features/*"],
   "@views/*": ["src/views/*"],
   "@controllers/*": ["src/controllers/*"],
-  "@shapes/*": ["src/shapes/*"]
+  "@shapes/*": ["src/shapes/*"],
+  "@entities/*": ["src/entities/*"]
 }

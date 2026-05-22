@@ -58,9 +58,10 @@ Vite-конфиг и 9 плагинов для dev-сервера HCA-apps. Дё
 ## SSOT
 
 `packages/builders/vite/src/plugins/constants.ts` — **единственный файл**, где объявлены:
-- `WRAPPER_NAMES` — `['Page', 'Widget', 'Entity', 'Controller', 'Feature', 'Shape']`
+- `WRAPPER_NAMES` — `['Page', 'Widget', 'View', 'Controller', 'Feature', 'Shape', 'Entity']`
 - `DEFINE_FACTORIES` — `{ '@capsuletech/web-query': ['defineEndpoint'] }`
-- `LAYER_TO_NAMESPACE` — `{ widgets: 'Widgets', entities: 'Entities', ... }`
+- `LAYER_TO_NAMESPACE` — `{ widgets: 'Widgets', views: 'Views', controllers: 'Controllers', features: 'Features', shapes: 'Shapes', entities: 'Entities' }`
+- `EAGER_IMPORT_LAYERS` — `Set<string>(['entities'])` — слои, генерирующие eager imports вместо lazy()
 
 Добавляешь новый слой → правишь только этот файл.
 
@@ -86,6 +87,8 @@ Vite-конфиг и 9 плагинов для dev-сервера HCA-apps. Дё
 
 - **`optimizeDeps.exclude`** — список `@capsuletech/web-*` пакетов в `capsuleConfig.ts`. При добавлении нового workspace-пакета добавь его сюда, иначе esbuild попытается пре-бандлить и сломает JSX-транспиляцию.
 
+- **`solidPlugin` exclude для `entities/`.** `vite-plugin-solid` внутри использует `solid-refresh`, который оборачивает любой `const X = SomeCall(...)` в `.tsx`-файле в `(props) => SomeCall(...)(props)` для поддержки HMR компонентов. `Entity` возвращает plain config object (`{ schema, defaults }`), а не Solid-компонент — после такой обёртки `Entities.Users` становится функцией, и любой доступ к `.schema`/`.defaults` падает TypeError. `HMRWrappingPlugin` entity уже скипает (использует только `RENDER_WRAPPER_NAMES`), но `solid-refresh` — отдельный babel-pass внутри `solidPlugin`. Поэтому `solidPlugin` получает `exclude: [/[\\/]entities[\\/]/]`. Регекс покрывает оба сепаратора (Win/Unix). При добавлении других data-layer слоёв (не возвращающих Solid-компонент) — добавлять в этот же exclude-список.
+
 - **Мёртвый код к удалению:** `vite/src/utils/generateFromTemplates.ts`, `vite/src/plugins/html.ts` (HtmlPlugin), `vite/src/defines/appConfig.ts:1` (`import { builtinModules }`).
 
 ## План рефакторинга / оптимизаций
@@ -101,9 +104,10 @@ Vite-конфиг и 9 плагинов для dev-сервера HCA-apps. Дё
 
 | Тип | Где | Что покрывает |
 |---|---|---|
-| Unit | `src/plugins/__tests__/appConfig.test.ts` | AppConfigPlugin transform (единственный существующий тест) |
+| Unit | `src/plugins/__tests__/appConfig.test.ts` | AppConfigPlugin transform (id matching, Windows paths, HMR suffixes) |
+| Unit | `src/plugins/__tests__/exportGenerator.test.ts` | ExportGeneratorPlugin — entities scan: flat, nested namespace, empty folder; eager vs lazy regression; renderRuntime + renderTypes |
 
-Текущее покрытие: минимальное. Roadmap — добавить тесты плагинов.
+Текущее покрытие: AppConfigPlugin + ExportGeneratorPlugin (entities layer).
 Перед изменением любого плагина: `pnpm --filter @capsuletech/vite-builder test`.
 Перед release: `pnpm test:e2e:cli` обязателен.
 

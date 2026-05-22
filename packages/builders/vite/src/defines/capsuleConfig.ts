@@ -139,7 +139,17 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
         watchDir,
         outDir: join(capsuleRoot, 'routes'),
       }),
-      solidPlugin({ ssr: false }),
+      // Exclude entities/ from solid-refresh HMR wrapping.
+      // vite-plugin-solid internally uses solid-refresh which wraps every
+      // `const X = SomeCall(...)` in a .tsx file into `(props) => SomeCall(...)`
+      // for component hot-reload. Entity returns a plain config object (not a
+      // Solid component), so that wrapping turns `Entities.Users` into a
+      // function — any access to `.schema`/`.defaults` → TypeError at runtime.
+      // HMRWrappingPlugin already skips Entity (RENDER_WRAPPER_NAMES only), but
+      // solid-refresh is a separate babel pass that runs inside solidPlugin.
+      // FilterPattern supports both slash styles; the regex covers Win (\) and
+      // Unix (/) path separators.
+      solidPlugin({ ssr: false, exclude: [/[\\/]entities[\\/]/] }),
     ],
     resolve: {
       dedupe,

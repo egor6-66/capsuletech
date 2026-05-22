@@ -6,7 +6,11 @@
   "type": "module",
   "workspaces": [
     "apps/*",
-    "packages/**"
+    "packages/**",
+    "!**/node_modules/**",
+    "!**/dist/**",
+    "!**/e2e/**",
+    "!**/verdaccio-tmp/**"
   ],
   "packageManager": "pnpm@9.0.0",
   "scripts": {

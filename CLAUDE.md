@@ -152,16 +152,27 @@ backend/
 
 | Слой | Папка | Что это | Wrapper |
 |---|---|---|---|
+| **Entity** | `entities/` | Domain data layer: zod schema + defaults + meta. **БЕЗ UI**. Single source of truth для сущностей (User, Product, Order). Возвращает plain config (не component). | `Entity((z) => ({ schema, defaults? }))` |
 | **View** | `views/` | Stateless UI в виде JSX. Только Solid JSX + `data-meta`. Не знает про XState, API, router. | `View((Ui, props?) => JSX)` |
-| **Shape** | `shapes/` | Stateless UI в виде schema+mapper (zod + item→template). Равноправный leaf с View, для repeating data. | `Shape((z, ui) => ({ schema, defaults?, as?, props? }))` |
+| **Shape** | `shapes/` | **Presentation**: как нарисовать сущность через batch-template (`Ui.DataTable`, `Ui.List`). Ссылается на Entity для schema/defaults. | `Shape((z, ui) => ({ schema, defaults?, as?, ...extras }))` |
 | **Controller** | `controllers/` | Поведение на FSM-схеме. Через Proxy перехватывает `onClick`/`onInput` у потомков. | `Controller((services) => ({ initial, states }))` |
-| **Feature** | `features/` | Domain logic / side effects. Только тут разрешены API. | `Feature((services) => ({ initial, states }))` |
+| **Feature** | `features/` | Domain logic / side effects. Только тут разрешены API. Валидирует через `Entities.X.schema.parse(...)`. | `Feature((services) => ({ initial, states }))` |
 | **Widget** | `widgets/` | Композиция View / Shape + Controller / Feature. Единственное место, где можно «склеивать». | `Widget((Ui, props?) => JSX)` |
 | **Page** | `pages/` | Корневой layout, оборачивает Widget. | `Page((Ui, props?) => JSX)` |
 
-> **Note**: имя `Entity` зарезервировано под **будущий domain data layer** (User, Product — zod schema + meta, без UI). UI JSX-leaf теперь называется **View** (PR #109).
+Имена `Page`, `Widget`, `View`, `Shape`, `Controller`, `Feature`, `Entity` — **глобальные**, инжектятся через `unplugin-auto-import`. В коде их **не импортируют**.
 
-Имена `Page`, `Widget`, `View`, `Shape`, `Controller`, `Feature` — **глобальные**, инжектятся через `unplugin-auto-import`. В коде их **не импортируют**.
+### Entity vs Shape — критическое различие
+
+| Concern | Entity | Shape |
+|---|---|---|
+| Что описывает | Сущность (User row) | Презентация (таблица users) |
+| Содержит UI template | ❌ | ✅ (`as: ui.DataTable` / `ui.List`) |
+| Содержит columns / itemAs | ❌ | ✅ |
+| Reusable across presentations | ✅ | ❌ (specific к layout) |
+| Возвращает | plain config object | component-функция |
+
+Правило: **сущность → Entity. Как нарисовать → Shape.** Shape ссылается на Entity (`schema: Entities.Users.schema`).
 
 ### Что приходит param vs global (semantic rule)
 
@@ -175,11 +186,12 @@ backend/
 Структура namespace: **nested по структуре папок**. `widgets/forms/auth.tsx` → `Widgets.Forms.Auth`, `views/viewer/loginForm.tsx` → `Views.Viewer.LoginForm`. Папка = namespace-уровень, имя файла = leaf. **Не** flat (`Views.AuthLoginForm` — неправильно). Корневые файлы без папки: `views/hello.tsx` → `Views.Hello`.
 
 Полные сигнатуры (см. `packages/web/core/src/wrappers/interfaces.ts`):
-- `View((Ui, props?) => JSX)` — `Shapes`/`Views` доступны как глобалы.
-- `Widget((Ui, props?) => JSX)` — `Views`/`Shapes`/`Controllers`/`Features` доступны как глобалы.
+- `Entity((z) => ({ schema, defaults? }))` — plain config, без UI. `Entities` global registry.
+- `View((Ui, props?) => JSX)` — `Shapes`/`Views`/`Entities` доступны как глобалы.
+- `Widget((Ui, props?) => JSX)` — `Views`/`Shapes`/`Controllers`/`Features`/`Entities` доступны как глобалы.
 - `Page((Ui, props?) => JSX)` — `Widgets` доступны как глобал.
-- `Shape((z, ui) => ({ schema, defaults?, as?, props? }))` — `Views` доступны как глобал (используй `as: Views.X.Y`).
-- `Controller((services) => schema)`, `Feature((services) => schema)`.
+- `Shape((z, ui) => ({ schema, defaults?, as?, ...extras }))` — `Views`/`Entities` доступны как глобалы. Batch flow: Shape passes data + extras в `as` template.
+- `Controller((services) => schema)`, `Feature((services) => schema)` — `Entities` доступны для validation.
 
 Типы слотов живут в `CapsuleSlots` (`.capsule/@types/slots.d.ts`, генерится `ExportGeneratorPlugin`'ом). Каждое property типизировано как `typeof import('@<layer>/...').default` — Ctrl+Click ведёт в источник.
 

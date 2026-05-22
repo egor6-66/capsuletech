@@ -4,7 +4,7 @@ import type { NodePath } from '@babel/traverse';
 import _traverse from '@babel/traverse';
 import * as t from '@babel/types';
 import type { Plugin } from 'vite';
-import { WRAPPER_NAMES } from './constants';
+import { RENDER_WRAPPER_NAMES } from './constants';
 
 // `@babel/traverse` и `@babel/generator` — CJS, при ESM-import default
 // иногда оборачивается ещё одним слоем (`{ default: fn }`). Разворачиваем.
@@ -16,8 +16,10 @@ const generate = (
 ) as typeof _generate;
 
 // NB: список wrapper'ов в ./constants — единый источник правды.
-// Когда добавляешь новый wrapper (например `Layout`) — добавь его ТАМ.
-const defaultFunctions = [...WRAPPER_NAMES];
+// Только RENDER_WRAPPER_NAMES — wrappers, возвращающие Solid-компонент.
+// CONFIG_WRAPPER_NAMES (Entity и т.п.) намеренно исключены: они возвращают
+// plain object; обёртка (props) => Entity(...)(props) вызывала бы TypeError.
+const defaultFunctions = [...RENDER_WRAPPER_NAMES];
 
 export const HMRWrappingPlugin = (targetFunctions: string[] = []): Plugin => {
   const allTargets = [...defaultFunctions, ...targetFunctions];

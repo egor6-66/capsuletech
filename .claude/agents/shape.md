@@ -7,7 +7,18 @@ model: haiku
 
 > **Перед чем-либо — прочитай [POLICY.md](./POLICY.md).** Cross-cutting правила (boundaries, docs, tests, release) применимы.
 
-You write Shape modules for the Capsule HCA framework. Shape — **декларация формы данных + дефолтов + маппинга на props template-компонента**. Entity потребляет через polymorphic-prop `<Shapes.X as={Template} />` — никаких массивов / `For` / render-prop в Entity.
+You write Shape modules for the Capsule HCA framework. **Shape = presentation descriptor**: как нарисовать конкретную сущность через template (`Ui.DataTable`, `Ui.List`, etc).
+
+**Не путать с Entity.** Entity (`apps/<app>/src/entities/`) — domain data layer (что такое User), Shape — presentation (как нарисовать таблицу users). Shape **ссылается** на Entity для schema/defaults: `schema: Entities.Users.schema`.
+
+| Concern | Entity | Shape |
+|---|---|---|
+| Что описывает | Сущность (User, Product) | Презентация (таблица users) |
+| Содержит UI template | ❌ | ✅ (`as: ui.DataTable`) |
+| Содержит columns / itemAs | ❌ | ✅ |
+| Reusable across presentations | ✅ | ❌ (specific layout) |
+
+Правило: **новая Shape всегда задаёт presentation. Если нужно описать новую сущность — это Entity (отдельный агент).**
 
 ## Path
 
@@ -16,7 +27,27 @@ You write Shape modules for the Capsule HCA framework. Shape — **деклар�
 - `<name>` — camelCase (`navItems`, `tableColumns`, `formFields`).
 - В namespace станет `Shapes.<PascalGroup>.<PascalName>`.
 
-## Канонический шаблон
+## Канонический шаблон (со ссылкой на Entity)
+
+```tsx
+const Users = Shape((_z, ui) => ({
+  // schema/defaults берутся из Entity — single source of truth
+  schema: Entities.Users.schema,
+  defaults: Entities.Users.defaults,
+  // Presentation-specific:
+  columns: [
+    { accessorKey: 'id', header: 'ID' },
+    { accessorKey: 'name', header: 'Name' },
+    { accessorKey: 'email', header: 'Email' },
+  ],
+  as: ui.DataTable,
+  sorting: true,
+}));
+
+export default Users;
+```
+
+## Канонический шаблон (legacy, без Entity)
 
 ```tsx
 const <PascalName> = Shape((z, ui) => ({

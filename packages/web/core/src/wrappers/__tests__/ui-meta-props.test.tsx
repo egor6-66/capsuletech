@@ -161,26 +161,6 @@ describe('WidgetUi — Card compound: sub-components preserved with meta', () =>
   });
 });
 
-describe('ViewUi — Navigation compound: sub-components preserved with meta', () => {
-  it('Ui.Navigation.List is a function', () => {
-    expectTypeOf<ViewUi['Navigation']['List']>().toBeFunction();
-  });
-
-  it('Ui.Navigation.List accepts meta prop', () => {
-    type ListProps = Parameters<ViewUi['Navigation']['List']>[0];
-    expectTypeOf<ListProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
-  });
-
-  it('Ui.Navigation.Item is a function', () => {
-    expectTypeOf<ViewUi['Navigation']['Item']>().toBeFunction();
-  });
-
-  it('Ui.Navigation.Item accepts meta prop', () => {
-    type ItemProps = Parameters<ViewUi['Navigation']['Item']>[0];
-    expectTypeOf<ItemProps>().toMatchTypeOf<{ meta?: ITagMeta }>();
-  });
-});
-
 // ---------------------------------------------------------------------------
 // Compile-time: Table compound — added to ViewUi + WidgetUi (2026-05-21)
 // Guards: Table root + all 5 sub-components accept IUiMetaProps in both namespaces.
@@ -323,6 +303,35 @@ describe('WidgetUi — DataTable: is callable and accepts IUiMetaProps', () => {
   it('Ui.DataTable accepts IUiMetaProps (meta prop)', () => {
     type DataTableProps = Parameters<WidgetUi['DataTable']>[0];
     expectTypeOf<DataTableProps>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Compile-time: ThemeSwitcher — plain callable (no sub-components)
+// Added to ViewUi + WidgetUi (2026-05-22). ThemeSwitcher is a plain Solid
+// component from @capsuletech/web-style; WithMetaProps callable-branch handles
+// it the same way as DataTable (no attached statics).
+// ---------------------------------------------------------------------------
+
+describe('ViewUi — ThemeSwitcher: is callable and accepts IUiMetaProps', () => {
+  it('Ui.ThemeSwitcher is a function', () => {
+    expectTypeOf<ViewUi['ThemeSwitcher']>().toBeFunction();
+  });
+
+  it('Ui.ThemeSwitcher accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['ThemeSwitcher']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+describe('WidgetUi — ThemeSwitcher: is callable and accepts IUiMetaProps', () => {
+  it('Ui.ThemeSwitcher is a function', () => {
+    expectTypeOf<WidgetUi['ThemeSwitcher']>().toBeFunction();
+  });
+
+  it('Ui.ThemeSwitcher accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['ThemeSwitcher']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
   });
 });
 

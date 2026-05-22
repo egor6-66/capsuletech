@@ -2,5 +2,8 @@ packages:
   - "packages/**"
   - "apps/*"
   - "!**/dist/**"
+  - "!**/node_modules/**"
+  - "!**/e2e/**"
+  - "!**/verdaccio-tmp/**"
 
 autoInstallPeers: true

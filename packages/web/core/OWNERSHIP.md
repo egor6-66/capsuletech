@@ -45,7 +45,8 @@ last-updated: 2026-05-21
 
 ```ts
 import {
-  View, Widget, Page, Controller, Feature, Shape, // 6 wrapper-функций
+  View, Widget, Page, Controller, Feature, Shape, // 6 UI-wrapper-функции
+  Entity,                                          // domain data layer wrapper
   Providers,                                        // namespace: { BaseProviders }
   useShapeUi,                                       // hook для Shape consumer'ов
   type ITarget, type IHandlerApi,                   // user-facing типы
@@ -53,10 +54,11 @@ import {
   type IServices, type IWrapperProps,               // injected types
   type INext, type IStateApi,                       // handler-API helpers
   type IViewWrapper, type IViewRenderer,            // View-specific types
+  type IEntityDefinition, type IEntityWrapper,      // Entity-specific types
 } from '@capsuletech/web-core';
 ```
 
-Wrapper-имена (`View/Widget/Page/Controller/Feature/Shape`) — **глобальные в apps** через AutoImport. В app-коде их явно не импортируют, но они должны экспортироваться из barrel чтобы AutoImport мог их инжектить.
+Wrapper-имена (`View/Widget/Page/Controller/Feature/Shape/Entity`) — **глобальные в apps** через AutoImport. В app-коде их явно не импортируют, но они должны экспортироваться из barrel чтобы AutoImport мог их инжектить. `Entity` добавлен в WRAPPER_NAMES — pending owner-builders.
 
 ### `./create` (`src/create/index.ts`)
 
@@ -83,7 +85,7 @@ import { BaseProviders } from '@capsuletech/web-core/providers';
 
 - **`IUiMetaProps` живёт в web-core, не в web-ui.** `meta`, `payload`, `dynamicMeta`, `modifiers` — props UiProxy-layer (перехватываются в `wrapComponent`, в реальный DOM не попадают). web-ui — чистый DOM/style primitive, HCA-aware props там неуместны. `WithMetaProps<T>` — mapped type в `wrappers/interfaces.ts`, применяется к `ViewUiRaw` / `WidgetUiRaw` / `PageUiRaw` → `ViewUi` / `WidgetUi` / `PageUi`. Источник: `src/wrappers/interfaces.ts` (helper `StaticProps<T>` + `WithMetaProps<T>`).
 
-- **Compound sub-components (`Card.Header`, `Field.Label`, `Navigation.Item`, …) сохраняются через `StaticProps<T>`.** `WithMetaProps` для callable `T[K]` возвращает intersection: `((props: P & IUiMetaProps) => R) & WithMetaProps<StaticProps<T[K]>>`. `StaticProps<T>` отфильтровывает встроенные ключи прототипа `Function` (`K extends keyof Function ? never : K`), оставляя только пользовательские attached properties. Рекурсивное применение `WithMetaProps` к `StaticProps` гарантирует что `Card.Header`, `Field.Label` и т.д. тоже принимают `meta`. Регрессия: до PR #119 callable-ветка возвращала только `(props: P & IUiMetaProps) => R` без attached statics.
+- **Compound sub-components (`Card.Header`, `Field.Label`, …) сохраняются через `StaticProps<T>`.** `WithMetaProps` для callable `T[K]` возвращает intersection: `((props: P & IUiMetaProps) => R) & WithMetaProps<StaticProps<T[K]>>`. `StaticProps<T>` отфильтровывает встроенные ключи прототипа `Function` (`K extends keyof Function ? never : K`), оставляя только пользовательские attached properties. Рекурсивное применение `WithMetaProps` к `StaticProps` гарантирует что `Card.Header`, `Field.Label` и т.д. тоже принимают `meta`. Регрессия: до PR #119 callable-ветка возвращала только `(props: P & IUiMetaProps) => R` без attached statics.
 
 - **`createRoot` ≠ Solid `createRoot`.** Наш — render-фабрика (`render(Bootstrap, container)` + `data-theme` inject). Solid'ская — для реактивного scope без рендера. Часто путают. Источник: `src/create/createRoot.ts`.
 
@@ -127,6 +129,9 @@ import { BaseProviders } from '@capsuletech/web-core/providers';
 - [x] **Compound sub-components restored in `WithMetaProps`** — `Card.Header`, `Card.Title`, `Card.Content`, `Card.Description`, `Card.Footer`, `Field.Label`, `Field.Content`, `Field.Group`, `Navigation.List`, `Navigation.Item` и т.д. больше не теряются после augmentation. Введён helper `StaticProps<T>` (`K extends keyof Function ? never : K`). Callable-ветка теперь возвращает intersection callable + `WithMetaProps<StaticProps<T[K]>>`. Layout (`{ Grid, Flex, Matrix }`) не регрессирует — идёт через `extends object` ветку. 136 тестов green (2026-05-21).
 - [x] **`Table` добавлен в `Ui` namespace** — lazy compound (`Table` + `Table.Header/Body/Row/Head/Cell`) зарегистрирован в `ui-kit/imports.tsx`; тип `typeof Table` добавлен в `ViewUiRaw` и `WidgetUiRaw` → `WithMetaProps` автоматически покрывает все 5 sub-components. 24 новых характеризационных теста в `src/wrappers/__tests__/ui-meta-props.test.tsx`. 160 тестов green (2026-05-21).
 - [x] **`DataTable` добавлен в `Ui` namespace** — lazy primitive из `@capsuletech/web-ui/dataTable`; тип `typeof DataTable` добавлен в `ViewUiRaw` и `WidgetUiRaw`. Нет sub-components (`Object.assign` не нужен). Generic `<TData>` функция корректно проходит через `WithMetaProps` callable-ветку. 4 новых характеризационных теста в `src/wrappers/__tests__/ui-meta-props.test.tsx`. 164 теста green (2026-05-21).
+- [x] **`ThemeSwitcher` добавлен в `Ui` namespace** — lazy import из `@capsuletech/web-style` (main barrel; subpath `./switcher` отсутствует в web-style — framework gap, делегировано architect). Тип `typeof ThemeSwitcher` добавлен в `ViewUiRaw` и `WidgetUiRaw`. Plain callable, нет sub-components. 4 новых характеризационных теста в `src/wrappers/__tests__/ui-meta-props.test.tsx`. 185 тестов green (2026-05-22).
+- [x] **`Ui.Navigation` unregistered (deleted from web-ui)** — удалён lazy compound (`Navigation` + `Navigation.List` + `Navigation.Item`) из `src/ui-kit/imports.tsx`; `Navigation` убран из `import type` и `ViewUiRaw` в `src/wrappers/interfaces.ts`; 4 характеризационных теста (`Navigation.List`/`Navigation.Item`) удалены из `src/wrappers/__tests__/ui-meta-props.test.tsx`. 181 тест green (2026-05-22).
+- [x] **Entity wrapper добавлен — domain data layer.** `Entity((z) => ({ schema, defaults? }))` — plain config factory, не компонент. Returns frozen plain object. `src/wrappers/entity/wrapper.ts` + `types.ts` + `index.ts`. Re-exports в `wrappers/index.ts`, `wrappers/interfaces.ts`. 17 характеризационных тестов в `src/wrappers/entity/__tests__/wrapper.test.ts`. 198 тестов green (2026-05-22). AutoImport — owner-builders добавит `'Entity'` в `WRAPPER_NAMES`; ExportGeneratorPlugin — owner-builders добавит scan `entities/` в namespace маппинг.
 - [x] **BREAKING (v0.4.0): Shape per-item iteration removed** — `<For each>` убран из Shape wrapper. `props: (item) => ...` mapper и `children` render-prop удалены. Shape передаёт весь массив `data` + extras из definition в `as`-batch-template целиком. Итерация — ответственность batch-template (`Ui.List` / `Ui.DataTable`). Реактивность сохранена через `splitProps` + `mergeProps`. `IShapeTemplateProps` и `IShapeRender` удалены из публичного API. 17 новых характеризационных тестов в `src/wrappers/shape/__tests__/wrapper.test.tsx`. 181 тест green (2026-05-21).
 
 ## Test coverage
