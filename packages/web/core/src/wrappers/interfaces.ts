@@ -20,7 +20,8 @@ import type {
   List,
   Table,
 } from '@capsuletech/web-ui';
-import type { ThemeSwitcher } from '@capsuletech/web-style';
+import type { DarkModeToggle, ThemeSwitcher } from '@capsuletech/web-style';
+import type { MapView } from '@capsuletech/web-map';
 import type { Component, JSX, JSXElement } from 'solid-js';
 
 // -----------------------------------------------------------------------------
@@ -132,11 +133,13 @@ type ViewUiRaw = {
   Table: typeof Table;
   DataTable: typeof DataTable;
   ThemeSwitcher: typeof ThemeSwitcher;
+  DarkModeToggle: typeof DarkModeToggle;
+  MapView: typeof MapView;
 };
 
 type Outlet = () => JSXElement;
 
-type WidgetUiRaw = { Card: typeof Card; Outlet: Outlet; Animate: typeof Animate; Layout: typeof Layout; Table: typeof Table; DataTable: typeof DataTable; ThemeSwitcher: typeof ThemeSwitcher };
+type WidgetUiRaw = { Card: typeof Card; Outlet: Outlet; Animate: typeof Animate; Layout: typeof Layout; Table: typeof Table; DataTable: typeof DataTable; ThemeSwitcher: typeof ThemeSwitcher; DarkModeToggle: typeof DarkModeToggle; MapView: typeof MapView };
 type PageUiRaw = { Layout: typeof Layout; Outlet: Outlet; Animate: typeof Animate };
 
 /** Ui namespace доступный внутри View factory — все компоненты принимают IUiMetaProps. */
