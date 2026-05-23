@@ -1,11 +1,13 @@
 import {
   type Accessor,
   type Component,
+  Show,
   createContext,
   createMemo,
   createSignal,
   useContext,
 } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import { createWindowAutoScroll } from './autoScroll';
 import type {
   DragData,
@@ -33,6 +35,38 @@ interface IDnDContext {
 
 const Ctx = createContext<IDnDContext>();
 
+/**
+ * Minimal built-in drag ghost rendered when `showDefaultOverlay` is true.
+ * Renders a small semi-transparent pill at the cursor position so the user
+ * has visual confirmation that a drag is in progress.
+ * Consumers who need a richer preview should use <DragOverlay> directly.
+ */
+const DefaultDragOverlay = (innerProps: {
+  pointer: Accessor<IPoint | null>;
+  activeData: Accessor<DragData | null>;
+}) => (
+  <Show when={innerProps.activeData() && innerProps.pointer()}>
+    <Portal>
+      <div
+        style={{
+          position: 'fixed',
+          left: `${innerProps.pointer()!.x}px`,
+          top: `${innerProps.pointer()!.y}px`,
+          transform: 'translate(-50%, -50%)',
+          width: '48px',
+          height: '48px',
+          'border-radius': '8px',
+          background: 'rgba(99,102,241,0.35)',
+          border: '2px solid rgba(99,102,241,0.7)',
+          'pointer-events': 'none',
+          'z-index': '9999',
+          'backdrop-filter': 'blur(2px)',
+        }}
+      />
+    </Portal>
+  </Show>
+);
+
 export const useDnD = (): IDnDContext => {
   const ctx = useContext(Ctx);
   if (!ctx) {
@@ -53,8 +87,11 @@ export const DnDProvider: Component<IDnDProviderProps> = (props) => {
   const droppables = new Map<DroppableId, IDroppableEntry>();
   const elToDroppableId = new WeakMap<HTMLElement, DroppableId>();
 
-  let captureEl: HTMLElement | null = null;
-  let capturePointerId: number | null = null;
+  // No pointer capture state needed — we use window-level listeners exclusively.
+  // setPointerCapture was removed because it redirects document.elementFromPoint
+  // to always return the captured element, breaking droppable hit-testing during
+  // a drag started externally (e.g. from DragBadge calling dnd.startDrag).
+  // Window-level pointermove/pointerup cover all cases without this side-effect.
 
   const findDroppableAt = (x: number, y: number): IDroppableEntry | null => {
     let el = document.elementFromPoint(x, y) as HTMLElement | null;
@@ -119,15 +156,6 @@ export const DnDProvider: Component<IDnDProviderProps> = (props) => {
   };
 
   const cleanup = () => {
-    if (captureEl && capturePointerId !== null) {
-      try {
-        captureEl.releasePointerCapture(capturePointerId);
-      } catch {
-        // pointer мог уже быть отпущен браузером — ничего страшного
-      }
-    }
-    captureEl = null;
-    capturePointerId = null;
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('pointerup', onPointerUp);
     window.removeEventListener('pointercancel', onPointerUp);
@@ -141,14 +169,11 @@ export const DnDProvider: Component<IDnDProviderProps> = (props) => {
   const startDrag = (id: DraggableId, e: PointerEvent) => {
     const entry = draggables.get(id);
     if (!entry) return;
-    captureEl = entry.el;
-    capturePointerId = e.pointerId;
-    try {
-      entry.el.setPointerCapture(e.pointerId);
-    } catch {
-      // setPointerCapture может бросать в некоторых средах (e.g. iframe без user gesture).
-      // Не критично — pointermove/up через window всё равно ловим.
-    }
+    // Do NOT call setPointerCapture here. Pointer capture redirects
+    // document.elementFromPoint to always return the captured element,
+    // which breaks droppable hit-testing in findDroppableAt. Window-level
+    // listeners are sufficient to track pointermove/up regardless of what
+    // element the user is physically hovering.
     const data = entry.data();
     setActiveId(id);
     setActiveData(data);
@@ -186,5 +211,12 @@ export const DnDProvider: Component<IDnDProviderProps> = (props) => {
     startDrag,
   };
 
-  return <Ctx.Provider value={api}>{props.children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={api}>
+      {props.children}
+      <Show when={props.showDefaultOverlay}>
+        <DefaultDragOverlay pointer={pointer} activeData={activeData} />
+      </Show>
+    </Ctx.Provider>
+  );
 };

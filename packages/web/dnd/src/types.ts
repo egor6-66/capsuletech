@@ -79,6 +79,13 @@ export interface IDnDProviderProps {
   autoScroll?: boolean;
   onDragStart?: (data: DragData, draggableId: DraggableId) => void;
   onDragEnd?: (result: IDragEndResult) => void;
+  /**
+   * Автоматически рендерить минимальный drag-ghost (полупрозрачный прямоугольник
+   * 48×48) при отсутствии явного <DragOverlay>. Удобно для matrix/swap сценариев
+   * где consumer не хочет самостоятельно монтировать overlay.
+   * По умолчанию off.
+   */
+  showDefaultOverlay?: boolean;
 }
 
 export type IDragEndResult =
