@@ -96,13 +96,15 @@ export function runBuild(opts: RunBuildOptions): Promise<void>;
 
 10. **`cargo build --release` node-deprecation warning** о `shell: true` с args. Это Node.js DEP0190 (args + shell). Не критично для build-time скрипта — `spawnSync` с `shell: true` нужен на Windows для `cargo` через PATH.
 
+11. **Build pipeline разделён** (PR 3, CI compat). `pnpm build` = только vite (JS-артефакты, CI-friendly). `pnpm build:native` = cargo + copy бинаря в `dist/bin/` (требует Tauri OS deps + Rust toolchain). `pnpm build:all` = full local pipeline. CI собирает только JS (через `pnpm nx run-many -t build`); бинарь собирается перед release publish — локально (фаза 1) или matrix-build (фаза 2).
+
 ## План рефакторинга / оптимизаций
 
 PR 1-8 (см. ADR 017 Roadmap):
 
 - [x] **PR 1** ADR 017 + skeleton + owner-desktop agent
 - [x] **PR 2** Crate move `backend/desktop/` → `packages/desktop/native/`. `backend/Cargo.toml` обновить, убрать `"desktop"` из workspace.members. Cargo standalone (`edition = "2021"`, `version = "0.1.0"`)
-- [x] **PR 3** JS wrapper + build pipeline. `scripts/desktop.mjs` логика → `src/`. `pnpm build` собирает Rust crate + копирует бинарь в `dist/bin/`
+- [x] **PR 3** JS wrapper + build pipeline. `scripts/desktop.mjs` логика → `src/`. `pnpm build` = только vite (JS); `pnpm build:native` = cargo + binary copy; `pnpm build:all` = full local pipeline
 - [ ] **PR 4** Config type расширение — секция `desktop` в `defineCapsuleConfig`. Coordinated с owner-builders
 - [ ] **PR 5** CLI command — `capsule desktop dev/build <app>` импортирует `runDev`/`runBuild` напрямую (вместо `execa scripts/desktop.mjs`). Coordinated с owner-cli
 - [ ] **PR 6** Verdaccio publish — добавить `@capsuletech/desktop` в `nx.json:release.groups.cli`. Smoke в `capsule-test`. Coordinated с owner-tests

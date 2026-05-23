@@ -107,8 +107,11 @@ packages/desktop/
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.mjs" } },
   "files": ["dist"],
   "scripts": {
-    "build": "vite build && node scripts/build-native.mjs",
-    "test": "vitest run"
+    "build": "vite build",
+    "build:native": "node scripts/build-native.mjs",
+    "build:all": "vite build && node scripts/build-native.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@capsuletech/vite-builder": "workspace:*",
@@ -244,7 +247,7 @@ export function runBuild(opts: RunBuildOptions): Promise<void>;
 - **`@capsuletech/cli` импортирует `runDev`/`runBuild` напрямую** (после PR 5). Breaking change в API → cli action ломается → coordinate с owner-cli.
 - **`@capsuletech/vite-builder` реэкспортирует тип `IDesktopConfig`** через `defineCapsuleConfig` typings (после PR 4). Изменение shape `IDesktopConfig` → user `capsule.config.ts:desktop` ломается → coordinate с owner-builders + bump major (после v1.0).
 - **`Cargo.lock` коммитится** для `native/` — это binary workspace standalone, не lib. После `cargo add` в `native/Cargo.toml` — `cargo build` + commit lock.
-- **`dist/bin/capsule-desktop[.exe]` НЕ коммитится** — gitignore'ится через `dist/`. Сборка происходит в момент `pnpm build` (release flow или dev tooling).
+- **`dist/bin/capsule-desktop[.exe]` НЕ коммитится** — gitignore'ится через `dist/`. Сборка через `pnpm build:native` или `pnpm build:all` (release flow или dev tooling). `pnpm build` (без суффикса) = только vite, CI-friendly.
 - **Override-файл `.tauri.<app>.json` НЕ коммитится** — gitignore + cleanup на process exit. Видишь его в git status → процесс умер некорректно, чистить руками.
 - **Tauri features-list растёт по запросу.** Default — pure shell без plugins. Каждый новый `tauri-*` plugin = решение (security implications, bundle size). Не добавлять "на всякий случай".
 
@@ -265,6 +268,8 @@ pnpm test:e2e:cli                                          # включает de
 ```
 
 CI job (создаётся в PR 6): `desktop-test.yml` запускает `pnpm --filter @capsuletech/desktop test && cargo check --manifest-path packages/desktop/native/Cargo.toml`. Полноценный `cargo test` в `native/` не нужен — там pure shell без логики.
+
+**CI vs release-time cargo build.** `pnpm nx run-many -t build` вызывает только `pnpm build` (= vite, no cargo). Cargo/binary build (`pnpm build:native`) требует Tauri OS deps (libgtk-3-dev, libwebkit2gtk-4.1-dev и т.д.) и запускается отдельно: локально перед release (фаза 1) или в matrix-build job (фаза 2). Никогда не включать cargo в `build` script — CI runners без Tauri deps упадут на glib-sys/webkit2gtk.
 
 ## Documentation (Roadmap PR 7)
 
