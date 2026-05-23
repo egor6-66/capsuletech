@@ -1,75 +1,149 @@
-import type { VariantProps } from 'class-variance-authority';
 import type { JSX } from 'solid-js';
 import type { AnimateVariant } from '../../wrappers/animate';
-import type { matrixCva } from './variants';
 
 /**
- * Конфигурация одного слота Matrix.
+ * SlotValue — либо JSX-элемент напрямую, либо объект с children + overrides.
  *
- * Применяется в горизонтальных (sidebar/main/rightBar) и вертикальных
- * (header/footer) resize-группах. Если `resizable: true` — слот становится
- * corvu Panel'ью. Иначе рендерится статическим блоком.
+ * JSX-форма: `header: <MyHeader />` — обёртывается в normalizeSlotValue.
+ * Object-форма: `header: { children: <MyHeader />, initialSize: 0.2, ... }`
  *
- * @example
- * ```tsx
- * slots={{
- *   sidebar: { children: <Sidebar />, resizable: true, initialSize: 0.2 },
- *   main:    { children: <Main /> },
- * }}
- * ```
+ * Heuristic: если у объекта есть ключ `children` — считается object-формой.
  */
-export interface IResizableSlotConfig {
-  children: JSX.Element;
+export type SlotValue =
+  | JSX.Element
+  | {
+      children: JSX.Element;
+      initialSize?: number;
+      minSize?: number;
+      maxSize?: number;
+      draggable?: boolean;
+    };
+
+export interface IRow {
+  id?: string;
   /**
-   * **Opt-in.** По умолчанию `false` — слот рендерится статическим блоком.
-   *
-   * Чтобы слот стал resizable-панелью (corvu), нужно поставить `true`.
+   * Высота row.
+   * - `number` (0..1) → corvu Panel initialSize (доля от родителя)
+   * - `'auto'` → content-height, не resizable
+   * - `'fr'` → flex-1 (grow)
    */
+  height?: number | 'auto' | 'fr';
   resizable?: boolean;
-  initialSize?: number;
-  minSize?: number;
-  maxSize?: number;
+  cells: ICell[];
 }
 
-/**
- * Значение одного слота — только object form `{ children, resizable?, initialSize?, minSize?, maxSize? }`.
- *
- * **BREAKING (v0.3.0):** JSX-shorthand `header: <Header />` больше НЕ работает —
- * единый object-формат даёт IDE-autocomplete на поля без factory-обёртки.
- * Для слота без resize: `header: { children: <Header /> }`.
- */
-export type SlotValue = IResizableSlotConfig;
-
-/**
- * Набор слотов для Matrix.
- *
- * - `main` — ОБЯЗАТЕЛЬНЫЙ. Центральная область контента.
- * - `header`, `sidebar`, `rightBar`, `footer` — опциональные.
- *
- * Если задан только `main` — Matrix переключается в auto-centroid режим
- * (flex items-center justify-center). Иначе — grid layout с CSS-areas.
- */
-export interface IMatrixSlots {
-  main: SlotValue;
-  header?: SlotValue;
-  sidebar?: SlotValue;
-  rightBar?: SlotValue;
-  footer?: SlotValue;
-}
-
-// В Solid используем HTMLAttributes вместо Omit<HTMLDivElement...>
-export interface IMatrixBaseProps extends JSX.HTMLAttributes<HTMLDivElement> {}
-
-export type MatrixVariants = VariantProps<typeof matrixCva>;
-
-export interface IMatrixProps extends IMatrixBaseProps {
-  slots: IMatrixSlots;
+export interface ICell {
+  id: string;
+  children: JSX.Element;
+  tag?: 'div' | 'header' | 'aside' | 'main' | 'footer' | 'nav' | 'section';
   /**
-   * Оборачивает `main`-слот в `<Animate>` если `animated` задан.
+   * Ширина cell.
+   * - `number` (0..1) → corvu Panel initialSize
+   * - `'auto'` → content-width
+   * - `'fr'` → flex-1
+   */
+  width?: number | 'auto' | 'fr';
+  resizable?: boolean;
+  /**
+   * @placeholder Phase 1.2 — DnD support. Типы добавлены, runtime не реализован.
+   */
+  draggable?: boolean;
+  /**
+   * @placeholder Phase 1.2 — ограничение swap-зоны. Типы добавлены, runtime не реализован.
+   */
+  swapGroup?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Preset registry — расширяется через ./presets
+// ---------------------------------------------------------------------------
+
+/**
+ * Реестр встроенных пресетов. Ключ — имя пресета, значение — тип `slots`.
+ * Расширяется по мере добавления новых built-in пресетов.
+ */
+export interface LayoutPresets {
+  'app-shell': {
+    header?: SlotValue;
+    sidebar?: SlotValue;
+    main: SlotValue;
+    rightBar?: SlotValue;
+    footer?: SlotValue;
+  };
+  // Будущие: 'split-2', 'split-3', 'dashboard-grid', ...
+}
+
+// ---------------------------------------------------------------------------
+// DnD / layout mode (Phase 1.2 placeholders)
+// ---------------------------------------------------------------------------
+
+/**
+ * @placeholder Phase 1.2 — DnD режимы.
+ * Типы добавлены, runtime-логика не реализована.
+ */
+export type MatrixDndMode = 'swap' | 'insert';
+
+/**
+ * @placeholder Phase 1.2 — edit/view mode.
+ * Типы добавлены, runtime-логика не реализована.
+ */
+export type MatrixLayoutMode = 'view' | 'edit';
+
+/**
+ * @placeholder Phase 1.2 — event-based layout change.
+ * Типы добавлены, runtime-логика не реализована.
+ */
+export type LayoutChangeEvent =
+  | { kind: 'swap'; a: string; b: string }
+  | { kind: 'insert'; id: string; toRow: number; toIndex: number };
+
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
+
+export interface IMatrixCommonProps extends JSX.HTMLAttributes<HTMLDivElement> {
+  /**
+   * Оборачивает cell с id 'main' в `<Animate>` если задан.
    *
-   *  - `true` → дефолтный variant `'fade'`.
-   *  - `'fade' | 'slide-up' | 'scale' | ...` → конкретный variant.
-   *  - `false` / `undefined` → без анимации.
+   * - `true` → дефолтный variant `'fade'`.
+   * - `'fade' | 'slide-up' | 'scale' | ...` → конкретный variant.
+   * - `false` / `undefined` → без анимации.
    */
   animated?: boolean | AnimateVariant;
+  /**
+   * @placeholder Phase 1.2 — DnD режим (noop в Phase 1.1).
+   */
+  dndMode?: MatrixDndMode;
+  /**
+   * @placeholder Phase 1.2 — edit/view режим (noop в Phase 1.1).
+   */
+  layoutMode?: MatrixLayoutMode;
+  /**
+   * @placeholder Phase 1.2 — callback при смене layout через DnD (noop в Phase 1.1).
+   */
+  onLayoutChange?: (event: LayoutChangeEvent) => void;
 }
+
+/**
+ * Raw rows mode — передаёт rows напрямую, без пресета.
+ */
+export interface IMatrixRawProps extends IMatrixCommonProps {
+  rows: IRow[];
+  preset?: never;
+  slots?: never;
+}
+
+/**
+ * Preset mode — именованный пресет + типизированные slots.
+ */
+export interface IMatrixPresetProps<P extends keyof LayoutPresets = keyof LayoutPresets>
+  extends IMatrixCommonProps {
+  preset: P;
+  slots: LayoutPresets[P];
+  rows?: never;
+}
+
+/**
+ * Discriminated union: либо raw rows, либо preset+slots.
+ */
+export type IMatrixProps = IMatrixRawProps | IMatrixPresetProps;

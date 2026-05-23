@@ -1,15 +1,16 @@
 import { type ICapsuleRouter, RouterContext } from '@capsuletech/web-router';
 import { createStyle } from '@capsuletech/web-style';
-import { type JSX, Show, splitProps, useContext } from 'solid-js';
+import { For, type JSX, splitProps, useContext } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
+import { Animate, type AnimateVariant } from '../../wrappers/animate';
 import { Flex } from '../flex/flex';
 import type { IFlexItem } from '../flex/interfaces';
-import { Animate, type AnimateVariant } from '../../wrappers/animate';
-import type { IMatrixProps, IMatrixSlots } from './interfaces';
-import { type INormalizedSlot, normalizeSlot } from './utils';
+import type { ICell, IMatrixProps, IRow } from './interfaces';
+import { resolvePreset } from './presets';
 import { matrixCva, matrixSlots } from './variants';
 
 // ---------------------------------------------------------------------------
-// animateMain helper — shared across render modes
+// animateMain helper — wraps content in <Animate> if `animated` is set
 // ---------------------------------------------------------------------------
 
 const animateMain = (
@@ -30,364 +31,259 @@ const animateMain = (
 };
 
 // ---------------------------------------------------------------------------
-// Auto-centroid mode: only `main` is provided
+// Cell renderer — renders one ICell as the correct HTML5 element
 // ---------------------------------------------------------------------------
 
-const renderCentroid = (
-  slots: IMatrixSlots,
-  animated: IMatrixProps['animated'],
+const renderCell = (
+  cell: ICell,
+  animated: boolean | AnimateVariant | undefined,
   router: ICapsuleRouter | null,
 ): JSX.Element => {
-  const main = normalizeSlot(slots.main);
-  if (!main) throw new Error('Layout.Matrix: `main` slot is required.');
+  const tag = cell.tag ?? 'div';
+  const isMain = cell.id === 'main';
+  const content = isMain ? animateMain(cell.children, animated, router) : cell.children;
+
+  // fr width: flex-1 (no Panel, just grow)
+  // Other widths handled by the row-level Flex items machinery
   return (
-    <div class="flex h-full w-full items-center justify-center">
-      {animateMain(main.children, animated, router)}
-    </div>
+    <Dynamic component={tag} class={isMain ? matrixSlots.resizeMain : matrixSlots.resizeSlot}>
+      {content}
+    </Dynamic>
   );
 };
 
 // ---------------------------------------------------------------------------
-// Grid mode: build dynamic grid-template-areas from present slots
+// Row renderer — turns one IRow into a horizontal Flex (resizable or static)
 // ---------------------------------------------------------------------------
 
 /**
- * Builds CSS grid-template-areas + col/row track strings from the set of
- * present slots. Rules:
- *   - rows:    top (header), middle (sidebar/main/rightBar), bottom (footer)
- *              omitted when the slot is absent.
- *   - columns: left (sidebar), center (main), right (rightBar)
- *              omitted when the slot is absent.
- *   - main area always present (required slot).
+ * Converts IRow cells into IFlexItem[].
+ *
+ * Cells with `width='fr'` or `width=undefined` (and not resizable) get no
+ * initialSize — fillInitialSizes inside Flex will distribute the remainder.
+ * Cells with `width='auto'` also get no initialSize but are non-resizable.
  */
-const buildGridTemplate = (
-  hasSidebar: boolean,
-  hasRightBar: boolean,
-  hasHeader: boolean,
-  hasFooter: boolean,
-): { areas: string; cols: string; rows: string } => {
-  // Column names & tracks
-  const leftCol = hasSidebar ? 'sidebar' : null;
-  const rightCol = hasRightBar ? 'rightBar' : null;
-
-  const colNames = [leftCol, 'main', rightCol].filter(Boolean) as string[];
-  const cols = [hasSidebar ? 'auto' : null, '1fr', hasRightBar ? 'auto' : null]
-    .filter(Boolean)
-    .join(' ');
-
-  const makeRow = (areaName: string) => `'${colNames.map(() => areaName).join(' ')}'`;
-
-  const middleRow = `'${colNames.join(' ')}'`;
-
-  const rows: string[] = [];
-  if (hasHeader) rows.push(makeRow('header'));
-  rows.push(middleRow);
-  if (hasFooter) rows.push(makeRow('footer'));
-
-  const rowTracks = [hasHeader ? 'auto' : null, '1fr', hasFooter ? 'auto' : null]
-    .filter(Boolean)
-    .join(' ');
-
-  return { areas: rows.join(' '), cols, rows: rowTracks };
-};
-
-const renderGrid = (
-  slots: IMatrixSlots,
-  animated: IMatrixProps['animated'],
+const rowToFlexItems = (
+  row: IRow,
+  animated: boolean | AnimateVariant | undefined,
   router: ICapsuleRouter | null,
-): JSX.Element => {
-  const header = normalizeSlot(slots.header);
-  const sidebar = normalizeSlot(slots.sidebar);
-  const main = normalizeSlot(slots.main);
-  if (!main) throw new Error('Layout.Matrix: `main` slot is required.');
-  const rightBar = normalizeSlot(slots.rightBar);
-  const footer = normalizeSlot(slots.footer);
-
-  const hasSidebar = sidebar !== null;
-  const hasRightBar = rightBar !== null;
-  const hasHeader = header !== null;
-  const hasFooter = footer !== null;
-
-  const { areas, cols, rows } = buildGridTemplate(hasSidebar, hasRightBar, hasHeader, hasFooter);
-
-  return (
-    <div
-      class={matrixSlots.gridContainer}
-      style={{
-        'grid-template-areas': areas,
-        'grid-template-columns': cols,
-        'grid-template-rows': rows,
-      }}
-    >
-      <Show when={hasHeader}>
-        <header class={matrixSlots.header} style={{ 'grid-area': 'header' }}>
-          {header!.children}
-        </header>
-      </Show>
-      <Show when={hasSidebar}>
-        <aside class={matrixSlots.gridLeft} style={{ 'grid-area': 'sidebar' }}>
-          {sidebar!.children}
-        </aside>
-      </Show>
-      <main class={matrixSlots.main} style={{ 'grid-area': 'main' }}>
-        {animateMain(main.children, animated, router)}
-      </main>
-      <Show when={hasRightBar}>
-        <aside class={matrixSlots.gridRight} style={{ 'grid-area': 'rightBar' }}>
-          {rightBar!.children}
-        </aside>
-      </Show>
-      <Show when={hasFooter}>
-        <footer class={matrixSlots.footer} style={{ 'grid-area': 'footer' }}>
-          {footer!.children}
-        </footer>
-      </Show>
-    </div>
-  );
-};
-
-// ---------------------------------------------------------------------------
-// Resize mode — thin wrapper over Flex
-// ---------------------------------------------------------------------------
-
-/**
- * Builds Flex items for the horizontal middle row
- * (sidebar | main | rightBar). Only slots that are present are included.
- * Non-resizable present slots are still included in the group (handle
- * appears only between two adjacent resizable panels per corvu rules).
- */
-const buildHorizontalItems = (
-  sidebar: INormalizedSlot | null,
-  main: INormalizedSlot,
-  rightBar: INormalizedSlot | null,
-  animated: IMatrixProps['animated'],
-  router: ICapsuleRouter | null,
-): IFlexItem[] => {
-  const items: IFlexItem[] = [];
-  if (sidebar) {
-    items.push({
-      ...sidebar,
-      children: <aside class={matrixSlots.resizeSidebar}>{sidebar.children}</aside>,
-    });
-  }
-  items.push({
-    ...main,
-    children: (
-      <main class={matrixSlots.resizeMain}>{animateMain(main.children, animated, router)}</main>
-    ),
+): IFlexItem[] =>
+  row.cells.map((cell) => {
+    const widthIsNumber = typeof cell.width === 'number';
+    return {
+      children: renderCell(cell, animated, router),
+      resizable: cell.resizable ?? false,
+      initialSize: widthIsNumber ? (cell.width as number) : undefined,
+      minSize: undefined,
+      maxSize: undefined,
+    };
   });
-  if (rightBar) {
-    items.push({
-      ...rightBar,
-      children: <aside class={matrixSlots.resizeAsideRight}>{rightBar.children}</aside>,
-    });
-  }
-  return items;
-};
 
-const renderResize = (
-  slots: IMatrixSlots,
-  animated: IMatrixProps['animated'],
+/**
+ * Checks whether any cell in the row opts-in to resizable.
+ */
+const rowHasResizable = (row: IRow): boolean => row.cells.some((c) => c.resizable === true);
+
+// ---------------------------------------------------------------------------
+// Renders a single row
+//
+// NB: absolute/inset containment для corvu — same pattern as the old matrix.
+// corvu measures rootSize via ResizeObserver on its DOM element. When the
+// container is a flex item without an explicit height, `h-full` resolves to
+// content-height → corvu Root grows unbounded. `relative` + `absolute inset-0`
+// breaks the percentage-height chain and gives corvu a stable measure target.
+// ---------------------------------------------------------------------------
+
+const renderRow = (
+  row: IRow,
+  animated: boolean | AnimateVariant | undefined,
   router: ICapsuleRouter | null,
 ): JSX.Element => {
-  const header = normalizeSlot(slots.header);
-  const sidebar = normalizeSlot(slots.sidebar);
-  const main = normalizeSlot(slots.main);
-  if (!main) throw new Error('Layout.Matrix: `main` slot is required.');
-  const rightBar = normalizeSlot(slots.rightBar);
-  const footer = normalizeSlot(slots.footer);
+  const hasResizable = rowHasResizable(row);
 
-  const useHorizontalResize =
-    (sidebar?.resizable ?? false) || main.resizable || (rightBar?.resizable ?? false);
-  const useVerticalResize = (header?.resizable ?? false) || (footer?.resizable ?? false);
-
-  // Fixed (non-resizable) header/footer are rendered outside Flex groups —
-  // this avoids the fillInitialSizes bug where a header without an explicit
-  // initialSize would steal ~35% of the viewport height.
-  const fixedHeader =
-    header !== null && !header.resizable ? (
-      <header class={matrixSlots.header}>{header.children}</header>
-    ) : null;
-
-  const fixedFooter =
-    footer !== null && !footer.resizable ? (
-      <footer class={matrixSlots.footer}>{footer.children}</footer>
-    ) : null;
-
-  const resizableHeader = header?.resizable ? (
-    <header class={matrixSlots.resizeHeader}>{header.children}</header>
-  ) : null;
-
-  const resizableFooter = footer?.resizable ? (
-    <footer class={matrixSlots.resizeFooter}>{footer.children}</footer>
-  ) : null;
-
-  // Build horizontal items ONCE before JSX — inlining the call inside JSX would
-  // cause the Solid compiler to wrap it in a `get items()` getter, which gets
-  // evaluated on every `props.items` access inside Flex/ResizableFlex (at least
-  // 4× per render: itemsMode, hasResizable, sizes memo, For loop, Show when).
-  // Each call creates fresh JSX nodes and re-inserts slot.children DOM nodes,
-  // which moves them out of the already-rendered Panel → slot content disappears.
-  const horizontalItems = useHorizontalResize
-    ? buildHorizontalItems(sidebar, main, rightBar, animated, router)
-    : null;
-
-  // Middle row — horizontal Flex (resizable or static).
-  // NB: используем `position:absolute; inset:0` containment вместо `h-full`/`flex-1`,
-  // потому что corvu Root измеряет rootSize через ResizeObserver (offsetHeight/offsetWidth)
-  // на своём DOM-элементе. Если родительский контейнер — CSS Grid track или flex item
-  // без явной высоты, `h-full` (height:100%) не даёт корню правильные размеры: браузер
-  // сначала вычисляет высоту flex-item по content, затем h-full резолвится в эту же
-  // content-height. Итог — corvu Root 1200+px, Panel flex-basis:70% = 840px, main
-  // получает content size вместо Panel size. Absolute inset:0 зажимает элемент
-  // в positioned ancestor без участия percentage-height цепочки.
-  // When middleRow lives directly in the outer `flex-col` wrapper (horizontal-only resize,
-  // no vertical Flex), it must use `flex-1 min-h-0` so it fills remaining height like the
-  // static path. When embedded in a vertical corvu Panel (block container), `flex-1` has no
-  // effect, but `h-full` resolves to the Panel's computed height (flex-basis establishes a
-  // definite size). Using `h-full flex-1 min-h-0` covers both contexts simultaneously.
-  const middleRow: JSX.Element = useHorizontalResize ? (
-    <div class="relative h-full min-h-0 flex-1 overflow-hidden">
-      <div class="absolute inset-0">
-        <Flex
-          orientation="horizontal"
-          items={horizontalItems!}
-          withHandle
-        />
-      </div>
-    </div>
-  ) : (
-    <div class="flex min-h-0 flex-1 overflow-hidden">
-      <Show when={sidebar}>
-        <aside class={matrixSlots.gridLeft}>{sidebar!.children}</aside>
-      </Show>
-      <main class={matrixSlots.main}>{animateMain(main.children, animated, router)}</main>
-      <Show when={rightBar}>
-        <aside class={matrixSlots.gridRight}>{rightBar!.children}</aside>
-      </Show>
-    </div>
-  );
-
-  // Vertical resize: header and/or footer are resizable → outer vertical Flex
-  if (useVerticalResize) {
-    const verticalItems: IFlexItem[] = [];
-
-    if (header?.resizable) {
-      verticalItems.push({
-        ...header,
-        children: resizableHeader!,
-      });
-    }
-
-    verticalItems.push({
-      // The middle-row panel is always resizable to allow handles on both sides.
-      resizable: true,
-      children: middleRow,
-    });
-
-    if (footer?.resizable) {
-      verticalItems.push({
-        ...footer,
-        children: resizableFooter!,
-      });
-    }
-
-    // Vertical Flex root also needs absolute containment — same rootSize issue:
-    // the outer flex-1 div does not propagate an explicit height for h-full to
-    // resolve against, so corvu Root grows to content. `relative` + `absolute inset-0`
-    // breaks the chain and gives corvu a stable, viewport-anchored measure target.
+  if (hasResizable) {
+    const items = rowToFlexItems(row, animated, router);
     return (
-      <div class="flex h-full w-full flex-col">
-        {fixedHeader}
-        <div class="relative min-h-0 flex-1 overflow-hidden">
-          <div class="absolute inset-0">
-            <Flex orientation="vertical" items={verticalItems} withHandle />
-          </div>
+      <div class="relative h-full min-h-0 flex-1 overflow-hidden">
+        <div class="absolute inset-0">
+          <Flex orientation="horizontal" items={items} withHandle />
         </div>
-        {fixedFooter}
       </div>
     );
   }
 
-  // Only horizontal resize (or mixed non-resizable): fixed header/footer wrap the middle
+  // Static row — plain flex-row, no corvu
   return (
-    <div class="flex h-full w-full flex-col">
-      {fixedHeader}
-      {middleRow}
-      {fixedFooter}
+    <div
+      class="flex min-h-0 w-full overflow-hidden"
+      classList={{ 'flex-1': row.height === 'fr' || row.height === undefined }}
+    >
+      <For each={row.cells}>{(cell) => renderCell(cell, animated, router)}</For>
     </div>
   );
 };
 
 // ---------------------------------------------------------------------------
-// Main MatrixImpl
+// Rows-engine — renders rows as a vertical Flex (resizable or static)
+// ---------------------------------------------------------------------------
+
+/**
+ * Converts IRow[] into vertical IFlexItem[] for the outer vertical Flex.
+ */
+const rowsToVerticalItems = (
+  rows: IRow[],
+  animated: boolean | AnimateVariant | undefined,
+  router: ICapsuleRouter | null,
+): IFlexItem[] =>
+  rows.map((row) => {
+    const heightIsNumber = typeof row.height === 'number';
+    const isResizable = row.resizable ?? true;
+    return {
+      children: renderRow(row, animated, router),
+      resizable: isResizable,
+      initialSize: heightIsNumber ? (row.height as number) : undefined,
+    };
+  });
+
+/**
+ * Checks whether any row opts-in to vertical resizable.
+ */
+const hasVerticalResizable = (rows: IRow[]): boolean =>
+  rows.some((r) => {
+    // A row is resizable if it has an explicit `resizable: true`
+    // OR if it has a numeric height (→ corvu Panel basis)
+    return r.resizable === true || typeof r.height === 'number';
+  });
+
+// ---------------------------------------------------------------------------
+// MatrixImpl
 // ---------------------------------------------------------------------------
 
 const MatrixImpl = (props: IMatrixProps) => {
-  const [local, others] = splitProps(props, ['class', 'style', 'ref', 'slots', 'animated']);
+  // Split out Phase 1.2 noop props so they don't leak to the DOM
+  const [local, rest] = splitProps(
+    props as IMatrixProps & { dndMode?: unknown; layoutMode?: unknown; onLayoutChange?: unknown },
+    [
+      'class',
+      'style',
+      'ref',
+      'animated',
+      // preset-mode
+      'preset',
+      'slots',
+      // raw mode
+      'rows',
+      // Phase 1.2 noop placeholders
+      'dndMode',
+      'layoutMode',
+      'onLayoutChange',
+    ],
+  );
 
   const { className, style } = createStyle(matrixCva, {
     class: local.class,
     style: local.style,
   });
 
-  // Soft-dep on router: useContext directly (no useRouter throw when outside RouterContext)
+  // Soft-dep on router
   const router = useContext(RouterContext);
 
-  const slots = () => local.slots;
+  // Resolve rows: preset → resolvePreset, raw → use directly
+  const getRows = (): IRow[] => {
+    if (local.preset != null) {
+      return resolvePreset(
+        local.preset as keyof import('./interfaces').LayoutPresets,
+        local.slots as never,
+      );
+    }
+    return (local.rows as IRow[]) ?? [];
+  };
 
   const renderContent = (): JSX.Element => {
-    const s = slots();
+    const rows = getRows();
 
-    // Auto-centroid: only main is provided (all optional slots absent)
-    const isCentroid =
-      s.header === undefined &&
-      s.sidebar === undefined &&
-      s.rightBar === undefined &&
-      s.footer === undefined;
+    if (rows.length === 0) return null;
 
-    if (isCentroid) {
-      return renderCentroid(s, local.animated, router);
+    // Single row, single cell (centroid or trivial) — shortcut
+    if (rows.length === 1 && rows[0].cells.length === 1 && !rows[0].resizable) {
+      const cell = rows[0].cells[0];
+      const isMain = cell.id === 'main';
+      if (!rows[0].height || rows[0].height === 'fr') {
+        return (
+          <div class="flex h-full w-full items-center justify-center">
+            {isMain ? animateMain(cell.children, local.animated, router) : cell.children}
+          </div>
+        );
+      }
     }
 
-    // Check if any slot requests resize
-    const headerN = normalizeSlot(s.header);
-    const sidebarN = normalizeSlot(s.sidebar);
-    const mainN = normalizeSlot(s.main);
-    if (!mainN) throw new Error('Layout.Matrix: `main` slot is required when other slots are provided.');
-    const rightBarN = normalizeSlot(s.rightBar);
-    const footerN = normalizeSlot(s.footer);
+    // Multi-row or single resizable row
+    const useVertical = hasVerticalResizable(rows);
 
-    const anyResize =
-      (headerN?.resizable ?? false) ||
-      (sidebarN?.resizable ?? false) ||
-      mainN.resizable ||
-      (rightBarN?.resizable ?? false) ||
-      (footerN?.resizable ?? false);
-
-    if (anyResize) {
-      return renderResize(s, local.animated, router);
+    if (useVertical) {
+      const verticalItems = rowsToVerticalItems(rows, local.animated, router);
+      return (
+        // NB: same absolute containment as old matrix — see comment above renderRow
+        <div class="relative h-full w-full overflow-hidden">
+          <div class="absolute inset-0">
+            <Flex orientation="vertical" items={verticalItems} withHandle />
+          </div>
+        </div>
+      );
     }
 
-    return renderGrid(s, local.animated, router);
+    // All rows are non-resizable — static flex-col
+    return (
+      <div class="flex h-full w-full flex-col overflow-hidden">
+        <For each={rows}>
+          {(row) => {
+            // 'auto' height — wrap in a non-growing div
+            if (row.height === 'auto' || (row.height === undefined && rows.length > 1)) {
+              return <div class="w-full shrink-0">{renderRow(row, local.animated, router)}</div>;
+            }
+            return renderRow(row, local.animated, router);
+          }}
+        </For>
+      </div>
+    );
   };
 
   return (
-    <div ref={local.ref} class={className()} style={style()} {...(others as object)}>
+    <div ref={local.ref} class={className()} style={style()} {...(rest as object)}>
       {renderContent()}
     </div>
   );
 };
 
 /**
- * Matrix — unified top-level раскладка с 5 опциональными слотами.
+ * Matrix — rows-of-cells layout engine.
  *
- * - **Auto-centroid**: если задан только `main` — flex center на всю область.
- * - **Grid**: header/sidebar/main/rightBar/footer — CSS Grid с динамическими areas.
- * - **Resize**: если хотя бы один slot имеет `resizable: true` — включается
- *   горизонтальный и/или вертикальный `<Flex items={...}>` (thin wrapper над corvu).
+ * **Два режима:**
  *
- * Слот передаётся только object-формой: `{ children, resizable?, initialSize?, minSize?, maxSize? }`.
- * JSX-shorthand (`sidebar: <MySidebar />`) удалён в v0.3.0 — используй `{ children: <MySidebar /> }`.
+ * 1. **Preset** — именованный пресет + типизированные slots:
+ *    ```tsx
+ *    <Matrix preset="app-shell" slots={{
+ *      header:  <Header />,
+ *      main:    <Main />,
+ *      footer:  <Footer />,
+ *    }} />
+ *    ```
+ *
+ * 2. **Raw rows** — явный массив IRow[]:
+ *    ```tsx
+ *    <Matrix rows={[
+ *      { cells: [{ id: 'top', tag: 'header', children: <Header /> }] },
+ *      { resizable: true, cells: [
+ *        { id: 'a', children: <A />, width: 0.5, resizable: true },
+ *        { id: 'b', children: <B />, width: 0.5, resizable: true },
+ *      ]},
+ *    ]} />
+ *    ```
+ *
+ * SlotValue для preset-mode: либо JSX напрямую (`<MyWidget />`), либо
+ * object-форма (`{ children: <MyWidget />, initialSize: 0.2 }`).
+ *
+ * **Phase 1.2 placeholders:** `dndMode`, `layoutMode`, `onLayoutChange` приняты
+ * в типах но не реализованы — будут добавлены с DnD в Phase 1.2.
  */
 export const Matrix = MatrixImpl;

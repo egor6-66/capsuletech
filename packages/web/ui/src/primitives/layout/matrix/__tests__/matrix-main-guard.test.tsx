@@ -1,9 +1,12 @@
 /**
- * Guard tests: Matrix throws a descriptive error when `main` slot is absent
- * but other slots are provided (grid / resize path).
+ * Guard tests: Matrix preset='app-shell' throws when `main` slot is absent.
  *
- * The centroid path (only `main`) already guards via its own throw inside
- * `renderCentroid` — that case is covered here too for completeness.
+ * The error is thrown inside `appShellResolver` (presets/app-shell.ts) when
+ * the resolver is called via `resolvePreset`. Centroid path (only main) does
+ * NOT throw — covered here for completeness.
+ *
+ * Note: raw `rows` API does NOT privilege a cell with `id='main'` — only
+ * preset='app-shell' makes main required.
  */
 /* @vitest-environment jsdom */
 import { render } from 'solid-js/web';
@@ -24,15 +27,16 @@ afterEach(() => {
   document.body.removeChild(container);
 });
 
-describe('Matrix — missing main guard', () => {
-  it('throws when slots has sidebar but no main (grid path)', () => {
+describe("Matrix preset='app-shell' — missing main guard", () => {
+  it('throws when slots has sidebar but no main', () => {
     expect(() => {
       cleanup = render(
         () => (
           <Matrix
+            preset="app-shell"
             slots={
               {
-                sidebar: { children: <div>Sidebar</div> },
+                sidebar: <div>Sidebar</div>,
                 // main intentionally omitted — simulates runtime JS misuse
               } as never
             }
@@ -40,42 +44,44 @@ describe('Matrix — missing main guard', () => {
         ),
         container,
       );
-    }).toThrow('Layout.Matrix: `main` slot is required');
+    }).toThrow("preset='app-shell': `main` slot is required");
   });
 
-  it('throws when slots has header + footer but no main (grid path)', () => {
+  it('throws when slots has header + footer but no main', () => {
     expect(() => {
       cleanup = render(
         () => (
           <Matrix
+            preset="app-shell"
             slots={
               {
-                header: { children: <div>Header</div> },
-                footer: { children: <div>Footer</div> },
+                header: <div>Header</div>,
+                footer: <div>Footer</div>,
               } as never
             }
           />
         ),
         container,
       );
-    }).toThrow('Layout.Matrix: `main` slot is required');
+    }).toThrow("preset='app-shell': `main` slot is required");
   });
 
-  it('throws when slots has resizable sidebar but no main (resize path)', () => {
+  it('throws when slots has only sidebar (object-form) but no main', () => {
     expect(() => {
       cleanup = render(
         () => (
           <Matrix
+            preset="app-shell"
             slots={
               {
-                sidebar: { children: <div>Sidebar</div>, resizable: true },
+                sidebar: { children: <div>Sidebar</div>, initialSize: 0.2 },
               } as never
             }
           />
         ),
         container,
       );
-    }).toThrow('Layout.Matrix: `main` slot is required');
+    }).toThrow("preset='app-shell': `main` slot is required");
   });
 
   it('does NOT throw when only main is provided (centroid path)', () => {
@@ -83,8 +89,9 @@ describe('Matrix — missing main guard', () => {
       cleanup = render(
         () => (
           <Matrix
+            preset="app-shell"
             slots={{
-              main: { children: <div data-testid="content">Hello</div> },
+              main: <div data-testid="content">Hello</div>,
             }}
           />
         ),
@@ -95,14 +102,15 @@ describe('Matrix — missing main guard', () => {
     expect(container.querySelector('[data-testid="content"]')).not.toBeNull();
   });
 
-  it('does NOT throw when main + sidebar are both provided (grid path)', () => {
+  it('does NOT throw when main + sidebar are both provided', () => {
     expect(() => {
       cleanup = render(
         () => (
           <Matrix
+            preset="app-shell"
             slots={{
-              main: { children: <div data-testid="main-ok">Main</div> },
-              sidebar: { children: <div>Side</div> },
+              main: <div data-testid="main-ok">Main</div>,
+              sidebar: <div>Side</div>,
             }}
           />
         ),
@@ -111,5 +119,28 @@ describe('Matrix — missing main guard', () => {
     }).not.toThrow();
 
     expect(container.querySelector('[data-testid="main-ok"]')).not.toBeNull();
+  });
+
+  it('raw rows API: does NOT require a cell with id=main', () => {
+    expect(() => {
+      cleanup = render(
+        () => (
+          <Matrix
+            rows={[
+              {
+                cells: [
+                  { id: 'a', children: <div data-testid="raw-a">A</div> },
+                  { id: 'b', children: <div data-testid="raw-b">B</div> },
+                ],
+              },
+            ]}
+          />
+        ),
+        container,
+      );
+    }).not.toThrow();
+
+    expect(container.querySelector('[data-testid="raw-a"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="raw-b"]')).not.toBeNull();
   });
 });

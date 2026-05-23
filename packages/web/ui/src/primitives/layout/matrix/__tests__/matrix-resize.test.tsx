@@ -1,18 +1,21 @@
 /**
- * Regression test for: Matrix resize-mode loses slot children.
+ * Regression tests for: Matrix resize-mode slot content rendering.
  *
- * Root cause: `buildHorizontalItems(...)` was inlined inside the JSX prop
- * `items={buildHorizontalItems(...)}`. The Solid compiler wraps non-literal
- * props in getters — so `get items() { return buildHorizontalItems(...); }`.
- * This getter fires multiple times per render (itemsMode, hasResizable, sizes
- * memo, For each, Show when). Each call to buildHorizontalItems created fresh
- * JSX nodes and re-inserted slot.children DOM nodes, which moved them out of
- * the already-rendered corvu Panel → visible slot content disappeared.
+ * History: in v1 (5-slot API), `buildHorizontalItems(...)` was inlined inside
+ * the JSX prop `items={...}`. The Solid compiler wrapped non-literal props in
+ * getters → builder re-fired on every items access → slot.children DOM nodes
+ * re-inserted out of corvu Panels → content disappeared.
  *
- * Fix: store `buildHorizontalItems(...)` result in a local variable before JSX
- * so the getter is a stable reference that does NOT re-call the builder.
- * Defence: ResizableFlex snapshots `props.items` via createMemo so even if the
- * outer getter is still function-based, it fires at most once per reactive cycle.
+ * Fix: store builder result in a local variable before JSX so the getter is a
+ * stable reference. Defence: ResizableFlex snapshots props.items via createMemo
+ * so even if the outer getter is function-based, it fires at most once per
+ * reactive cycle.
+ *
+ * In v2 (rows-engine), the analogous risk exists in `rowToFlexItems` /
+ * `rowsToVerticalItems` — both are called once inside helpers (renderRow /
+ * renderContent) and their results are passed to Flex via local variables
+ * before JSX, NOT inlined as getters. These regression tests verify the v2
+ * implementation preserves slot content in resize mode.
  */
 /* @vitest-environment jsdom */
 import { render } from 'solid-js/web';
@@ -37,16 +40,17 @@ afterEach(() => {
   document.body.removeChild(container);
 });
 
-describe('Matrix — resize mode slot children', () => {
-  it('main slot content is rendered inside <main> when main is resizable', () => {
+describe("Matrix preset='app-shell' — resize-mode slot rendering", () => {
+  it('main slot content is rendered inside <main> when main is in app-shell middle row', () => {
     cleanup = render(
       () => (
         <Matrix
           style={{ width: '800px', height: '600px' }}
+          preset="app-shell"
           slots={{
-            header: { children: <div data-testid="hdr">Header</div> },
-            main: { children: <div data-testid="main-content">MAIN</div>, resizable: true, initialSize: 0.8 },
-            rightBar: { children: <div data-testid="rb-content">RIGHT</div>, resizable: true, initialSize: 0.2 },
+            header: <div data-testid="hdr">Header</div>,
+            main: { children: <div data-testid="main-content">MAIN</div>, initialSize: 0.8 },
+            rightBar: { children: <div data-testid="rb-content">RIGHT</div>, initialSize: 0.2 },
           }}
         />
       ),
@@ -56,12 +60,12 @@ describe('Matrix — resize mode slot children', () => {
     // Header (non-resizable) should always work — used as sanity baseline.
     expect(container.querySelector('[data-testid="hdr"]')).not.toBeNull();
 
-    // Main slot must be present inside the <main> corvu panel.
+    // Main slot must be present inside a <main> element (preset uses tag='main').
     const mainEl = container.querySelector('main');
     expect(mainEl).not.toBeNull();
     expect(mainEl!.querySelector('[data-testid="main-content"]')).not.toBeNull();
 
-    // RightBar slot must be inside the <aside> corvu panel.
+    // RightBar slot must be inside an <aside> element (preset uses tag='aside').
     const asideEls = container.querySelectorAll('aside');
     const rightBarAside = Array.from(asideEls).find((el) =>
       el.querySelector('[data-testid="rb-content"]'),
@@ -69,28 +73,29 @@ describe('Matrix — resize mode slot children', () => {
     expect(rightBarAside).not.toBeUndefined();
   });
 
-  it('main+rightBar+footer all resizable — slot content rendered in each panel', () => {
+  it('main + rightBar + footer all rendered when all 4 slots are provided', () => {
     cleanup = render(
       () => (
         <Matrix
           style={{ width: '800px', height: '600px' }}
+          preset="app-shell"
           slots={{
-            header: { children: <div data-testid="hdr">Header</div> },
-            main: { children: <div data-testid="main-content">MAIN</div>, resizable: true, initialSize: 0.8 },
-            rightBar: { children: <div data-testid="rb-content">RIGHT</div>, resizable: true, initialSize: 0.2 },
-            footer: { children: <div data-testid="ftr-content">Footer</div>, resizable: true, initialSize: 0.3 },
+            header: <div data-testid="hdr">Header</div>,
+            main: { children: <div data-testid="main-content">MAIN</div>, initialSize: 0.8 },
+            rightBar: { children: <div data-testid="rb-content">RIGHT</div>, initialSize: 0.2 },
+            footer: { children: <div data-testid="ftr-content">Footer</div>, initialSize: 0.3 },
           }}
         />
       ),
       container,
     );
 
-    // This is the exact scenario from the bug report.
+    // This is the exact scenario from the v1 bug report.
     expect(container.querySelector('[data-testid="hdr"]')).not.toBeNull();
 
     const mainEl = container.querySelector('main');
     expect(mainEl).not.toBeNull();
-    // Before the fix, mainEl.children.length === 0 (content was displaced).
+    // Before the v1 fix, mainEl.children.length === 0 (content was displaced).
     expect(mainEl!.childElementCount).toBeGreaterThan(0);
     expect(mainEl!.querySelector('[data-testid="main-content"]')).not.toBeNull();
 
@@ -99,7 +104,7 @@ describe('Matrix — resize mode slot children', () => {
     expect(footerEl!.querySelector('[data-testid="ftr-content"]')).not.toBeNull();
   });
 
-  it('overflowing main content does not expand vertical panel past flex-basis (min-h-0 regression)', () => {
+  it('overflowing main content does not expand panel past flex-basis (min-h-0 regression)', () => {
     // 50 tall rows in main — without min-h-0 on ResizablePanel the middle-row panel
     // would grow to intrinsic content height and push footer below viewport.
     const manyRows = Array.from({ length: 50 }, (_, i) => (
@@ -112,23 +117,12 @@ describe('Matrix — resize mode slot children', () => {
       () => (
         <Matrix
           style={{ width: '800px', height: '500px' }}
+          preset="app-shell"
           slots={{
-            header: { children: <div data-testid="hdr">Header</div> },
-            main: {
-              children: <div data-testid="main-content">{manyRows}</div>,
-              resizable: true,
-              initialSize: 0.7,
-            },
-            rightBar: {
-              children: <div data-testid="rb-content">Right</div>,
-              resizable: true,
-              initialSize: 0.3,
-            },
-            footer: {
-              children: <div data-testid="ftr-content">Footer</div>,
-              resizable: true,
-              initialSize: 0.3,
-            },
+            header: <div data-testid="hdr">Header</div>,
+            main: { children: <div data-testid="main-content">{manyRows}</div>, initialSize: 0.7 },
+            rightBar: { children: <div data-testid="rb-content">Right</div>, initialSize: 0.3 },
+            footer: { children: <div data-testid="ftr-content">Footer</div>, initialSize: 0.3 },
           }}
         />
       ),
@@ -153,5 +147,50 @@ describe('Matrix — resize mode slot children', () => {
       expect(panel.classList.contains('min-h-0')).toBe(true);
       expect(panel.classList.contains('overflow-hidden')).toBe(true);
     }
+  });
+});
+
+describe('Matrix raw rows — resize-mode slot rendering', () => {
+  it('rows with resizable cells render cell content correctly', () => {
+    cleanup = render(
+      () => (
+        <Matrix
+          style={{ width: '800px', height: '600px' }}
+          rows={[
+            {
+              cells: [
+                { id: 'header', tag: 'header', children: <div data-testid="raw-hdr">H</div> },
+              ],
+              height: 'auto',
+              resizable: false,
+            },
+            {
+              resizable: true,
+              cells: [
+                {
+                  id: 'left',
+                  tag: 'aside',
+                  children: <div data-testid="raw-left">L</div>,
+                  width: 0.3,
+                  resizable: true,
+                },
+                {
+                  id: 'right',
+                  tag: 'main',
+                  children: <div data-testid="raw-right">R</div>,
+                  width: 0.7,
+                  resizable: true,
+                },
+              ],
+            },
+          ]}
+        />
+      ),
+      container,
+    );
+
+    expect(container.querySelector('[data-testid="raw-hdr"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="raw-left"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="raw-right"]')).not.toBeNull();
   });
 });
