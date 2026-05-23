@@ -51,6 +51,8 @@ describe('appShellResolver', () => {
 
     expect(middleRow.id).toBe('middle-row');
     expect(middleRow.resizable).toBe(true);
+    // No footer → middle takes full remaining space as 'fr'
+    expect(middleRow.height).toBe('fr');
     expect(middleRow.cells).toHaveLength(1);
     expect(middleRow.cells[0].id).toBe('main');
   });
@@ -84,6 +86,40 @@ describe('appShellResolver', () => {
     const rows = appShellResolver({ main: M, footer: { children: F, initialSize: 0.15 } });
     const footerRow = rows.find((r) => r.id === 'footer-row')!;
     expect(footerRow.height).toBe(0.15);
+  });
+
+  // ---------------------------------------------------------------------------
+  // middle-row height — the fix for footer collapsing to 0px
+  // ---------------------------------------------------------------------------
+
+  it('middle-row gets height = 1 - footerInitialSize when footer present (default 0.3)', () => {
+    const rows = appShellResolver({ main: M, footer: F });
+    const middleRow = rows.find((r) => r.id === 'middle-row')!;
+    expect(middleRow.height).toBe(0.7);
+  });
+
+  it('middle-row height respects custom footer initialSize', () => {
+    const rows = appShellResolver({ main: M, footer: { children: F, initialSize: 0.15 } });
+    const middleRow = rows.find((r) => r.id === 'middle-row')!;
+    expect(middleRow.height).toBe(0.85);
+  });
+
+  it('middle-row height clamps to at least 0.1 when footer initialSize is huge', () => {
+    const rows = appShellResolver({ main: M, footer: { children: F, initialSize: 0.95 } });
+    const middleRow = rows.find((r) => r.id === 'middle-row')!;
+    expect(middleRow.height).toBe(0.1);
+  });
+
+  it('middle-row height is fr when sidebar present but no footer', () => {
+    const rows = appShellResolver({ main: M, sidebar: S });
+    const middleRow = rows.find((r) => r.id === 'middle-row')!;
+    expect(middleRow.height).toBe('fr');
+  });
+
+  it('all 5 slots → middle-row height = 0.7 (footer default 0.3)', () => {
+    const rows = appShellResolver({ header: H, sidebar: S, main: M, rightBar: R, footer: F });
+    const middleRow = rows.find((r) => r.id === 'middle-row')!;
+    expect(middleRow.height).toBe(0.7);
   });
 
   // ---------------------------------------------------------------------------

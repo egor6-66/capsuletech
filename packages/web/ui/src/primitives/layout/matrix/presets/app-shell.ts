@@ -55,7 +55,7 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
           tag: 'header',
           children: header.children,
           draggable: header.draggable,
-          swapGroup: 'band',
+          swapGroup: header.swapGroup ?? 'band',
         },
       ],
     });
@@ -72,7 +72,7 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
       width: sidebar.initialSize ?? 0.2,
       resizable: true,
       draggable: sidebar.draggable,
-      swapGroup: 'aside',
+      swapGroup: sidebar.swapGroup ?? 'aside',
     });
   }
 
@@ -89,6 +89,8 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
     children: main.children,
     width: mainWidth,
     resizable: true,
+    draggable: main.draggable,
+    swapGroup: main.swapGroup,
   });
 
   if (rightBar) {
@@ -99,12 +101,16 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
       width: rightBar.initialSize ?? 0.2,
       resizable: true,
       draggable: rightBar.draggable,
-      swapGroup: 'aside',
+      swapGroup: rightBar.swapGroup ?? 'aside',
     });
   }
 
+  const footerInitialSize = footer ? (footer.initialSize ?? 0.3) : 0;
+  const middleHeight: number | 'fr' = footer ? Math.max(0.1, 1 - footerInitialSize) : 'fr';
+
   rows.push({
     id: 'middle-row',
+    height: middleHeight,
     resizable: true,
     cells: middleCells,
   });
@@ -121,7 +127,7 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
           tag: 'footer',
           children: footer.children,
           draggable: footer.draggable,
-          swapGroup: 'band',
+          swapGroup: footer.swapGroup ?? 'band',
         },
       ],
     });

@@ -17,6 +17,19 @@ export type SlotValue =
       minSize?: number;
       maxSize?: number;
       draggable?: boolean;
+      /**
+       * Группа, внутри которой возможен swap/insert через DnD.
+       * Cells с одинаковой `swapGroup` могут меняться местами.
+       *
+       * Если не задан в slot — preset присваивает дефолт по позиции:
+       *   - `'band'` для header/footer,
+       *   - `'aside'` для sidebar/rightBar,
+       *   - `undefined` для main (нельзя свапить).
+       *
+       * Чтобы свапать main вместе с aside / band — задай явный
+       * общий `swapGroup` на нужных слотах.
+       */
+      swapGroup?: string;
     };
 
 export interface IRow {

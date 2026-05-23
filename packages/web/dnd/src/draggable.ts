@@ -42,6 +42,7 @@ export const createDraggable = <T extends DragData = DragData>(
     elRef = el;
     if (!el) return;
     el.style.touchAction = 'none';
+    el.dataset.dndDraggable = '';
     el.addEventListener('pointerdown', onPointerDown);
 
     const unregister = dnd.registerDraggable({
