@@ -249,3 +249,136 @@ export const RawRowsDashboard: Story = {
     );
   },
 };
+
+// ===========================================================================
+// Swap-mode DnD stories (Phase 1.2)
+// ===========================================================================
+
+/**
+ * Swap mode controlled: layoutMode='edit' forced from outside, sidebar and
+ * rightBar are in the same swapGroup ('aside') — drag one onto the other to
+ * swap their contents. main is NOT draggable so it cannot be moved.
+ *
+ * Open the actions panel to watch onLayoutChange events fire.
+ */
+export const SwapModeControlled: Story = {
+  name: 'preset · swap mode (controlled, layoutMode=edit)',
+  argTypes: {
+    onLayoutChange: { action: 'layoutChange' },
+  },
+  render: (args) => (
+    <Matrix
+      layoutMode="edit"
+      dndMode="swap"
+      onLayoutChange={(e) => args.onLayoutChange?.(e)}
+      preset="app-shell"
+      slots={{
+        header: <MockHeader />,
+        sidebar: { children: <MockSidebar />, draggable: true, initialSize: 0.2 },
+        main: <MockMain />,
+        rightBar: { children: <MockRightBar />, draggable: true, initialSize: 0.2 },
+        footer: { children: <MockFooter />, initialSize: 0.3 },
+      }}
+    />
+  ),
+};
+
+/**
+ * Swap mode uncontrolled: no layoutMode prop. An EditBadge appears in the
+ * top-right corner — click it to enter edit mode, then drag sidebar↔rightBar.
+ * Click "✓ Done" to exit edit mode.
+ */
+export const SwapModeUncontrolled: Story = {
+  name: 'preset · swap mode (uncontrolled, badge toggle)',
+  argTypes: {
+    onLayoutChange: { action: 'layoutChange' },
+  },
+  render: (args) => (
+    <Matrix
+      onLayoutChange={(e) => args.onLayoutChange?.(e)}
+      preset="app-shell"
+      slots={{
+        header: <MockHeader />,
+        sidebar: { children: <MockSidebar />, draggable: true, initialSize: 0.2 },
+        main: <MockMain />,
+        rightBar: { children: <MockRightBar />, draggable: true, initialSize: 0.2 },
+        footer: { children: <MockFooter />, draggable: true, initialSize: 0.3 },
+      }}
+    />
+  ),
+};
+
+/**
+ * Swap mode raw rows: 4 tiles in two rows, all in the same swapGroup so any
+ * tile can be swapped with any other. Demonstrates rows-of-cells swap UX
+ * without preset semantics.
+ */
+export const SwapModeRawRows: Story = {
+  name: 'rows · swap mode (4 tiles, single swapGroup)',
+  argTypes: {
+    onLayoutChange: { action: 'layoutChange' },
+  },
+  render: (args) => {
+    const tile = (label: string, bg: string) => (
+      <div
+        class="flex h-full w-full items-center justify-center text-lg font-bold text-foreground"
+        style={{ background: bg }}
+      >
+        {label}
+      </div>
+    );
+    return (
+      <Matrix
+        layoutMode="edit"
+        dndMode="swap"
+        onLayoutChange={(e) => args.onLayoutChange?.(e)}
+        rows={[
+          {
+            id: 'row-1',
+            resizable: true,
+            cells: [
+              {
+                id: 'a',
+                children: tile('A', 'rgba(99, 102, 241, 0.18)'),
+                width: 0.5,
+                resizable: true,
+                draggable: true,
+                swapGroup: 'tiles',
+              },
+              {
+                id: 'b',
+                children: tile('B', 'rgba(34, 197, 94, 0.18)'),
+                width: 0.5,
+                resizable: true,
+                draggable: true,
+                swapGroup: 'tiles',
+              },
+            ],
+          },
+          {
+            id: 'row-2',
+            resizable: true,
+            cells: [
+              {
+                id: 'c',
+                children: tile('C', 'rgba(244, 114, 182, 0.18)'),
+                width: 0.5,
+                resizable: true,
+                draggable: true,
+                swapGroup: 'tiles',
+              },
+              {
+                id: 'd',
+                children: tile('D', 'rgba(251, 146, 60, 0.18)'),
+                width: 0.5,
+                resizable: true,
+                draggable: true,
+                swapGroup: 'tiles',
+              },
+            ],
+          },
+        ]}
+      />
+    );
+  },
+};

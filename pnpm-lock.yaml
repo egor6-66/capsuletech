@@ -112,76 +112,6 @@ importers:
         specifier: ~4.1.0
         version: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
 
-  apps/sandbox:
-    dependencies:
-      '@capsuletech/shared-zod':
-        specifier: workspace:*
-        version: link:../../packages/shared/zod
-      '@capsuletech/web-core':
-        specifier: workspace:*
-        version: link:../../packages/web/core
-      '@capsuletech/web-editor':
-        specifier: workspace:*
-        version: link:../../packages/web/editor
-      '@capsuletech/web-map':
-        specifier: workspace:*
-        version: link:../../packages/web/map
-      '@capsuletech/web-profiler':
-        specifier: workspace:*
-        version: link:../../packages/web/profiler
-      '@capsuletech/web-query':
-        specifier: workspace:*
-        version: link:../../packages/web/query
-      '@capsuletech/web-renderer':
-        specifier: workspace:*
-        version: link:../../packages/web/renderer
-      '@capsuletech/web-router':
-        specifier: workspace:*
-        version: link:../../packages/web/router
-      '@capsuletech/web-state':
-        specifier: workspace:*
-        version: link:../../packages/web/state
-      '@capsuletech/web-style':
-        specifier: workspace:*
-        version: link:../../packages/web/style
-      '@capsuletech/web-ui':
-        specifier: workspace:*
-        version: link:../../packages/web/ui
-      '@kobalte/core':
-        specifier: ^0.13.0
-        version: 0.13.11(solid-js@1.9.12)
-      '@tanstack/router-core':
-        specifier: ^1.169.0
-        version: 1.171.2
-      '@tanstack/solid-router':
-        specifier: ^1.169.0
-        version: 1.170.4(solid-js@1.9.12)
-      '@tanstack/solid-table':
-        specifier: ^8.21.3
-        version: 8.21.3(solid-js@1.9.12)
-      '@tanstack/solid-virtual':
-        specifier: ^3.13.24
-        version: 3.13.24(solid-js@1.9.12)
-      '@xstate/solid':
-        specifier: ^2.0.0
-        version: 2.0.0(solid-js@1.9.12)(xstate@5.31.1)
-      maplibre-gl:
-        specifier: ^4
-        version: 4.7.1
-      solid-js:
-        specifier: 1.9.12
-        version: 1.9.12
-      xstate:
-        specifier: ^5.0.0
-        version: 5.31.1
-      zod:
-        specifier: ^3.23.8
-        version: 3.25.76
-    devDependencies:
-      '@capsuletech/cli':
-        specifier: latest
-        version: 0.1.1(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@testing-library/jest-dom@6.9.1)(@types/react@19.2.15)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-
   packages/builders/biome: {}
 
   packages/builders/compliance:
@@ -369,130 +299,6 @@ importers:
       vitest:
         specifier: ~4.1.0
         version: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-
-  packages/cli/e2e/fixture:
-    devDependencies:
-      '@biomejs/biome':
-        specifier: ^2.4.15
-        version: 2.4.15
-      '@nx/js':
-        specifier: 22.7.2
-        version: 22.7.2(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(verdaccio@6.7.1(typanion@3.14.0))
-      '@nx/vite':
-        specifier: 22.7.2
-        version: 22.7.2(@babel/traverse@7.29.0)(@nx/eslint@22.6.5(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@zkochan/js-yaml@0.0.7)(eslint@10.4.0(jiti@2.4.2))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(verdaccio@6.7.1(typanion@3.14.0)))(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(typescript@5.9.3)(verdaccio@6.7.1(typanion@3.14.0))(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))(vitest@4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)))
-      '@tanstack/router-cli':
-        specifier: ^1.166.39
-        version: 1.167.5
-      '@types/node':
-        specifier: 25.9.0
-        version: 25.9.0
-      nx:
-        specifier: 22.7.2
-        version: 22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))
-      tailwindcss:
-        specifier: ^4.2.4
-        version: 4.3.0
-      typescript:
-        specifier: ~5.9.2
-        version: 5.9.3
-      verdaccio:
-        specifier: ^6.3.2
-        version: 6.7.1(typanion@3.14.0)
-      vite:
-        specifier: ^8.0.13
-        version: 8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)
-
-  packages/cli/e2e/fixture/apps/e2e-app:
-    dependencies:
-      '@capsuletech/shared-zod':
-        specifier: latest
-        version: 0.1.1(solid-js@1.9.12)(zod@3.25.76)
-      '@capsuletech/web-core':
-        specifier: latest
-        version: 0.1.1(@kobalte/core@0.13.11(solid-js@1.9.12))(@tanstack/router-core@1.171.2)(@tanstack/solid-router@1.170.4(solid-js@1.9.12))(@tanstack/solid-virtual@3.13.24(solid-js@1.9.12))(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(@xstate/solid@2.0.0(solid-js@1.9.12)(xstate@5.31.1))(esbuild@0.27.7)(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))(xstate@5.31.1)(zod@3.25.76)
-      '@capsuletech/web-editor':
-        specifier: latest
-        version: 0.1.1(solid-js@1.9.12)(zod@3.25.76)
-      '@capsuletech/web-profiler':
-        specifier: latest
-        version: 0.1.1(@kobalte/core@0.13.11(solid-js@1.9.12))(solid-js@1.9.12)
-      '@capsuletech/web-query':
-        specifier: latest
-        version: 0.1.1(solid-js@1.9.12)(zod@3.25.76)
-      '@capsuletech/web-renderer':
-        specifier: latest
-        version: 0.1.1(solid-js@1.9.12)
-      '@capsuletech/web-router':
-        specifier: latest
-        version: 0.1.1(@tanstack/router-core@1.171.2)(@tanstack/solid-router@1.170.4(solid-js@1.9.12))(solid-js@1.9.12)
-      '@capsuletech/web-state':
-        specifier: latest
-        version: 0.1.1(solid-js@1.9.12)(xstate@5.31.1)
-      '@capsuletech/web-style':
-        specifier: latest
-        version: 0.1.1(solid-js@1.9.12)
-      '@capsuletech/web-ui':
-        specifier: latest
-        version: 0.2.0(@kobalte/core@0.13.11(solid-js@1.9.12))(@tanstack/solid-virtual@3.13.24(solid-js@1.9.12))(solid-js@1.9.12)
-      '@kobalte/core':
-        specifier: ^0.13.0
-        version: 0.13.11(solid-js@1.9.12)
-      '@tanstack/router-core':
-        specifier: ^1.169.0
-        version: 1.171.2
-      '@tanstack/solid-router':
-        specifier: ^1.169.0
-        version: 1.170.4(solid-js@1.9.12)
-      '@tanstack/solid-virtual':
-        specifier: ^3.13.24
-        version: 3.13.24(solid-js@1.9.12)
-      '@xstate/solid':
-        specifier: ^2.0.0
-        version: 2.0.0(solid-js@1.9.12)(xstate@5.31.1)
-      solid-js:
-        specifier: 1.9.12
-        version: 1.9.12
-      xstate:
-        specifier: ^5.0.0
-        version: 5.31.1
-      zod:
-        specifier: ^3.23.8
-        version: 3.25.76
-    devDependencies:
-      '@capsuletech/cli':
-        specifier: latest
-        version: 0.1.1(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@testing-library/jest-dom@6.9.1)(@types/react@19.2.15)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/cli: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/compliance: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/lib-builder: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/shared-zod: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/vite-builder: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-core: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-dnd: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-editor: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-profiler: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-query: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-renderer: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-router: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-state: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-style: {}
-
-  packages/cli/e2e/verdaccio-tmp/storage/@capsuletech/web-ui: {}
 
   packages/shared/zod:
     dependencies:
@@ -757,6 +563,9 @@ importers:
 
   packages/web/ui:
     dependencies:
+      '@capsuletech/web-dnd':
+        specifier: workspace:*
+        version: link:../dnd
       '@capsuletech/web-style':
         specifier: workspace:*
         version: link:../style
@@ -1462,89 +1271,6 @@ packages:
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
 
-  '@capsuletech/cli@0.1.1':
-    resolution: {integrity: sha512-0/Z802E5aBAN22lyU/WSMBPpZlhOvZvJ4PgDVP9zHIVJG3E0DPhkgZgQN2Z3U0vjT8eOVA4yf79Xa+Uaezpk/g==}
-    hasBin: true
-
-  '@capsuletech/compliance@0.1.1':
-    resolution: {integrity: sha512-4c/IXBHX4n3hCgQJVnIK4bpufd0euCfnOSj79iTEypGoNW4LyYwS2z6ZhRHBZzu5l+CTiD/kPSAgpUVby0w3Ww==}
-
-  '@capsuletech/lib-builder@0.1.1':
-    resolution: {integrity: sha512-uMU1V1XHBK7GBVL3f1q+PIuqhT19SQBlpzxaKEXhqdH6JiiwfWp+A1zzULhpNPo9njIvd9FTWPvu50WTVSDvrg==}
-
-  '@capsuletech/shared-zod@0.1.1':
-    resolution: {integrity: sha512-e1+dJp2nOLDmPW1I59Rn4JmhhAHT9vA4hpgj32x1QzXggNzcjUQoY5bQQL/r0CCKsqobRXmLezeZ3dYfwXPXQQ==}
-    peerDependencies:
-      solid-js: 1.9.12
-      zod: ^3.23.8
-
-  '@capsuletech/vite-builder@0.1.1':
-    resolution: {integrity: sha512-QDtuiyKJPD4ogND+/GTUmR/QIeaW44L1v2Iz5mvqDra4dX4XJxH3Vk3VKTOLGXKfUIt4ZHydAy9Froxx6AqMZw==}
-    peerDependencies:
-      solid-js: 1.9.12
-      solid-refresh: '*'
-      vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-    peerDependenciesMeta:
-      solid-refresh:
-        optional: true
-      vite:
-        optional: true
-
-  '@capsuletech/web-core@0.1.1':
-    resolution: {integrity: sha512-/IuUwxp3J70kqjIkteOKzMTXRkg1pHjo62b++xNeUSjT75qhZ4UoLNt+ipKyFIYQVZGpoOng0VyeMeCqoxcyuQ==}
-    peerDependencies:
-      '@tanstack/solid-router': ^1.169.0
-      '@xstate/solid': ^2.0.0
-      solid-js: 1.9.12
-      zod: ^3.23.8
-
-  '@capsuletech/web-editor@0.1.1':
-    resolution: {integrity: sha512-OCVKt+pgdFcqxh1BSZhRmXfIFYbQflWAKz1h0/SH5mRtQhvhVH7Im0/e++9aw9VBDKV7dB1hvhUkXUcCi2MwmA==}
-    peerDependencies:
-      solid-js: 1.9.12
-
-  '@capsuletech/web-profiler@0.1.1':
-    resolution: {integrity: sha512-fsoazhYdvE0MteXh8dj7wr68QRdZoSxrm7qSp8pC3L4aEBoYdXwtAZbNeuHwPcITAO0fm4Il9EDofYf8sUHeJQ==}
-    peerDependencies:
-      '@kobalte/core': ^0.13.0
-      solid-js: 1.9.12
-
-  '@capsuletech/web-query@0.1.1':
-    resolution: {integrity: sha512-2hvz6CJFntCEmz26UgC0N0fbCdNGy3hKVsBbSBkVEWOZk7k4AAjKJPbKmpWN1v+3yN6psK1NyM4kmWhTheso+Q==}
-    peerDependencies:
-      solid-js: 1.9.12
-      zod: ^3.23.8
-
-  '@capsuletech/web-renderer@0.1.1':
-    resolution: {integrity: sha512-ckYu4uEJ8TaO2b8swi16/0tkDWRd29fjm8Rh/5ykxmsD/3iSaJpbRvLkUD/c1Wb8fs2nAjzZZWPFL9IYgZQOlA==}
-    peerDependencies:
-      solid-js: 1.9.12
-
-  '@capsuletech/web-router@0.1.1':
-    resolution: {integrity: sha512-XWvpyz3IhBnEr+WjBpfzedwQoZrZUhWtG50qtwDtcWoT/3ohDJ+bs6mbpf+XEizD9SVjL5+Lu/odvXpH5VQgPw==}
-    peerDependencies:
-      '@tanstack/router-core': ^1.169.0
-      '@tanstack/solid-router': ^1.169.0
-      solid-js: 1.9.12
-
-  '@capsuletech/web-state@0.1.1':
-    resolution: {integrity: sha512-f+rLfjcJnyqoo5scGE9iie2RMlqyjjk+HrMQ0AsRSiJkdKl97rqPjQiJABbvVM0dk1Y3i/mLgHiNvQD/VnR+Fg==}
-    peerDependencies:
-      solid-js: 1.9.12
-      xstate: ^5.0.0
-
-  '@capsuletech/web-style@0.1.1':
-    resolution: {integrity: sha512-VxqkzXnb+Zh1gYXyml7WFUXQjjCtO4SsxrvreKE8xuGMXxuHZaFh9zOeW8uaI2rp70fcx8UTLtS6YnhLv8A8Iw==}
-    peerDependencies:
-      solid-js: 1.9.12
-
-  '@capsuletech/web-ui@0.2.0':
-    resolution: {integrity: sha512-e65uwKsAbpKpiFM8VNScx1qaXdEAfVR0r+kTIPPaJmNCWbOuM3ZCTZjOVwRZcqji8ykWM6eccnvYH+MPF66Szg==}
-    peerDependencies:
-      '@kobalte/core': ^0.13.0
-      '@tanstack/solid-virtual': ^3.13.24
-      solid-js: 1.9.12
-
   '@clack/core@1.3.1':
     resolution: {integrity: sha512-fT1qHVGAag4IEkrupZ6lRRbNCs1vS9P01KB/sG8zKgvUztbYtFBtQpjSITNwooDZ83tpsPzP0mRNs1/KVszCRA==}
     engines: {node: '>= 20.12.0'}
@@ -2044,14 +1770,6 @@ packages:
       verdaccio:
         optional: true
 
-  '@nx/js@22.7.2':
-    resolution: {integrity: sha512-d1Hb/2n3QKE9rs8gRtfa/b1/GCGm1rnBFiqePivWbD/9iqerhgkbs6cg4MliLGRnD8gZgXSENLm4IW8ISOi69w==}
-    peerDependencies:
-      verdaccio: ^6.0.5
-    peerDependenciesMeta:
-      verdaccio:
-        optional: true
-
   '@nx/nx-darwin-arm64@22.6.5':
     resolution: {integrity: sha512-qT77Omkg5xQuL2+pDbneX2tI+XW5ZeayMylu7UUgK8OhTrAkJLKjpuYRH4xT5XBipxbDtlxmO3aLS3Ib1pKzJQ==}
     cpu: [arm64]
@@ -2163,12 +1881,6 @@ packages:
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
       vitest: ^1.3.1 || ^2.0.0 || ^3.0.0 || ^4.0.0
 
-  '@nx/vite@22.7.2':
-    resolution: {integrity: sha512-EsFOp00f3/eFL4GirRBuHktFj/Bm7VL7kvMFru73bCqqQZsdFSGZT8puwYm77NBZB0if5cxkaynysiEmNpVCpw==}
-    peerDependencies:
-      vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-      vitest: ^1.3.1 || ^2.0.0 || ^3.0.0 || ^4.0.0
-
   '@nx/vitest@22.6.5':
     resolution: {integrity: sha512-0f0MyDLrfOD6S0+aXoMX5/+vLiAAAKEaC5SKdcUsoPbVkK6MOw0fh0eNb5FhKLrb1GjRyx9nwo9elGiCXj7X7Q==}
     peerDependencies:
@@ -2180,28 +1892,11 @@ packages:
       vitest:
         optional: true
 
-  '@nx/vitest@22.7.2':
-    resolution: {integrity: sha512-i3Tl3tgxi8Gr6DGodvbZSF9cJE2Uno5/HOQENn5DfWnXa1KDyBR4+w4lZhf2T3TCeTOFghZd1pESWVCDfgCjvA==}
-    peerDependencies:
-      '@nx/eslint': 22.7.2
-      vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-      vitest: ^1.0.0 || ^2.0.0 || ^3.0.0 || ^4.0.0
-    peerDependenciesMeta:
-      '@nx/eslint':
-        optional: true
-      vite:
-        optional: true
-      vitest:
-        optional: true
-
   '@nx/web@22.6.5':
     resolution: {integrity: sha512-LjKPLWbgEI9FDIsMGqbW0tisVJfhme0EBi1kZfTi4cIu9Pna5nYkNBefD/d/DuK0ZrRqdONNjhRkCO3TcVbtIQ==}
 
   '@nx/workspace@22.6.5':
     resolution: {integrity: sha512-/CZtv1ESSfZ1MVqSlCsmnBWysU1z5VdNlwANlqL6BV2X6RUHKDPVj4YuNPvCK+0LsqyzfJdUt3pcnBYxnT5TIg==}
-
-  '@nx/workspace@22.7.2':
-    resolution: {integrity: sha512-xTEQMkeltIS6V5Qb6QRA7O+HIJQjIZSxLm6SvBNczJqAxckuYwMdbrb2IkDSE0XnQqR3gYg7Isz6UuBUHjz66Q==}
 
   '@oxc-parser/binding-android-arm-eabi@0.127.0':
     resolution: {integrity: sha512-0LC7ye4hvqbIKxAzThzvswgHLFu2AURKzYLeSVvLdu2TBOYWQDmHnTqPLeA597BcUCxiLqLsS4CJ5uoI5WYWCQ==}
@@ -2432,11 +2127,6 @@ packages:
     resolution: {integrity: sha512-3tHlGy/fxjJCHqIV8nelAzbRTNkCUY+k7lqBGKNuQz99H2OKGRt6oU+U2SZs6LYrbOe8mxMFl6kq6gzHapFRkw==}
     peerDependencies:
       typescript: ^3 || ^4 || ^5
-
-  '@phenomnomnominal/tsquery@6.2.0':
-    resolution: {integrity: sha512-Vo9nkhfZxDB/sBiqIY3pjDC4mOSyure+AFlEW5hcy/tRE82MqCXjRN4InnVNMldinRt0dLYqg4HAU2XPq5e1LA==}
-    peerDependencies:
-      typescript: '>3.0.0'
 
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
@@ -3526,10 +3216,6 @@ packages:
     resolution: {integrity: sha512-4B/qKCfeE/ODUaAUpSwfzazo5x29WD4r3vXiWsB7I2mSDAihwEqKO+g8GELZUQSSAo5e1XTYh3ZVfLyxBc12nA==}
     engines: {node: '>= 10.0.0'}
 
-  address@2.0.3:
-    resolution: {integrity: sha512-XNAb/a6TCqou+TufU8/u11HCu9x1gYvOoxLwtlXgIqmkrYQADVv6ljyW2zwiPhHz9R1gItAWpuDrdJMmrOBFEA==}
-    engines: {node: '>= 16.0.0'}
-
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
@@ -4138,11 +3824,6 @@ packages:
   detect-port@1.6.1:
     resolution: {integrity: sha512-CmnVc+Hek2egPx1PeTFVta2W78xy2K/9Rkf6cC4T59S50tVnzKj+tnx5mmx5lwvCkujZ4uRrpRSuV+IVs3f90Q==}
     engines: {node: '>= 4.0.0'}
-    hasBin: true
-
-  detect-port@2.1.0:
-    resolution: {integrity: sha512-epZuWb/6Q62L+nDHJc/hQAqf8pylsqgk3BpZXVBx1CDnr3nkrVNn73Uu1rXcFzkNcc+hkP3whuOg7JZYaQB65Q==}
-    engines: {node: '>= 16.0.0'}
     hasBin: true
 
   diff@4.0.4:
@@ -7604,206 +7285,6 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
-  '@capsuletech/cli@0.1.1(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@testing-library/jest-dom@6.9.1)(@types/react@19.2.15)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))':
-    dependencies:
-      '@capsuletech/compliance': 0.1.1
-      '@capsuletech/vite-builder': 0.1.1(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-      '@clack/prompts': 1.4.0
-      chalk: 5.6.2
-      commander: 14.0.3
-      console-table-printer: 2.15.0
-      execa: 9.6.1
-      ink: 7.0.3(@types/react@19.2.15)(react@19.2.6)
-      ink-text-input: 6.0.0(ink@7.0.3(@types/react@19.2.15)(react@19.2.6))(react@19.2.6)
-      jiti: 2.4.2
-      nx: 22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))
-      react: 19.2.6
-      string-width: 8.2.1
-    transitivePeerDependencies:
-      - '@microsoft/api-extractor'
-      - '@nuxt/kit'
-      - '@rsbuild/core'
-      - '@rspack/core'
-      - '@swc-node/register'
-      - '@swc/core'
-      - '@tanstack/react-router'
-      - '@testing-library/jest-dom'
-      - '@types/react'
-      - '@vue/language-core'
-      - '@vueuse/core'
-      - bufferutil
-      - debug
-      - esbuild
-      - react-devtools-core
-      - rolldown
-      - rollup
-      - solid-js
-      - solid-refresh
-      - supports-color
-      - typescript
-      - utf-8-validate
-      - vite
-      - webpack
-
-  '@capsuletech/compliance@0.1.1':
-    dependencies:
-      '@babel/parser': 7.29.3
-      '@babel/traverse': 7.29.0
-      '@babel/types': 7.29.0
-    transitivePeerDependencies:
-      - supports-color
-
-  '@capsuletech/lib-builder@0.1.1(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))':
-    dependencies:
-      vite-plugin-dts: 5.0.0(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-      vite-plugin-solid: 2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-      vite-tsconfig-paths: 6.1.1(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-    transitivePeerDependencies:
-      - '@microsoft/api-extractor'
-      - '@rspack/core'
-      - '@testing-library/jest-dom'
-      - '@vue/language-core'
-      - esbuild
-      - rolldown
-      - rollup
-      - solid-js
-      - supports-color
-      - typescript
-      - vite
-      - webpack
-
-  '@capsuletech/shared-zod@0.1.1(solid-js@1.9.12)(zod@3.25.76)':
-    dependencies:
-      solid-js: 1.9.12
-      zod: 3.25.76
-
-  '@capsuletech/vite-builder@0.1.1(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))':
-    dependencies:
-      '@babel/generator': 7.29.1
-      '@babel/parser': 7.29.3
-      '@babel/traverse': 7.29.0
-      '@babel/types': 7.29.0
-      '@capsuletech/compliance': 0.1.1
-      '@capsuletech/lib-builder': 0.1.1(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-      '@nx/devkit': 22.7.2(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))
-      '@tailwindcss/vite': 4.3.0(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-      '@tanstack/router-vite-plugin': 1.167.6(vite-plugin-solid@2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)))(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-      jiti: 2.4.2
-      solid-js: 1.9.12
-      unplugin-auto-import: 21.0.0
-      vite-plugin-solid: 2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-      vite-tsconfig-paths: 6.1.1(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-    optionalDependencies:
-      solid-refresh: 0.6.3(solid-js@1.9.12)
-      vite: 8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)
-    transitivePeerDependencies:
-      - '@microsoft/api-extractor'
-      - '@nuxt/kit'
-      - '@rsbuild/core'
-      - '@rspack/core'
-      - '@tanstack/react-router'
-      - '@testing-library/jest-dom'
-      - '@vue/language-core'
-      - '@vueuse/core'
-      - esbuild
-      - nx
-      - rolldown
-      - rollup
-      - supports-color
-      - typescript
-      - webpack
-
-  '@capsuletech/web-core@0.1.1(@kobalte/core@0.13.11(solid-js@1.9.12))(@tanstack/router-core@1.171.2)(@tanstack/solid-router@1.170.4(solid-js@1.9.12))(@tanstack/solid-virtual@3.13.24(solid-js@1.9.12))(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(@xstate/solid@2.0.0(solid-js@1.9.12)(xstate@5.31.1))(esbuild@0.27.7)(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))(xstate@5.31.1)(zod@3.25.76)':
-    dependencies:
-      '@capsuletech/shared-zod': 0.1.1(solid-js@1.9.12)(zod@3.25.76)
-      '@capsuletech/vite-builder': 0.1.1(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-      '@capsuletech/web-profiler': 0.1.1(@kobalte/core@0.13.11(solid-js@1.9.12))(solid-js@1.9.12)
-      '@capsuletech/web-query': 0.1.1(solid-js@1.9.12)(zod@3.25.76)
-      '@capsuletech/web-router': 0.1.1(@tanstack/router-core@1.171.2)(@tanstack/solid-router@1.170.4(solid-js@1.9.12))(solid-js@1.9.12)
-      '@capsuletech/web-state': 0.1.1(solid-js@1.9.12)(xstate@5.31.1)
-      '@capsuletech/web-style': 0.1.1(solid-js@1.9.12)
-      '@capsuletech/web-ui': 0.2.0(@kobalte/core@0.13.11(solid-js@1.9.12))(@tanstack/solid-virtual@3.13.24(solid-js@1.9.12))(solid-js@1.9.12)
-      '@tanstack/solid-router': 1.170.4(solid-js@1.9.12)
-      '@xstate/solid': 2.0.0(solid-js@1.9.12)(xstate@5.31.1)
-      solid-js: 1.9.12
-      zod: 3.25.76
-    transitivePeerDependencies:
-      - '@kobalte/core'
-      - '@microsoft/api-extractor'
-      - '@nuxt/kit'
-      - '@rsbuild/core'
-      - '@rspack/core'
-      - '@tanstack/react-router'
-      - '@tanstack/router-core'
-      - '@tanstack/solid-virtual'
-      - '@testing-library/jest-dom'
-      - '@vue/language-core'
-      - '@vueuse/core'
-      - esbuild
-      - nx
-      - rolldown
-      - rollup
-      - solid-refresh
-      - supports-color
-      - typescript
-      - vite
-      - webpack
-      - xstate
-
-  '@capsuletech/web-editor@0.1.1(solid-js@1.9.12)(zod@3.25.76)':
-    dependencies:
-      '@capsuletech/shared-zod': 0.1.1(solid-js@1.9.12)(zod@3.25.76)
-      lucide-solid: 1.16.0(solid-js@1.9.12)
-      solid-js: 1.9.12
-    transitivePeerDependencies:
-      - zod
-
-  '@capsuletech/web-profiler@0.1.1(@kobalte/core@0.13.11(solid-js@1.9.12))(solid-js@1.9.12)':
-    dependencies:
-      '@kobalte/core': 0.13.11(solid-js@1.9.12)
-      solid-js: 1.9.12
-      web-vitals: 5.2.0
-
-  '@capsuletech/web-query@0.1.1(solid-js@1.9.12)(zod@3.25.76)':
-    dependencies:
-      '@capsuletech/shared-zod': 0.1.1(solid-js@1.9.12)(zod@3.25.76)
-      solid-js: 1.9.12
-      zod: 3.25.76
-
-  '@capsuletech/web-renderer@0.1.1(solid-js@1.9.12)':
-    dependencies:
-      solid-js: 1.9.12
-
-  '@capsuletech/web-router@0.1.1(@tanstack/router-core@1.171.2)(@tanstack/solid-router@1.170.4(solid-js@1.9.12))(solid-js@1.9.12)':
-    dependencies:
-      '@tanstack/router-core': 1.171.2
-      '@tanstack/solid-router': 1.170.4(solid-js@1.9.12)
-      solid-js: 1.9.12
-
-  '@capsuletech/web-state@0.1.1(solid-js@1.9.12)(xstate@5.31.1)':
-    dependencies:
-      es-toolkit: 1.46.1
-      solid-js: 1.9.12
-      xstate: 5.31.1
-
-  '@capsuletech/web-style@0.1.1(solid-js@1.9.12)':
-    dependencies:
-      class-variance-authority: 0.7.1
-      clsx: 2.1.1
-      es-toolkit: 1.46.1
-      lucide-solid: 1.16.0(solid-js@1.9.12)
-      solid-js: 1.9.12
-      tailwind-merge: 3.6.0
-
-  '@capsuletech/web-ui@0.2.0(@kobalte/core@0.13.11(solid-js@1.9.12))(@tanstack/solid-virtual@3.13.24(solid-js@1.9.12))(solid-js@1.9.12)':
-    dependencies:
-      '@corvu/resizable': 0.2.5(solid-js@1.9.12)
-      '@kobalte/core': 0.13.11(solid-js@1.9.12)
-      '@tanstack/solid-virtual': 3.13.24(solid-js@1.9.12)
-      class-variance-authority: 0.7.1
-      solid-js: 1.9.12
-      solid-motionone: 1.0.4(solid-js@1.9.12)
-
   '@clack/core@1.3.1':
     dependencies:
       fast-wrap-ansi: 0.2.2
@@ -8368,44 +7849,6 @@ snapshots:
       - nx
       - supports-color
 
-  '@nx/js@22.7.2(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(verdaccio@6.7.1(typanion@3.14.0))':
-    dependencies:
-      '@babel/core': 7.29.0
-      '@babel/plugin-proposal-decorators': 7.29.0(@babel/core@7.29.0)
-      '@babel/plugin-transform-class-properties': 7.28.6(@babel/core@7.29.0)
-      '@babel/plugin-transform-runtime': 7.29.0(@babel/core@7.29.0)
-      '@babel/preset-env': 7.29.5(@babel/core@7.29.0)
-      '@babel/preset-typescript': 7.28.5(@babel/core@7.29.0)
-      '@babel/runtime': 7.29.2
-      '@nx/devkit': 22.7.2(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))
-      '@nx/workspace': 22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))
-      '@zkochan/js-yaml': 0.0.7
-      babel-plugin-const-enum: 1.2.0(@babel/core@7.29.0)
-      babel-plugin-macros: 3.1.0
-      babel-plugin-transform-typescript-metadata: 0.3.2(@babel/core@7.29.0)(@babel/traverse@7.29.0)
-      chalk: 4.1.2
-      columnify: 1.6.0
-      detect-port: 2.1.0
-      ignore: 7.0.5
-      js-tokens: 4.0.0
-      jsonc-parser: 3.2.0
-      npm-run-path: 4.0.1
-      picocolors: 1.1.1
-      picomatch: 4.0.4
-      semver: 7.8.0
-      source-map-support: 0.5.19
-      tinyglobby: 0.2.16
-      tslib: 2.8.1
-    optionalDependencies:
-      verdaccio: 6.7.1(typanion@3.14.0)
-    transitivePeerDependencies:
-      - '@babel/traverse'
-      - '@swc-node/register'
-      - '@swc/core'
-      - debug
-      - nx
-      - supports-color
-
   '@nx/nx-darwin-arm64@22.6.5':
     optional: true
 
@@ -8513,31 +7956,6 @@ snapshots:
       - typescript
       - verdaccio
 
-  ? '@nx/vite@22.7.2(@babel/traverse@7.29.0)(@nx/eslint@22.6.5(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@zkochan/js-yaml@0.0.7)(eslint@10.4.0(jiti@2.4.2))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(verdaccio@6.7.1(typanion@3.14.0)))(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(typescript@5.9.3)(verdaccio@6.7.1(typanion@3.14.0))(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))(vitest@4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)))'
-  : dependencies:
-      '@nx/devkit': 22.7.2(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))
-      '@nx/js': 22.7.2(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(verdaccio@6.7.1(typanion@3.14.0))
-      '@nx/vitest': 22.7.2(@babel/traverse@7.29.0)(@nx/eslint@22.6.5(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@zkochan/js-yaml@0.0.7)(eslint@10.4.0(jiti@2.4.2))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(verdaccio@6.7.1(typanion@3.14.0)))(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(typescript@5.9.3)(verdaccio@6.7.1(typanion@3.14.0))(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))(vitest@4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)))
-      '@phenomnomnominal/tsquery': 6.2.0(typescript@5.9.3)
-      ajv: 8.20.0
-      enquirer: 2.3.6
-      picomatch: 4.0.4
-      semver: 7.8.0
-      tsconfig-paths: 4.2.0
-      tslib: 2.8.1
-      vite: 8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)
-      vitest: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-    transitivePeerDependencies:
-      - '@babel/traverse'
-      - '@nx/eslint'
-      - '@swc-node/register'
-      - '@swc/core'
-      - debug
-      - nx
-      - supports-color
-      - typescript
-      - verdaccio
-
   '@nx/vitest@22.6.5(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(typescript@5.9.3)(verdaccio@6.7.1(typanion@3.14.0))(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))(vitest@4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)))':
     dependencies:
       '@nx/devkit': 22.6.5(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))
@@ -8546,27 +7964,6 @@ snapshots:
       semver: 7.8.0
       tslib: 2.8.1
     optionalDependencies:
-      vite: 8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)
-      vitest: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
-    transitivePeerDependencies:
-      - '@babel/traverse'
-      - '@swc-node/register'
-      - '@swc/core'
-      - debug
-      - nx
-      - supports-color
-      - typescript
-      - verdaccio
-
-  ? '@nx/vitest@22.7.2(@babel/traverse@7.29.0)(@nx/eslint@22.6.5(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@zkochan/js-yaml@0.0.7)(eslint@10.4.0(jiti@2.4.2))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(verdaccio@6.7.1(typanion@3.14.0)))(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(typescript@5.9.3)(verdaccio@6.7.1(typanion@3.14.0))(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))(vitest@4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)))'
-  : dependencies:
-      '@nx/devkit': 22.7.2(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))
-      '@nx/js': 22.7.2(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(verdaccio@6.7.1(typanion@3.14.0))
-      '@phenomnomnominal/tsquery': 6.2.0(typescript@5.9.3)
-      semver: 7.8.0
-      tslib: 2.8.1
-    optionalDependencies:
-      '@nx/eslint': 22.6.5(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@zkochan/js-yaml@0.0.7)(eslint@10.4.0(jiti@2.4.2))(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(verdaccio@6.7.1(typanion@3.14.0))
       vite: 8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)
       vitest: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
     transitivePeerDependencies:
@@ -8603,22 +8000,6 @@ snapshots:
       chalk: 4.1.2
       enquirer: 2.3.6
       nx: 22.6.5(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))
-      picomatch: 4.0.4
-      semver: 7.8.0
-      tslib: 2.8.1
-      yargs-parser: 21.1.1
-    transitivePeerDependencies:
-      - '@swc-node/register'
-      - '@swc/core'
-      - debug
-
-  '@nx/workspace@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))':
-    dependencies:
-      '@nx/devkit': 22.7.2(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))
-      '@zkochan/js-yaml': 0.0.7
-      chalk: 4.1.2
-      enquirer: 2.3.6
-      nx: 22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))
       picomatch: 4.0.4
       semver: 7.8.0
       tslib: 2.8.1
@@ -8762,12 +8143,6 @@ snapshots:
     optional: true
 
   '@phenomnomnominal/tsquery@6.1.4(typescript@5.9.3)':
-    dependencies:
-      '@types/esquery': 1.5.4
-      esquery: 1.7.0
-      typescript: 5.9.3
-
-  '@phenomnomnominal/tsquery@6.2.0(typescript@5.9.3)':
     dependencies:
       '@types/esquery': 1.5.4
       esquery: 1.7.0
@@ -9943,8 +9318,6 @@ snapshots:
 
   address@1.2.2: {}
 
-  address@2.0.3: {}
-
   agent-base@6.0.2:
     dependencies:
       debug: 4.4.3
@@ -10555,10 +9928,6 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
-
-  detect-port@2.1.0:
-    dependencies:
-      address: 2.0.3
 
   diff@4.0.4: {}
 
