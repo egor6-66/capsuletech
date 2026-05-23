@@ -112,6 +112,73 @@ importers:
         specifier: ~4.1.0
         version: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
 
+  apps/capsule-space:
+    dependencies:
+      '@capsuletech/shared-zod':
+        specifier: workspace:*
+        version: link:../../packages/shared/zod
+      '@capsuletech/web-core':
+        specifier: workspace:*
+        version: link:../../packages/web/core
+      '@capsuletech/web-map':
+        specifier: workspace:*
+        version: link:../../packages/web/map
+      '@capsuletech/web-profiler':
+        specifier: workspace:*
+        version: link:../../packages/web/profiler
+      '@capsuletech/web-query':
+        specifier: workspace:*
+        version: link:../../packages/web/query
+      '@capsuletech/web-renderer':
+        specifier: workspace:*
+        version: link:../../packages/web/renderer
+      '@capsuletech/web-router':
+        specifier: workspace:*
+        version: link:../../packages/web/router
+      '@capsuletech/web-state':
+        specifier: workspace:*
+        version: link:../../packages/web/state
+      '@capsuletech/web-style':
+        specifier: workspace:*
+        version: link:../../packages/web/style
+      '@capsuletech/web-ui':
+        specifier: workspace:*
+        version: link:../../packages/web/ui
+      '@kobalte/core':
+        specifier: ^0.13.0
+        version: 0.13.11(solid-js@1.9.12)
+      '@tanstack/router-core':
+        specifier: ^1.169.0
+        version: 1.171.2
+      '@tanstack/solid-router':
+        specifier: ^1.169.0
+        version: 1.170.4(solid-js@1.9.12)
+      '@tanstack/solid-table':
+        specifier: ^8.21.3
+        version: 8.21.3(solid-js@1.9.12)
+      '@tanstack/solid-virtual':
+        specifier: ^3.13.24
+        version: 3.13.24(solid-js@1.9.12)
+      '@xstate/solid':
+        specifier: ^2.0.0
+        version: 2.0.0(solid-js@1.9.12)(xstate@5.31.1)
+      maplibre-gl:
+        specifier: ^4
+        version: 4.7.1
+      solid-js:
+        specifier: 1.9.12
+        version: 1.9.12
+      xstate:
+        specifier: ^5.0.0
+        version: 5.31.1
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      '@capsuletech/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+
   apps/sandbox:
     dependencies:
       '@capsuletech/shared-zod':
