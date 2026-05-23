@@ -1,0 +1,28 @@
+{
+  "name": "@capsuletech/desktop",
+  "version": "0.0.0",
+  "description": "Tauri-shell host для capsule apps. Public API runDev/runBuild + pre-built бинарь.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "echo 'PR 3 — build pipeline TBD (vite build + cargo build + copy)'",
+    "test": "echo 'PR 3 — tests TBD'"
+  },
+  "dependencies": {},
+  "peerDependencies": {},
+  "devDependencies": {
+    "@capsuletech/vite-builder": "workspace:*"
+  }
+}
