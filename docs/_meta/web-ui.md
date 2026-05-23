@@ -1,6 +1,9 @@
 ---
-tags: [meta, web-ui]
-updated: 2026-05-22
+tags: [meta, web-ui, ai-context]
+updated: 2026-05-23
+status: documented
+type: ai-anchor
+audience: claude
 ---
 
 # web-ui AI anchor
@@ -13,7 +16,73 @@ Full context: `.claude/agents/owner-web-ui.md` (system prompt of owner agent).
 Conventions canon: `docs/09-packages/ui/conventions.md`.
 Storybook guide: `docs/09-packages/ui/storybook.md`.
 
+## Matrix v2 — rows-engine + presets + DnD (Phase 1.2 v2)
+
+**API:** discriminated union `{ rows: IRow[] } | { preset: P; slots: LayoutPresets[P] }`.
+
+**IRow structure:**
+- `id?`, `height?: number | 'auto' | 'fr'`, `resizable?: boolean`, `cells: ICell[]`
+
+**ICell structure:**
+- `id` (required), `children`, `tag?`, `width?: number | 'auto' | 'fr'`, `resizable?`, `draggable?`, `swapGroup?`
+
+**SlotValue (preset-mode):**
+- Either `JSX.Element` (auto-wrapped to `{ children }`)
+- Or `{ children, initialSize?, minSize?, maxSize?, draggable?, swapGroup? }`
+
+**Preset `'app-shell'` (built-in):**
+- Slots: `header?`, `sidebar?`, `main` (required), `rightBar?`, `footer?`
+- Auto-centroid: only `main` → single-row single-cell layout
+- Default swapGroups: header/footer → `'band'`, sidebar/rightBar → `'aside'`, main → undefined (no swap)
+- Middle-row height = `1 - footerInitialSize` or `'fr'`
+
+**DnD (swap mode, Phase 1.2 v2 active):**
+- Badge-triggered UX: drag starts via top-right badge, cell surface disabled (`disabled: true`)
+- **2-stage highlight (z-30 overlay):**
+  - `canAccept` (soft): drag active + valid swapGroup + not source → border-2 border-primary/30 bg-primary/5
+  - `canDrop` (strong): canAccept + pointer over → border-2 border-primary bg-primary/15
+  - `isOver` (wrong group): border-2 border-border (neutral)
+- **Badge visibility:** shown when 2+ draggable+resizable cells exist in same swapGroup
+- **Resize persist (session-only):** `sizesSnapshot` mutable object, keyed `"v"` (vertical) + `"h:<rowKey>"` (per-row)
+  - Guards against corvu cleanup-time shrinking arrays via length check
+- `onLayoutChange` fires `{ kind: 'swap', a, b }` after successful swap
+- DnD uses `@capsuletech/web-dnd` `createDraggable` + `createDroppable` (see [[web-dnd]])
+
+**No setPointerCapture:** window-level listeners only (set/release capture breaks `elementFromPoint` for droppable hit-test).
+
 ## Changelog (notable breaks)
+
+### 0.7.0 — Matrix v2: rows-engine + presets + DnD (2026-05-23)
+
+**Breaking: `Layout.Matrix` API overhaul** (see ADR 016).
+
+Old API (5 fixed slots, no DnD):
+```tsx
+<Ui.Layout.Matrix slots={{ header, main, rightBar, footer }} />
+```
+
+New API (two modes):
+```tsx
+// Preset mode
+<Ui.Layout.Matrix preset="app-shell" slots={{ header?, main, rightBar?, footer? }} />
+
+// Raw rows mode
+<Ui.Layout.Matrix rows={[
+  { cells: [{ id: 'header', tag: 'header', children: <H /> }] },
+  { resizable: true, cells: [...] },
+]} />
+```
+
+**Changes:**
+- Rows-of-cells engine replaces hardcoded 5-slot layout
+- DnD swap-mode via badge (Phase 1.2 v2): `dndMode="swap"` (default) enables drag-via-badge UX
+- SlotValue now supports `swapGroup` override (preset default: `'band'` for header/footer, `'aside'` for sidebar/rightBar)
+- `onLayoutChange?: (event: { kind: 'swap'; a: string; b: string }) => void`
+- Resize persist: session-only `sizesSnapshot` (keyed by `"v"` / `"h:<rowKey>"`)
+- Auto-centroid when only `main` slot provided (preset mode)
+- Implemented in PR #132, #135
+
+Migration: 5 fixed slots → `preset="app-shell"` (one-line change for existing code).
 
 ### 0.2.0 — Layout refactor (2026-05-20)
 

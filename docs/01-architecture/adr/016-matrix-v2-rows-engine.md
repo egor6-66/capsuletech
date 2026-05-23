@@ -1,13 +1,13 @@
 ---
-tags: [hca, adr, proposed]
-status: proposed
+tags: [hca, adr, accepted]
+status: accepted
 date: 2026-05-23
 ---
 
 # ADR 016 — Matrix v2: rows-engine + presets + DnD (swap/insert)
 
-> [!warning] Status: proposed
-> Фиксирует контракт для refactor'а `Layout.Matrix` в `@capsuletech/web-ui`. Имплементация — в ветке `feat/matrix-v2-rows-engine` (этот worktree).
+> [!info] Status: accepted
+> Контракт для refactor'а `Layout.Matrix` в `@capsuletech/web-ui`. Имплементация — в PR #132, #135.
 
 ## Контекст
 
@@ -128,15 +128,22 @@ const PRESETS: { [P in keyof LayoutPresets]: PresetResolver<P> } = {
 - header: height 'auto'
 - sidebar: width 'auto' (если присутствует)
 
-### 5. DnD — два режима
+### 5. DnD — два режима (Phase 1.2 v2+)
 
-#### `dndMode="swap"` (default)
+#### `dndMode="swap"` (Phase 1.2 v2, реализовано)
 - Каждый `draggable: true` cell — одновременно draggable и droppable (через `web-dnd` `createDraggable` + `createDroppable`).
-- При drop'е — обмен **children** между source и target. Размеры (`cells[].width`, `row.height`) остаются за позицией, не путешествуют с контентом.
-- `swapGroup` ограничивает зону. Default `swapGroup = row.id` (только в пределах своей row). Указав явно — расширение на любые cells с тем же group-id.
-- Идеально для app-shell: «передвинуть rightBar на место footer» = контент карты теперь в нижней полосе. Виджет content-agnostic — рендерится.
+- Drag **напрямую в Badge** (top-right угол cell'а) — cell surface registered as disabled draggable, badge вызывает `dnd.startDrag()` программно.
+- При drop'е — обмен **children** между source и target. Размеры (`cells[].width`, `row.height`) остаются за позицией.
+- **2-stage highlight** (overlay, z-30):
+  - `canAccept`: drag active + cell в той же swapGroup + не source → светло-синий border + bg-primary/5
+  - `canDrop`: canAccept + pointer over → primary border + bg-primary/15
+  - `isOver` (чужая group): нейтральный border
+- `swapGroup` ограничивает зону. Default `swapGroup` от preset (header/footer → `'band'`, sidebar/rightBar → `'aside'`, main → undefined). Явный — расширение на любые cells с тем же group-id.
+- **Badge видна только при 2+ draggable cells** в одной swapGroup (иначе нечего свапить).
+- `onLayoutChange` fires `{ kind: 'swap', a, b }` после успешного swap'а.
+- **Resize persist (session-only):** `sizesSnapshot` mutable object, keyed by `"v"` (vertical) + `"h:<rowKey>"` (per-row), охраняется от corvu cleanup-time shrinking arrays.
 
-#### `dndMode="insert"`
+#### `dndMode="insert"` (Phase 1.2+, заложено, not yet runtime)
 - Cells становятся ordered list внутри row (через `web-dnd` `createSortable`).
 - Drop в верхнюю/нижнюю половину target'а → insert before/after (как уже работает `createSortable`).
 - Cell несёт свой `width` с собой.
@@ -145,14 +152,14 @@ const PRESETS: { [P in keyof LayoutPresets]: PresetResolver<P> } = {
 
 `dndMode` — глобальный prop на Matrix, не per-row.
 
-### 6. Edit-mode badge
+### 6. Edit-mode badge (Phase 1.2+, заложено)
 
 ```ts
 layoutMode?: 'view' | 'edit'   // default 'view'
 ```
 
 - **`view`** — DnD выключен. Внутри слотов обычные кликабельные виджеты работают без вмешательства.
-- **`edit`** — все `draggable: true` cells получают outline + drag-cursor. Маленькая плашка в углу Matrix (по аналогии с resize-handle) переключает mode когда uncontrolled. Когда controlled — управляется снаружи.
+- **`edit`** — все `draggable: true` cells получают outline + drag-cursor. В Phase 1.2 v2 edit-mode управляется только через `layoutMode` prop (controlled); badge виден когда 2+ draggable cells.
 
 ### 7. `onLayoutChange` — event-based payload
 
