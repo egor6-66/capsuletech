@@ -26,7 +26,6 @@
   "dependencies": {},
   "peerDependencies": {},
   "devDependencies": {
-    "@capsuletech/vite-builder": "workspace:*",
     "@capsuletech/lib-builder": "workspace:*",
     "@types/node": "25.9.0",
     "vitest": "~4.1.0"

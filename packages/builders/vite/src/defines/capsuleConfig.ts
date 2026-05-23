@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import AutoImport from 'unplugin-auto-import/vite';
+import type { IDesktopConfig } from '@capsuletech/desktop';
 import {
   AliasesPlugin,
   AppConfigPlugin,
@@ -19,6 +20,12 @@ import { appConfig } from './appConfig';
 
 export interface ICapsuleConfig {
   devServerPort?: number;
+  /**
+   * Опциональная секция для Tauri-shell. Читается @capsuletech/cli командой
+   * `capsule desktop dev|build <app>` (см. ADR 017). vite-builder сам секцию
+   * НЕ использует — это data-only поле, прокидывается через capsule.config.ts.
+   */
+  desktop?: IDesktopConfig;
 }
 
 interface IProps {

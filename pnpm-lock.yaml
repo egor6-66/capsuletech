@@ -372,9 +372,6 @@ importers:
       '@capsuletech/lib-builder':
         specifier: workspace:*
         version: link:../builders/lib
-      '@capsuletech/vite-builder':
-        specifier: workspace:*
-        version: link:../builders/vite
       '@types/node':
         specifier: 25.9.0
         version: 25.9.0
