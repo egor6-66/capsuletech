@@ -48,7 +48,6 @@ describe('ViewWrapper — backward-compat (factory без props)', () => {
 
   it('receives extra props at render site without runtime error', () => {
     // factory без 2-го arg — JS просто передаёт лишний props, функция не смотрит
-    // biome-ignore lint/suspicious/noExplicitAny: testing extra props ignored by factory
     const Simple = ViewWrapper(() => <div data-testid="compat">ok</div>) as any;
     cleanup = render(() => <Simple data-extra="x" />, container);
     expect(container.querySelector('[data-testid="compat"]')).not.toBeNull();

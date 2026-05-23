@@ -94,6 +94,7 @@ export interface IUiMetaProps {
  * После применения — intersection callable + mapped static props.
  */
 type StaticProps<T> = {
+  // biome-ignore lint/complexity/noBannedTypes: intentional use of keyof Function to filter function-prototype keys in mapped type
   [K in keyof T as K extends keyof Function ? never : K]: T[K];
 };
 

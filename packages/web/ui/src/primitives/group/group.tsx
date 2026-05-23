@@ -169,8 +169,7 @@ export function GroupSeparator(props: IGroupSeparatorProps) {
   const [local] = splitProps(props, ['orientation', 'class', 'style']);
 
   return (
-    <div
-      role="separator"
+    <hr
       aria-orientation={local.orientation === 'vertical' ? 'horizontal' : 'vertical'}
       class={cn(groupSeparatorVariants({ orientation: local.orientation }), local.class)}
       style={local.style as any}

@@ -52,7 +52,7 @@ const makeCaptureTemplate = (testId: string) => {
 
 describe('tracker-resolve — itemAs in extras resolves via ShapeUiContext', () => {
   it('itemAs path-tracker resolves to corresponding component from realUi', () => {
-    const ButtonComponent = (_props: any) => <button data-testid="btn" />;
+    const ButtonComponent = (_props: any) => <button type="button" data-testid="btn" />;
 
     const fakeUi = { Button: ButtonComponent };
     const tracker = createUiTracker();
@@ -79,7 +79,7 @@ describe('tracker-resolve — itemAs in extras resolves via ShapeUiContext', () 
   });
 
   it('nested path tracker (ui.Navigation.Item) resolves correctly as itemAs', () => {
-    const NavItemComponent = (_props: any) => <a data-testid="nav-item" />;
+    const NavItemComponent = (_props: any) => <a href="#" data-testid="nav-item">nav</a>;
 
     const fakeUi = { Navigation: { Item: NavItemComponent } };
     const tracker = createUiTracker();
@@ -112,7 +112,7 @@ describe('tracker-resolve — itemAs in extras resolves via ShapeUiContext', () 
 
 describe('tracker-resolve — itemProps callable wraps result with tracker resolution', () => {
   it('calling itemProps(item) returns object with resolved as-tracker', () => {
-    const LinkComponent = (_props: any) => <a data-testid="link" />;
+    const LinkComponent = (_props: any) => <a href="#" data-testid="link">link</a>;
     const fakeUi = { Link: LinkComponent };
     const tracker = createUiTracker();
 
@@ -326,7 +326,7 @@ describe('tracker-resolve — missing ShapeUiContext does not crash', () => {
 describe('tracker-resolve — itemAs does not interfere with defaultAs resolution', () => {
   it('both as (defaultAs) and itemAs resolve correctly when both are trackers', () => {
     const GroupComponent = (_props: any) => <div data-testid="group" />;
-    const ButtonComponent = (_props: any) => <button data-testid="btn-inner" />;
+    const ButtonComponent = (_props: any) => <button type="button" data-testid="btn-inner" />;
 
     const fakeUi = { Group: GroupComponent, Button: ButtonComponent };
     const tracker = createUiTracker();
