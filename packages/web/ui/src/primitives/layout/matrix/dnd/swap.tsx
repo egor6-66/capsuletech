@@ -5,13 +5,19 @@
  * function body) because createDraggable / createDroppable call createMemo /
  * createEffect internally — these require an active reactive owner.
  *
- * Manages a cellId→JSX map reflecting current swap state. On drop: swaps
- * entries a↔b and emits onLayoutChange.
+ * v2 badge-UX changes:
+ * - Drag is triggered ONLY via DragBadge (pointerdown on badge → dnd.startDrag).
+ * - Cell element is registered as draggable but with disabled=true so the cell
+ *   surface itself does not start a drag.
+ * - Drop targets show a ring highlight when a drag is active and the cell is a
+ *   valid target (isOver + canDrop).
+ * - `enabled` accessor is no longer tied to layoutMode; caller passes `() => true`
+ *   when 2+ resizable draggable cells exist.
  */
 
 import type { IDraggable, IDroppable } from '@capsuletech/web-dnd';
-import { createDraggable, createDroppable } from '@capsuletech/web-dnd';
-import { type Accessor, createEffect, createSignal, type JSX } from 'solid-js';
+import { createDraggable, createDroppable, useDnD } from '@capsuletech/web-dnd';
+import { type Accessor, createEffect, createMemo, createSignal, type JSX } from 'solid-js';
 import type { ICell, IRow, LayoutChangeEvent } from '../interfaces';
 
 // ---------------------------------------------------------------------------
@@ -20,7 +26,11 @@ import type { ICell, IRow, LayoutChangeEvent } from '../interfaces';
 
 interface ISwapEngineOptions {
   rows: Accessor<IRow[]>;
-  /** True when layoutMode === 'edit' && dndMode === 'swap'. */
+  /**
+   * When false, accepts() returns false (no drops allowed).
+   * In the badge-UX, caller passes `() => true` unconditionally — the badge
+   * is only shown when 2+ resizable cells exist, so swap is always valid.
+   */
   enabled: Accessor<boolean>;
   onLayoutChange?: (e: LayoutChangeEvent) => void;
 }
@@ -29,10 +39,28 @@ export interface ISwapEngine {
   /** Reactive getter of children for a given cellId (reflects swap state). */
   getCellChildren: (cellId: string) => JSX.Element;
   /**
-   * Returns a combined drag+drop ref callback for the given cell element.
-   * Safe for any cell — non-draggable cells get a no-op ref.
+   * Returns a ref callback for the cell element — registers it as a draggable
+   * source + droppable target. The cell element itself does NOT trigger drag
+   * (disabled=true); drag starts from the DragBadge via dnd.startDrag.
    */
   bindCell: (cell: ICell, rowId: string | undefined) => (el: HTMLElement) => void;
+  /**
+   * Returns reactive drop-highlight state for a cell.
+   * `isOver`    — pointer is over this cell during an active drag.
+   * `canDrop`   — isOver && this cell accepts the active drag payload.
+   * `canAccept` — a drag is active AND this cell would accept the active payload
+   *               (regardless of whether the pointer is currently over it).
+   *               Used for the "soft highlight all accepting targets" UX.
+   */
+  getCellDropState: (cellId: string) => {
+    isOver: Accessor<boolean>;
+    canDrop: Accessor<boolean>;
+    canAccept: Accessor<boolean>;
+  };
+  /** Draggable id string for a given cellId — used by DragBadge. */
+  getDraggableId: (cellId: string) => string;
+  /** Number of draggable cells registered (determines badge visibility). */
+  draggableCount: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,6 +94,13 @@ const flatDraggableCells = (rows: IRow[]): ICellEntry[] => {
 // ---------------------------------------------------------------------------
 
 export const createSwapEngine = (opts: ISwapEngineOptions): ISwapEngine => {
+  // -------------------------------------------------------------------------
+  // DnD context — gives us access to activeData for canAccept computation.
+  // Safe to call here because createSwapEngine is always invoked inside
+  // MatrixContent (a Solid component body with DnDProvider as ancestor).
+  // -------------------------------------------------------------------------
+  const dnd = useDnD();
+
   // -------------------------------------------------------------------------
   // Children map
   // -------------------------------------------------------------------------
@@ -123,15 +158,21 @@ export const createSwapEngine = (opts: ISwapEngineOptions): ISwapEngine => {
   }
 
   const bindingMap = new Map<string, ICellBinding>();
+  /** Maps cellId → swapGroup string; used by getCellDropState.canAccept. */
+  const _cellGroups = new Map<string, string>();
 
   for (const { cell, rowId } of flatDraggableCells(opts.rows())) {
     const group = resolveGroup(cell, rowId);
     const cellId = cell.id;
+    _cellGroups.set(cellId, group);
 
+    // disabled=true: badge calls dnd.startDrag directly; the cell element
+    // is registered so the DnD context can track it, but pointerdown on the
+    // cell surface itself does not start a drag.
     const draggable = createDraggable({
       id: `cell:${cellId}`,
       data: () => ({ cellId, swapGroup: group }),
-      disabled: () => !opts.enabled(),
+      disabled: () => true,
     });
 
     const droppable = createDroppable({
@@ -151,7 +192,6 @@ export const createSwapEngine = (opts: ISwapEngineOptions): ISwapEngine => {
           doSwap(d.cellId, cellId);
         }
       },
-      disabled: () => !opts.enabled(),
     });
 
     bindingMap.set(cellId, { draggable, droppable });
@@ -172,5 +212,35 @@ export const createSwapEngine = (opts: ISwapEngineOptions): ISwapEngine => {
       binding.droppable.ref(el);
     };
 
-  return { getCellChildren, bindCell };
+  const getCellDropState = (
+    cellId: string,
+  ): { isOver: Accessor<boolean>; canDrop: Accessor<boolean>; canAccept: Accessor<boolean> } => {
+    const binding = bindingMap.get(cellId);
+    if (!binding) return { isOver: () => false, canDrop: () => false, canAccept: () => false };
+    // canAccept: a drag is active AND this cell would accept the active payload
+    // (regardless of pointer position). Mirrors the accepts() logic registered
+    // in createDroppable, derived from the same _cellGroups snapshot.
+    const canAccept: Accessor<boolean> = createMemo(() => {
+      const data = dnd.state.activeData();
+      if (!data) return false;
+      const d = data as { cellId?: string; swapGroup?: string };
+      return (
+        opts.enabled() &&
+        typeof d.swapGroup === 'string' &&
+        d.cellId !== cellId &&
+        d.swapGroup === _cellGroups.get(cellId)
+      );
+    });
+    return { isOver: binding.droppable.isOver, canDrop: binding.droppable.canDrop, canAccept };
+  };
+
+  const getDraggableId = (cellId: string): string => `cell:${cellId}`;
+
+  return {
+    getCellChildren,
+    bindCell,
+    getCellDropState,
+    getDraggableId,
+    draggableCount: bindingMap.size,
+  };
 };

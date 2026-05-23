@@ -73,12 +73,42 @@ export interface IDroppable {
   canDrop: Accessor<boolean>;
 }
 
+/** Снимок геометрии и клонированного DOM перетаскиваемого элемента. */
+export interface IDragSnapshot {
+  width: number;
+  height: number;
+  /** Deep-клон без event-listeners. Добавляется в overlay-div через ref. */
+  clone: HTMLElement;
+  /** Смещение pointer'а от левого верхнего угла элемента в момент захвата. */
+  offsetX: number;
+  offsetY: number;
+}
+
 export interface IDnDProviderProps {
   children: JSX.Element;
   /** Скроллить window когда pointer у края viewport'а. По умолчанию off. */
   autoScroll?: boolean;
   onDragStart?: (data: DragData, draggableId: DraggableId) => void;
   onDragEnd?: (result: IDragEndResult) => void;
+  /**
+   * Автоматически рендерить drag-ghost при отсутствии явного <DragOverlay>.
+   * По умолчанию off.
+   */
+  showDefaultOverlay?: boolean;
+  /**
+   * Режим built-in ghost'а (работает только при `showDefaultOverlay={true}`):
+   * - `'clone'`     — полноразмерный полупрозрачный клон исходного элемента (default).
+   * - `'thumbnail'` — уменьшенный клон (scale по `overlayScale`), центрируется под курсором.
+   *                   Без opacity — контент читается чётко. Добавляет drop-shadow + primary ring.
+   * - `'mini'`      — маленький 48×48 indigo-box (legacy поведение до 9310870).
+   * - `'none'`      — ghost не рендерится даже при showDefaultOverlay.
+   */
+  overlayMode?: 'clone' | 'thumbnail' | 'mini' | 'none';
+  /**
+   * Масштаб для режима `'thumbnail'`. Зажат в [0.1, 1.0]. По умолчанию 0.4.
+   * Игнорируется в других режимах.
+   */
+  overlayScale?: number;
 }
 
 export type IDragEndResult =

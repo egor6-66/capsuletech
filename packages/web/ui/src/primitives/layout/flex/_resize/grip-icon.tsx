@@ -2,9 +2,12 @@
  * Точечный grip-индикатор по центру handle. Шесть кружков как в shadcn.
  * Поворот для vertical-orientation — через CSS-селектор у родителя handle
  * (`[&[data-orientation=vertical]>div]:rotate-90` в `resizableHandleCva`).
+ *
+ * @param class — optional override for the outer wrapper (e.g. remove border when
+ *   embedded inside a styled button).
  */
-export const GripIcon = () => (
-  <div class="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
+export const GripIcon = (props: { class?: string }) => (
+  <div class={props.class ?? 'z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border'}>
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"

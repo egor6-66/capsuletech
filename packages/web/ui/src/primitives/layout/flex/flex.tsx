@@ -1,7 +1,7 @@
 import { cn } from '@capsuletech/web-style';
 import { createMemo, For, type JSX, Show, splitProps, type ValidComponent } from 'solid-js';
-import { mergeStyle, toGap } from '../grid/utils';
 import { Slot } from '../../slot';
+import { mergeStyle, toGap } from '../grid/utils';
 import { ResizableHandle, ResizablePanel, ResizableRoot } from './_resize/primitives';
 import type {
   FlexAlign,
@@ -72,6 +72,8 @@ interface IResizableFlexProps {
   orientation: FlexOrientation;
   withHandle?: boolean;
   class?: string;
+  /** Forwarded to corvu ResizableRoot — fires whenever panel sizes change. */
+  onSizesChange?: (sizes: number[]) => void;
 }
 
 const ResizableFlex = (props: IResizableFlexProps) => {
@@ -84,7 +86,11 @@ const ResizableFlex = (props: IResizableFlexProps) => {
   const sizes = createMemo(() => fillInitialSizes(items()));
 
   return (
-    <ResizableRoot orientation={props.orientation} class={props.class}>
+    <ResizableRoot
+      orientation={props.orientation}
+      class={props.class}
+      onSizesChange={props.onSizesChange}
+    >
       <For each={items()}>
         {(item, index) => (
           <>
@@ -178,6 +184,7 @@ export const Flex = <T extends ValidComponent = 'div'>(props: IFlexProps<T>) => 
     'style',
     'items',
     'withHandle',
+    'onSizesChange',
   ]);
   const [poly, others] = splitProps(polyAndRest, ['as']);
 
@@ -213,6 +220,7 @@ export const Flex = <T extends ValidComponent = 'div'>(props: IFlexProps<T>) => 
           orientation={orientation()}
           withHandle={own.withHandle}
           class={own.class}
+          onSizesChange={own.onSizesChange}
         />
       </Show>
     );

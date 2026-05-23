@@ -25,6 +25,7 @@ export const createDroppable = <T extends DragData = DragData>(
     cleanupRegister?.();
     cleanupRegister = null;
     if (!el) return;
+    el.dataset.dndDroppable = '';
     cleanupRegister = dnd.registerDroppable({
       id: options.id,
       el,

@@ -204,12 +204,12 @@
     "storybook:build": "storybook build"
   },
   "dependencies": {
-    "@capsuletech/web-dnd": "workspace:*",
     "@corvu/resizable": "^0.2.5",
     "class-variance-authority": "^0.7.1",
     "solid-motionone": "^1.0.4"
   },
   "peerDependencies": {
+    "@capsuletech/web-dnd": "workspace:*",
     "@capsuletech/web-style": "workspace:*",
     "@kobalte/core": "^0.13.0",
     "@tanstack/solid-table": "^8.21.3",

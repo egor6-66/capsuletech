@@ -83,6 +83,11 @@ export interface IFlexOwnProps {
    * Показывать визуальный grip на handle (только в resizable-mode).
    */
   withHandle?: boolean;
+  /**
+   * Callback, fired whenever corvu panel sizes change (только в resizable-mode).
+   * Forwarded to corvu ResizableRoot as `onSizesChange`.
+   */
+  onSizesChange?: (sizes: number[]) => void;
 }
 
 export type IFlexProps<T extends ValidComponent = 'div'> = ISlotProps<T> & IFlexOwnProps;
