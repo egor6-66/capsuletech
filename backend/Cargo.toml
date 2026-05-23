@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
   "fs",
-  "desktop",
   "scriber/core",
   "scriber/ollama",
   "scriber/mcp",

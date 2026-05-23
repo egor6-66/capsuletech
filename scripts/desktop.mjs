@@ -73,7 +73,9 @@ const identifier =
 
 // ─── build override config ───────────────────────────────────────────────────
 
-const desktopDir = resolve(workspaceRoot, 'backend', 'desktop');
+// PR 2 (ADR 017): crate переехал в packages/desktop/native/. Этот скрипт уйдёт в PR 8
+// (логика мигрирует в packages/desktop/src/ в PR 3, CLI-action — в PR 5).
+const desktopDir = resolve(workspaceRoot, 'packages', 'desktop', 'native');
 const overridePath = join(desktopDir, `.tauri.${app}.json`);
 
 const version = flags.version ?? process.env.CAPSULE_VERSION ?? appPkg.version ?? '0.0.0';
