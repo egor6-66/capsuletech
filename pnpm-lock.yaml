@@ -230,6 +230,9 @@ importers:
       '@capsuletech/compliance':
         specifier: workspace:*
         version: link:../compliance
+      '@capsuletech/desktop':
+        specifier: workspace:*
+        version: link:../../desktop
       '@capsuletech/lib-builder':
         specifier: workspace:*
         version: link:../lib
