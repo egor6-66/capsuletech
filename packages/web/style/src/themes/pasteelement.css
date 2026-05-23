@@ -33,7 +33,7 @@
   --sidebar-accent-foreground: oklch(0 0 0);
   --sidebar-border: oklch(0.9401 0 0);
   --sidebar-ring: oklch(0 0 0);
-  --font-sans: var(--font-montserrat), Montserrat, sans-serif;
+  --font-sans: "Montserrat Variable", Montserrat, sans-serif;
   --font-serif: Lora, serif;
   --font-mono: IBM Plex Mono, monospace;
   --radius: 1.4rem;
@@ -89,7 +89,7 @@
   --sidebar-accent-foreground: oklch(0.732 0.2417 335.845);
   --sidebar-border: oklch(0.3289 0.0092 268.3843);
   --sidebar-ring: oklch(0.732 0.2417 335.845);
-  --font-sans: var(--font-montserrat), Montserrat, sans-serif;
+  --font-sans: "Montserrat Variable", Montserrat, sans-serif;
   --font-serif: Lora, serif;
   --font-mono: IBM Plex Mono, monospace;
   --radius: 1.4rem;

@@ -33,7 +33,7 @@
   --sidebar-accent-foreground: oklch(0.4101 0.1589 25.8706);
   --sidebar-border: oklch(0.9379 0.0035 247.8606);
   --sidebar-ring: oklch(0.5778 0.2282 26.5713);
-  --font-sans: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+  --font-sans: "Inter Variable", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: JetBrains Mono, Menlo, monospace;
   --radius: 0.5rem;
@@ -89,7 +89,7 @@
   --sidebar-accent-foreground: oklch(0.8446 0.0747 14.3349);
   --sidebar-border: oklch(0.2569 0.0085 248.1593);
   --sidebar-ring: oklch(0.5778 0.2282 26.5713);
-  --font-sans: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+  --font-sans: "Inter Variable", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: JetBrains Mono, Menlo, monospace;
   --radius: 0.5rem;

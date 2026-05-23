@@ -78,6 +78,29 @@ The Scanner silently ignores non-existent paths, so both variants are safe.
 4. All `@source` paths scan `dist/**/*.mjs`, not `src/**/*.{ts,tsx}` — src is not published.
 5. Adding a new `@capsuletech/web-*` sibling → add both npm and pnpm `@source` paths in `index.css`.
 
+## Font assets
+
+Fonts are loaded via `@fontsource-variable/*` runtime deps — 7 packages, one per font family. They are `@import`-ed at the top of `src/index.css` before any `@theme` directives.
+
+`@layer base` in `src/index.css` sets:
+
+```css
+body { font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); }
+```
+
+Themes set `--font-sans` using the `Variable` suffix name so the variable font is picked up:
+
+```css
+--font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+```
+
+**To add a new font:**
+1. `pnpm add @fontsource-variable/<name> --filter @capsuletech/web-style`
+2. Add `@import '@fontsource-variable/<name>';` at the top of `src/index.css`
+3. Set `--font-sans: '<Name> Variable', '<Name>', <fallback>;` in the target theme CSS
+
+The 7 current fonts: Inter, Geist, DM Sans, Nunito, Plus Jakarta Sans, Bricolage Grotesque, Montserrat. See `OWNERSHIP.md` for the theme-to-font mapping.
+
 ## Changelog
 
 ### 0.1.1 — @source pnpm fix (2026-05-20)

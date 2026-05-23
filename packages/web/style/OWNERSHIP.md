@@ -142,6 +142,33 @@ import { ThemeSwitcher, ThemeEditor } from '@capsuletech/web-style/editor';
 
 localStorage keys: `capsule-theme` (theme name) and `capsule-theme-mode` (`"light"` / `"dark"`). DarkModeToggle falls back to `prefers-color-scheme` on first load. **Phase 2** = fill dark blocks for the remaining 10 themes (damon, deepPurple, …). Until then only `black` has a verified dark variant.
 
+## Font assets (2026-05-23)
+
+7 variable fonts ship as runtime deps via `@fontsource-variable/*`:
+
+| Font | Package | Used in theme(s) |
+|---|---|---|
+| Inter Variable | `@fontsource-variable/inter` | black, minimalNeutral, openprofile, pasteelement, vescrow |
+| Geist Variable | `@fontsource-variable/geist` | damon |
+| DM Sans Variable | `@fontsource-variable/dm-sans` | deepPurple |
+| Nunito Variable | `@fontsource-variable/nunito` | lightGreen |
+| Plus Jakarta Sans Variable | `@fontsource-variable/plus-jakarta-sans` | shopifyRed |
+| Bricolage Grotesque Variable | `@fontsource-variable/bricolage-grotesque` | tiesen |
+| Montserrat Variable | `@fontsource-variable/montserrat` | zen |
+
+`src/index.css` imports all 7 before `@theme`/other directives. `@layer base` applies `body { font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif) }` so `--font-sans` is honoured globally.
+
+**Theme `--font-sans` convention:** reference the `Variable` name with a static-name fallback, e.g.
+
+```css
+--font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+```
+
+**Adding a new font:**
+1. `pnpm add @fontsource-variable/<name> --filter @capsuletech/web-style`
+2. `@import '@fontsource-variable/<name>';` at the top of `src/index.css`
+3. Set `--font-sans: '<Name> Variable', '<Name>', <fallback>;` in the target theme CSS
+
 ## Quirks / gotchas
 
 - **Themes должны быть БЕЗ Tailwind directives.** Никаких `@import "tailwindcss"` или `@layer base { @apply ... }` блоков в `themes/*.css`. **Только** `:root[data-theme="..."] { --background: ...; ... }` variables. Если случайно вернётся — будут duplicate base rules в bundled CSS (~100 копий box-sizing rule). Этот баг **уже** ловили (2026-05-20).

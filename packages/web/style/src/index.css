@@ -1,3 +1,11 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/dm-sans";
+@import "@fontsource-variable/nunito";
+@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/montserrat";
+
 @custom-variant dark (&:is(.dark *));
 
 /* Mapping Tailwind utilities to CSS variables.
@@ -363,6 +371,7 @@
     margin: 0;
     line-height: inherit;
     letter-spacing: var(--tracking-normal, 0em);
+    font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   }
 
   button,

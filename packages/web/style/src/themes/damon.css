@@ -33,7 +33,7 @@
   --sidebar-accent-foreground: oklch(0.06 0.01 270);
   --sidebar-border: oklch(0.94 0 0);
   --sidebar-ring: oklch(0.06 0.01 270);
-  --font-sans: Geist, sans-serif;
+  --font-sans: "Geist Variable", Geist, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Geist Mono, monospace;
   --radius: 0.5rem;
@@ -89,7 +89,7 @@
   --sidebar-accent-foreground: oklch(0.88 0.04 260);
   --sidebar-border: oklch(0.32 0 0);
   --sidebar-ring: oklch(0.72 0 0);
-  --font-sans: Geist, sans-serif;
+  --font-sans: "Geist Variable", Geist, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Geist Mono, monospace;
   --radius: 0.5rem;

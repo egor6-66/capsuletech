@@ -33,7 +33,7 @@
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(0.2445 0.0736 280.5871);
   --sidebar-ring: oklch(0.3447 0.1522 272.4233);
-  --font-sans: Bricolage Grotesque, ui-sans-serif, sans-serif, system-ui;
+  --font-sans: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, sans-serif, system-ui;
   --font-serif: Georgia, serif;
   --font-mono: JetBrains Mono, monospace;
   --radius: 1.25rem;
@@ -89,7 +89,7 @@
   --sidebar-accent-foreground: oklch(0.9924 0.0028 308.4292);
   --sidebar-border: oklch(0.1977 0.0513 278.9472);
   --sidebar-ring: oklch(0.3447 0.1522 272.4233);
-  --font-sans: Bricolage Grotesque, ui-sans-serif, sans-serif, system-ui;
+  --font-sans: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, sans-serif, system-ui;
   --font-serif: Georgia, serif;
   --font-mono: JetBrains Mono, monospace;
   --radius: 1.25rem;
