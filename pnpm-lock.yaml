@@ -320,6 +320,9 @@ importers:
       '@capsuletech/compliance':
         specifier: workspace:*
         version: link:../builders/compliance
+      '@capsuletech/desktop':
+        specifier: workspace:*
+        version: link:../desktop
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../builders/vite

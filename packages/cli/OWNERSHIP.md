@@ -100,12 +100,16 @@ Bin:
 
 18. **`welcome.tsx.template` — Matrix slot object-form only (2026-05-21).** `@capsuletech/web-ui` breaking change: `SlotValue` теперь только `IResizableSlotConfig` (object form). JSX-shorthand `slots={{ main: <X /> }}` больше не работает. Шаблон обновлён на `slots={{ main: { children: <X /> } }}`.
 
-17. **`desktop dev/build` — positional bug.** `url` и `version` не являются настоящими positional args в commander-дереве. Передаются как option flags, но UX промпт подразумевает positional.
+17. **`desktop dev/build` action блокирующий.** `runDev`/`runBuild` из `@capsuletech/desktop` возвращают Promise, который resolved только при завершении tauri-процесса. CLI висит до выхода tauri — это ожидаемое поведение (пользователь видит stdout tauri напрямую через `stdio: 'inherit'`).
+
+18. **`desktop` action читает capsule.config.ts через `importModule` (jiti).** Если `apps/<name>/capsule.config.ts` отсутствует или не резолвится — выводится понятная ошибка. Если секция `desktop` присутствует в config, но пакет `@capsuletech/desktop` не собран — `runDev`/`runBuild` упадут в runtime (не в import-time, т.к. desktop в externals CLI-бандла).
+
+19. **`scripts/desktop.mjs` больше не используется CLI-ом** (начиная с PR 5 — ADR 017). Скрипт остаётся рабочим legacy-entry до PR 8 cleanup. CLI теперь импортирует `@capsuletech/desktop` напрямую.
 
 ## План рефакторинга / оптимизаций
 
 - [ ] **CI bypass для всех команд с prompts** — `git commit`, `git pr`, `release local/prod`, `desktop dev/build`, `create *` с обязательными params. Проверять `isCi()` перед каждым `kit.select/confirm` и падать с понятным сообщением вместо зависания. (priority: high)
-- [ ] **`desktop dev/build` positional args** — исправить dispatcher чтобы `url` и `version` передавались как настоящие positional, а не option flags. (priority: medium)
+- [x] **`desktop dev/build` переписан на `@capsuletech/desktop` API** — убран `execa scripts/desktop.mjs`, action теперь импортирует `runDev`/`runBuild` напрямую. URL/version/dist опциональны, дефолты из `capsule.config.ts` и `package.json`. (PR 5 — ADR 017, 2026-05-23)
 - [ ] **Унифицировать templates** — inline `layers.ts` vs файл-дерево `{app,lib,workspace}`. Обсудить: все inline или все файлы. (priority: low)
 - [ ] **Subcommand drill-in в TUI** — сейчас плоский Detail-pane, нет вложенного меню. Расширение — переделать `src/cli/tui/App.tsx`. (priority: low)
 - [ ] **`gitCommit` — confirm перед `git add -A`** или whitelist режим. (priority: medium)
@@ -142,6 +146,8 @@ node packages/cli/bin/capsule.mjs workspace info
 |---|---|
 | `@capsuletech/vite-builder` — `createDevCapsuleServer`, `buildCapsuleApp` | owner-builders |
 | `@capsuletech/vite-builder` — scaffold-plugin (runtime) | owner-builders |
+| `@capsuletech/vite-builder` — `ICapsuleConfig` type (incl. `desktop?` section) | owner-builders |
+| `@capsuletech/desktop` — `runDev`, `runBuild`, `RunDevOptions`, `RunBuildOptions` | owner-desktop |
 | `@capsuletech/compliance` — peer dep в release-group | owner-builders |
 | `@capsuletech/lib-builder` — peer dep в release-group | owner-builders |
 | Template `__dot__` prefix convention | owner-shared (было shared-file-manager, сейчас inlined) |
