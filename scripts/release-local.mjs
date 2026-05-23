@@ -95,9 +95,23 @@ const SCOPE = '@capsuletech';
 const setupNpmrcScope = () => {
   const npmrcPath = resolve(repoRoot, '.npmrc');
   const backup = existsSync(npmrcPath) ? readFileSync(npmrcPath, 'utf8') : null;
+  // Extract host from REGISTRY url for per-host _authToken line.
+  // npm/pnpm 8+ requires a token configured for the exact host — even when
+  // Verdaccio has `publish: $all`. Without this client-side check throws
+  // ENEEDAUTH before the request is ever sent.
+  // We reuse the same dummy token pattern used for :4873 in the root .npmrc.
+  let registryHost = '';
+  try {
+    const u = new URL(REGISTRY);
+    registryHost = `//${u.host}/`;
+  } catch {}
+  const authLine = registryHost
+    ? `${registryHost}:_authToken=secretVerdaccioToken`
+    : '';
+
   writeFileSync(
     npmrcPath,
-    `${backup ?? ''}\n# release-local temp scope override (registry=${REGISTRY})\n${SCOPE}:registry=${REGISTRY}\n`,
+    `${backup ?? ''}\n# release-local temp scope override (registry=${REGISTRY})\n${SCOPE}:registry=${REGISTRY}\n${authLine}\n`,
   );
   log(`${SCOPE}:registry → ${REGISTRY} (temp, restored on exit)`);
 

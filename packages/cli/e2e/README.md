@@ -27,10 +27,17 @@ Exit code `0` = full chain green. Non-zero exit prints the failed step.
 
 ## Prerequisites
 
-- **Verdaccio запущен** на `http://localhost:4873` (`pnpm verdaccio:registry` в отдельном терминале).
-- **@capsuletech/* опубликованы** (`pnpm release:local:all`).
+None — smoke is **self-contained**:
 
-Если Verdaccio пустой → `pnpm install` упадёт → smoke fail на шаге 2.
+- Spawnит собственный Verdaccio на `:4874` (isolated storage в `verdaccio-tmp/`).
+- Сам публикует все `@capsuletech/*` через `release-local --group=all`.
+- После теста убивает все spawned процессы.
+
+**Port allocation:**
+- `:4874` — зарезервировано для smoke fixture. Должен быть свободен.
+- `:4873` — зарезервировано для **manual Verdaccio** пользователя (`pnpm verdaccio:registry`). Smoke его **не трогает**.
+
+Можно запускать smoke параллельно со своим manual Verdaccio на :4873 — конфликта нет.
 
 ## Why not `capsule-test/` repo
 
