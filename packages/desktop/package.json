@@ -21,7 +21,8 @@
     "build:native": "node scripts/build-native.mjs",
     "build:all": "vite build && node scripts/build-native.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepack": "node scripts/build-native.mjs"
   },
   "dependencies": {},
   "peerDependencies": {},

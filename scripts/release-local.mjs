@@ -196,7 +196,7 @@ if (SHOULD_BUILD) {
     { name: 'shared-compliance', filters: ['--filter', '@capsuletech/compliance'] },
     { name: 'shared-vite', filters: ['--filter', '@capsuletech/vite-builder'] },
     {
-      name: 'shared-* (rest) + web-* (без web-style) + cli',
+      name: 'shared-* (rest) + web-* (без web-style) + cli + desktop',
       filters: [
         '--filter',
         '@capsuletech/shared-*',
@@ -212,6 +212,12 @@ if (SHOULD_BUILD) {
         '!@capsuletech/web-style',
         '--filter',
         '@capsuletech/cli',
+        // @capsuletech/desktop не подпадает под shared-*/web-*/cli pattern —
+        // явный filter. Build = только vite build (PR 3 split: cargo вынесен
+        // в build:native, дёргается через prepack hook перед publish — см.
+        // packages/desktop/OWNERSHIP.md quirk #11).
+        '--filter',
+        '@capsuletech/desktop',
       ],
     },
     { name: 'web-style (Tailwind scan dist сиблингов)', filters: ['--filter', '@capsuletech/web-style'] },

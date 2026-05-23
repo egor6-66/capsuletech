@@ -98,6 +98,8 @@ export function runBuild(opts: RunBuildOptions): Promise<void>;
 
 11. **Build pipeline разделён** (PR 3, CI compat). `pnpm build` = только vite (JS-артефакты, CI-friendly). `pnpm build:native` = cargo + copy бинаря в `dist/bin/` (требует Tauri OS deps + Rust toolchain). `pnpm build:all` = full local pipeline. CI собирает только JS (через `pnpm nx run-many -t build`); бинарь собирается перед release publish — локально (фаза 1) или matrix-build (фаза 2).
 
+12. **`prepack` hook = `node scripts/build-native.mjs`** (PR 6). На каждый `pnpm publish` (release-local.mjs или ручной) cargo build + copy запускается автоматически перед pack — гарантирует `dist/bin/capsule-desktop.exe` в tarball'е. Idempotent (cargo cache); fresh build ~1-2 min, cached ~1-5s. Без prepack tarball был бы broken — `runDev`/`runBuild` consumer'ов (`@capsuletech/cli`) не нашли бы бинарь.
+
 ## План рефакторинга / оптимизаций
 
 PR 1-8 (см. ADR 017 Roadmap):
@@ -107,7 +109,7 @@ PR 1-8 (см. ADR 017 Roadmap):
 - [x] **PR 3** JS wrapper + build pipeline. `scripts/desktop.mjs` логика → `src/`. `pnpm build` = только vite (JS); `pnpm build:native` = cargo + binary copy; `pnpm build:all` = full local pipeline
 - [ ] **PR 4** Config type расширение — секция `desktop` в `defineCapsuleConfig`. Coordinated с owner-builders
 - [ ] **PR 5** CLI command — `capsule desktop dev/build <app>` импортирует `runDev`/`runBuild` напрямую (вместо `execa scripts/desktop.mjs`). Coordinated с owner-cli
-- [ ] **PR 6** Verdaccio publish — добавить `@capsuletech/desktop` в `nx.json:release.groups.cli`. Smoke в `capsule-test`. Coordinated с owner-tests
+- [x] **PR 6** Verdaccio publish — `@capsuletech/desktop` добавлен в `nx.json:release.groups.cli` + `scripts/release-local.mjs` (главный). `prepack` hook гарантирует `dist/bin/` в tarball'е. Smoke в `capsule-test` — coordinated с owner-tests
 - [ ] **PR 7** Docs — `docs/_meta/desktop.md` + `docs/09-backend/desktop.md`. Coordinated с docs-writer
 - [ ] **PR 8** Cleanup — удалить `scripts/desktop.mjs`, alias из root `package.json`, обновить `CLAUDE.md` секцию Desktop
 
@@ -126,7 +128,7 @@ pnpm --filter @capsuletech/desktop test
 
 Перед release:
 ```bash
-pnpm test:e2e:cli   # включает desktop smoke (после PR 6)
+pnpm test:e2e:cli   # включает desktop tarball assertion (после PR 6)
 ```
 
 ## Cross-package dependencies

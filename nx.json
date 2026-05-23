@@ -91,7 +91,8 @@
           "@capsuletech/cli",
           "@capsuletech/vite-builder",
           "@capsuletech/compliance",
-          "@capsuletech/lib-builder"
+          "@capsuletech/lib-builder",
+          "@capsuletech/desktop"
         ],
         "projectsRelationship": "fixed",
         "releaseTagPattern": "cli@{version}",

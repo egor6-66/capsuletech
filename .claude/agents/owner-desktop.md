@@ -111,7 +111,8 @@ packages/desktop/
     "build:native": "node scripts/build-native.mjs",
     "build:all": "vite build && node scripts/build-native.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepack": "node scripts/build-native.mjs"
   },
   "devDependencies": {
     "@capsuletech/vite-builder": "workspace:*",
@@ -181,7 +182,7 @@ export function runBuild(opts: RunBuildOptions): Promise<void>;
 - [ ] **PR 3** JS wrapper (`src/`) + build pipeline (`scripts/build-native.mjs`). Migrate logic из `scripts/desktop.mjs`
 - [ ] **PR 4** Config type — `desktop` section в `defineCapsuleConfig` (coordinated с owner-builders)
 - [ ] **PR 5** CLI command (coordinated с owner-cli) — `capsule desktop dev/build` импортирует `runDev`/`runBuild`
-- [ ] **PR 6** Verdaccio publish (coordinated с owner-tests) — добавить в `nx.json:release.groups.cli`, smoke в `capsule-test`
+- [x] **PR 6** Verdaccio publish — `prepack` hook + `nx.json:release.groups.cli` + `scripts/release-local.mjs` (главный). Smoke в `capsule-test` — coordinated с owner-tests
 - [ ] **PR 7** Docs (coordinated с docs-writer) — `docs/_meta/desktop.md` + `docs/09-backend/desktop.md`
 - [ ] **PR 8** Cleanup (главный) — удалить `scripts/desktop.mjs`, root alias, обновить `CLAUDE.md`
 
@@ -303,7 +304,7 @@ CI job (создаётся в PR 6): `desktop-test.yml` запускает `pnpm
 
 10. **`@tauri-apps/cli` версия pinned в root `package.json:devDependencies`** (`^2.0.0`). При обновлении Tauri major (2 → 3) — coordinate с главным + bump major `@capsuletech/desktop`.
 
-(Список расширяется по мере реализации в PR 2-3.)
+11. **`prepack` lifecycle и `dist/bin/`** (PR 6). `pnpm publish` runs `prepack` → cargo build + copy → `dist/bin/capsule-desktop.exe`. Это гарантирует что tarball содержит бинарь — vite build (emptyOutDir стирает dist/) идёт **до** prepack в release-local flow. Не запускай `vite build` после prepack локально — bin/ исчезнет. Если нужно reset: `pnpm build:all`.
 
 ## Tauri runtime requirements
 
