@@ -103,7 +103,9 @@ describe('Matrix — insert-mode DnD', () => {
     expect(onLayoutChange).not.toHaveBeenCalled();
   });
 
-  it('badge toggles uncontrolled in insert mode (same UX as swap)', () => {
+  it('no global edit-mode badge in insert mode (badge UX removed)', () => {
+    // The old global "Toggle layout edit mode" EditBadge was removed in the
+    // badge-UX redesign. Insert mode is gated by layoutMode prop — no toggle UI.
     cleanup = render(
       () => (
         <Matrix
@@ -122,13 +124,11 @@ describe('Matrix — insert-mode DnD', () => {
       container,
     );
 
-    const badge = container.querySelector(
-      'button[aria-label="Toggle layout edit mode"]',
-    ) as HTMLButtonElement;
-    expect(badge).not.toBeNull();
-    expect(badge.getAttribute('aria-pressed')).toBe('false');
-    badge.click();
-    expect(badge.getAttribute('aria-pressed')).toBe('true');
+    expect(container.querySelector('button[aria-label="Toggle layout edit mode"]')).toBeNull();
+    // DragBadge (swap-mode only) not rendered in insert mode either
+    expect(container.querySelector('[aria-label="Drag to swap cell"]')).toBeNull();
+    // Cells still render
+    expect(container.querySelector('div')).not.toBeNull();
   });
 
   it('rows without id are silently skipped (no draggable bindings)', () => {

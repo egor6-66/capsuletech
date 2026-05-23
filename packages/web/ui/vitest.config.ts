@@ -20,7 +20,6 @@ export default defineConfig({
       deps: {
         inline: [
           /@capsuletech\/web-router/,
-          /@capsuletech\/web-dnd/,
           /@tanstack\/solid-router/,
           /@solidjs\/meta/,
           /@kobalte\/core/,

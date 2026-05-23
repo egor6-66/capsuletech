@@ -14,7 +14,7 @@ import { Dynamic } from 'solid-js/web';
 import { Animate, type AnimateVariant } from '../../wrappers/animate';
 import { Flex } from '../flex/flex';
 import type { IFlexItem } from '../flex/interfaces';
-import { EditBadge } from './dnd/edit-badge';
+import { DragBadge } from './dnd/drag-badge';
 import { createInsertEngine } from './dnd/insert';
 import { createSwapEngine } from './dnd/swap';
 import type { ICell, IMatrixProps, IRow } from './interfaces';
@@ -54,6 +54,17 @@ const animateMain = (
 // Cell renderer — renders one ICell as the correct HTML5 element
 // ---------------------------------------------------------------------------
 
+/**
+ * Per-cell DnD state passed down from the swap engine.
+ * `undefined` when DnD is not active for this cell.
+ */
+interface ICellDndState {
+  draggableId: string;
+  isOver: Accessor<boolean>;
+  canDrop: Accessor<boolean>;
+  showBadge: boolean;
+}
+
 const renderCell = (
   cell: ICell,
   animated: boolean | AnimateVariant | undefined,
@@ -62,11 +73,37 @@ const renderCell = (
   getSwappedChildren: ((cellId: string) => JSX.Element) | undefined,
   /** Ref to apply drag+drop binding (undefined → no binding). */
   cellRef: ((el: HTMLElement) => void) | undefined,
+  /** DnD state for badge rendering + drop highlight. undefined = no DnD on this cell. */
+  dndState: ICellDndState | undefined,
 ): JSX.Element => {
   const tag = cell.tag ?? 'div';
   const isMain = cell.id === 'main';
   const children = getSwappedChildren ? getSwappedChildren(cell.id) : cell.children;
   const content = isMain ? animateMain(children, animated, router) : children;
+
+  // Cells with DnD need `position: relative` to host the absolute badge.
+  // The badge must live outside the scroll container so it stays pinned to
+  // the top-right corner even when cell content (e.g. DataTable) scrolls.
+  // Pattern: outer non-scroll wrapper (relative) → inner absolute inset-0
+  // scroll wrapper (ref) → badge sibling to the inner wrapper.
+  if (dndState) {
+    return (
+      <Dynamic
+        component={tag}
+        class={`${isMain ? matrixSlots.resizeMain : matrixSlots.resizeSlot} relative`}
+        classList={{
+          'ring-2 ring-primary/50 bg-primary/5': dndState.canDrop(),
+          'ring-2 ring-border': dndState.isOver() && !dndState.canDrop(),
+        }}
+      >
+        {/* Inner wrapper takes the DnD ref and clips scrollable content */}
+        <div ref={cellRef} class="absolute inset-0 overflow-hidden">
+          {content}
+        </div>
+        {dndState.showBadge && <DragBadge draggableId={dndState.draggableId} />}
+      </Dynamic>
+    );
+  }
 
   return (
     <Dynamic
@@ -89,12 +126,14 @@ const rowToFlexItems = (
   router: ICapsuleRouter | null,
   getSwappedChildren: ((cellId: string) => JSX.Element) | undefined,
   bindCell: ((cell: ICell, rowId: string | undefined) => (el: HTMLElement) => void) | undefined,
+  getCellDndState: ((cell: ICell) => ICellDndState | undefined) | undefined,
 ): IFlexItem[] =>
   row.cells.map((cell) => {
     const widthIsNumber = typeof cell.width === 'number';
     const cellRef = cell.draggable && bindCell ? bindCell(cell, row.id) : NOOP_REF;
+    const dndState = getCellDndState ? getCellDndState(cell) : undefined;
     return {
-      children: renderCell(cell, animated, router, getSwappedChildren, cellRef),
+      children: renderCell(cell, animated, router, getSwappedChildren, cellRef, dndState),
       resizable: cell.resizable ?? false,
       initialSize: widthIsNumber ? (cell.width as number) : undefined,
       minSize: undefined,
@@ -115,13 +154,21 @@ const renderRow = (
   getSwappedChildren: ((cellId: string) => JSX.Element) | undefined,
   bindCell: ((cell: ICell, rowId: string | undefined) => (el: HTMLElement) => void) | undefined,
   bindRow: ((rowId: string) => (el: HTMLElement) => void) | undefined,
+  getCellDndState: ((cell: ICell) => ICellDndState | undefined) | undefined,
 ): JSX.Element => {
   const hasResizable = rowHasResizable(row);
   // Cross-row drop target ref — only meaningful in insert mode (bindRow defined).
   const rowDropRef = bindRow && row.id ? bindRow(row.id) : NOOP_REF;
 
   if (hasResizable) {
-    const items = rowToFlexItems(row, animated, router, getSwappedChildren, bindCell);
+    const items = rowToFlexItems(
+      row,
+      animated,
+      router,
+      getSwappedChildren,
+      bindCell,
+      getCellDndState,
+    );
     return (
       <div ref={rowDropRef} class="relative h-full min-h-0 flex-1 overflow-hidden">
         <div class="absolute inset-0">
@@ -134,13 +181,14 @@ const renderRow = (
   return (
     <div
       ref={rowDropRef}
-      class="flex min-h-0 w-full overflow-hidden"
+      class="flex h-full min-h-0 w-full overflow-hidden"
       classList={{ 'flex-1': row.height === 'fr' || row.height === undefined }}
     >
       <For each={row.cells}>
         {(cell) => {
           const cellRef = cell.draggable && bindCell ? bindCell(cell, row.id) : NOOP_REF;
-          return renderCell(cell, animated, router, getSwappedChildren, cellRef);
+          const dndState = getCellDndState ? getCellDndState(cell) : undefined;
+          return renderCell(cell, animated, router, getSwappedChildren, cellRef, dndState);
         }}
       </For>
     </div>
@@ -158,12 +206,21 @@ const rowsToVerticalItems = (
   getSwappedChildren: ((cellId: string) => JSX.Element) | undefined,
   bindCell: ((cell: ICell, rowId: string | undefined) => (el: HTMLElement) => void) | undefined,
   bindRow: ((rowId: string) => (el: HTMLElement) => void) | undefined,
+  getCellDndState: ((cell: ICell) => ICellDndState | undefined) | undefined,
 ): IFlexItem[] =>
   rows.map((row) => {
     const heightIsNumber = typeof row.height === 'number';
     const isResizable = row.resizable ?? true;
     return {
-      children: renderRow(row, animated, router, getSwappedChildren, bindCell, bindRow),
+      children: renderRow(
+        row,
+        animated,
+        router,
+        getSwappedChildren,
+        bindCell,
+        bindRow,
+        getCellDndState,
+      ),
       resizable: isResizable,
       initialSize: heightIsNumber ? (row.height as number) : undefined,
     };
@@ -186,12 +243,13 @@ interface IMatrixContentProps {
   router: ICapsuleRouter | null;
   layoutMode: Accessor<'view' | 'edit'>;
   dndMode: Accessor<'swap' | 'insert'>;
-  onBadgeToggle: () => void;
   onLayoutChange: ((e: import('./interfaces').LayoutChangeEvent) => void) | undefined;
 }
 
 const MatrixContent = (props: IMatrixContentProps) => {
-  const swapEnabled = createMemo(() => props.layoutMode() === 'edit' && props.dndMode() === 'swap');
+  // Swap is enabled whenever dndMode is 'swap' — layoutMode is no longer the gate.
+  // Badge visibility (2+ draggable cells) is the UX gate.
+  const swapEnabled = createMemo(() => props.dndMode() === 'swap');
   const insertEnabled = createMemo(
     () => props.layoutMode() === 'edit' && props.dndMode() === 'insert',
   );
@@ -208,14 +266,26 @@ const MatrixContent = (props: IMatrixContentProps) => {
     onLayoutChange: props.onLayoutChange,
   });
 
+  // Badge is shown on each draggable cell only when 2+ draggable cells exist
+  // (otherwise there is nothing to swap with).
+  const showBadges = createMemo(() => swap.draggableCount >= 2 && props.dndMode() === 'swap');
+
   // Effective rows: insert mode mutates layout structure; swap mode does not.
   const effectiveRows = createMemo(() =>
     props.dndMode() === 'insert' ? insert.rows() : props.rows(),
   );
 
-  const hasDraggableCells = createMemo(() =>
-    effectiveRows().some((r) => r.cells.some((c) => c.draggable)),
-  );
+  // Build getCellDndState — returns per-cell badge + highlight state.
+  const getCellDndState = (cell: ICell): ICellDndState | undefined => {
+    if (!cell.draggable || props.dndMode() !== 'swap') return undefined;
+    const { isOver, canDrop } = swap.getCellDropState(cell.id);
+    return {
+      draggableId: swap.getDraggableId(cell.id),
+      isOver,
+      canDrop,
+      showBadge: showBadges(),
+    };
+  };
 
   const renderContent = (): JSX.Element => {
     const rows = effectiveRows();
@@ -227,6 +297,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
     const swapGetChildren = isSwap ? swap.getCellChildren : undefined;
     const swapBind = isSwap ? swap.bindCell : isInsert ? insert.bindCell : undefined;
     const insertBindRow = isInsert ? insert.bindRow : undefined;
+    const cellDndState = isSwap ? getCellDndState : undefined;
 
     // Single row, single cell (centroid shortcut)
     if (rows.length === 1 && rows[0].cells.length === 1 && !rows[0].resizable) {
@@ -235,9 +306,19 @@ const MatrixContent = (props: IMatrixContentProps) => {
       if (!rows[0].height || rows[0].height === 'fr') {
         const children = swapGetChildren ? swapGetChildren(cell.id) : cell.children;
         const cellRef = cell.draggable && swapBind ? swapBind(cell, rows[0].id) : NOOP_REF;
+        const dndState = cellDndState ? cellDndState(cell) : undefined;
         return (
-          <div class="flex h-full w-full items-center justify-center" ref={cellRef}>
-            {isMain ? animateMain(children, props.animated, props.router) : children}
+          <div
+            class="relative flex h-full w-full items-center justify-center"
+            classList={{
+              'ring-2 ring-primary/50 bg-primary/5': dndState?.canDrop() ?? false,
+            }}
+          >
+            {/* Inner wrapper: takes DnD ref; content may scroll inside */}
+            <div ref={cellRef} class="absolute inset-0 overflow-hidden flex items-center justify-center">
+              {isMain ? animateMain(children, props.animated, props.router) : children}
+            </div>
+            {dndState?.showBadge && <DragBadge draggableId={dndState.draggableId} />}
           </div>
         );
       }
@@ -246,21 +327,77 @@ const MatrixContent = (props: IMatrixContentProps) => {
     const useVertical = hasVerticalResizable(rows);
 
     if (useVertical) {
+      // 'auto'-height rows (e.g. header) must not enter the corvu Resizable engine —
+      // they have content-driven height and must be rendered as shrink-0 wrappers.
+      // Only rows with numeric or 'fr' height participate in the resizable Flex so that
+      // fillInitialSizes distributes space correctly among only the sized rows.
+      const hasAutoRows = rows.some((r) => r.height === 'auto');
+
+      if (!hasAutoRows) {
+        // Fast path: no auto rows — feed all rows directly to vertical Flex.
+        const verticalItems = rowsToVerticalItems(
+          rows,
+          props.animated,
+          props.router,
+          swapGetChildren,
+          swapBind,
+          insertBindRow,
+          cellDndState,
+        );
+        return (
+          <div class="relative h-full w-full overflow-hidden">
+            <div class="absolute inset-0">
+              <Flex orientation="vertical" items={verticalItems} withHandle />
+            </div>
+          </div>
+        );
+      }
+
+      // Mixed path: auto-height rows render as shrink-0, the resizable group renders
+      // as a flex-1 block that fills the remaining space.
+      // We build the resizable items from non-auto rows only.
+      const resizableRows = rows.filter((r) => r.height !== 'auto');
       const verticalItems = rowsToVerticalItems(
-        rows,
+        resizableRows,
         props.animated,
         props.router,
         swapGetChildren,
         swapBind,
         insertBindRow,
+        cellDndState,
       );
-      return (
-        <div class="relative h-full w-full overflow-hidden">
-          <div class="absolute inset-0">
-            <Flex orientation="vertical" items={verticalItems} withHandle />
+
+      // Walk rows in order: emit shrink-0 divs for auto rows, and a single flex-1
+      // resizable block at the position of the first non-auto row (skipping the rest).
+      let resizableBlockEmitted = false;
+      const elements: JSX.Element[] = rows.map((row) => {
+        if (row.height === 'auto') {
+          return (
+            <div class="w-full shrink-0">
+              {renderRow(
+                row,
+                props.animated,
+                props.router,
+                swapGetChildren,
+                swapBind,
+                insertBindRow,
+                cellDndState,
+              )}
+            </div>
+          );
+        }
+        if (resizableBlockEmitted) return null;
+        resizableBlockEmitted = true;
+        return (
+          <div class="relative min-h-0 flex-1 overflow-hidden">
+            <div class="absolute inset-0">
+              <Flex orientation="vertical" items={verticalItems} withHandle />
+            </div>
           </div>
-        </div>
-      );
+        );
+      });
+
+      return <div class="flex h-full w-full flex-col overflow-hidden">{elements}</div>;
     }
 
     return (
@@ -277,6 +414,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
                     swapGetChildren,
                     swapBind,
                     insertBindRow,
+                    cellDndState,
                   )}
                 </div>
               );
@@ -288,6 +426,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
               swapGetChildren,
               swapBind,
               insertBindRow,
+              cellDndState,
             );
           }}
         </For>
@@ -295,12 +434,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
     );
   };
 
-  return (
-    <>
-      {renderContent()}
-      {hasDraggableCells() && <EditBadge mode={props.layoutMode} onToggle={props.onBadgeToggle} />}
-    </>
-  );
+  return <>{renderContent()}</>;
 };
 
 // ---------------------------------------------------------------------------
@@ -338,19 +472,16 @@ const MatrixImpl = (props: IMatrixProps) => {
     return (local.rows as IRow[]) ?? [];
   });
 
-  // Uncontrolled local mode
+  // Uncontrolled local mode (kept for insert-mode legacy; not used by badge-UX swap)
   const [localLayoutMode, setLocalLayoutMode] = createSignal<'view' | 'edit'>('view');
   const layoutMode = createMemo(() => local.layoutMode ?? localLayoutMode());
   const dndMode = createMemo(() => local.dndMode ?? 'swap');
 
-  const handleBadgeToggle = () => {
-    if (local.layoutMode === undefined) {
-      setLocalLayoutMode((m) => (m === 'edit' ? 'view' : 'edit'));
-    }
-  };
+  // Kept for controlled layoutMode support (insert mode, future)
+  void setLocalLayoutMode;
 
   return (
-    <DnDProvider>
+    <DnDProvider showDefaultOverlay>
       <div ref={local.ref} class={`${className()} relative`} style={style()} {...(rest as object)}>
         <MatrixContent
           rows={getRows}
@@ -358,7 +489,6 @@ const MatrixImpl = (props: IMatrixProps) => {
           router={router}
           layoutMode={layoutMode}
           dndMode={dndMode}
-          onBadgeToggle={handleBadgeToggle}
           onLayoutChange={local.onLayoutChange}
         />
       </div>
@@ -391,14 +521,14 @@ const MatrixImpl = (props: IMatrixProps) => {
  *    ]} />
  *    ```
  *
- * **DnD / edit-mode (Phase 1.2):**
- * - `layoutMode="edit"` — activates drag handles on `draggable: true` cells.
- * - `dndMode="swap"` (default) — dragging swaps children between cells.
- * - `onLayoutChange` — called with `{ kind: 'swap', a, b }` after each swap.
- * - Without `layoutMode` prop (uncontrolled) — an EditBadge in the top-right
- *   corner toggles edit mode. Badge only appears when any cell has `draggable: true`.
- *
- * SlotValue для preset-mode: `<MyWidget />` или
- * `{ children: <MyWidget />, initialSize: 0.2, draggable: true }`.
+ * **DnD / badge-UX (Phase 1.2 v2):**
+ * - Each resizable draggable cell shows a DragBadge (grip icon) in its top-right corner.
+ * - Badge is visible only when 2+ draggable cells exist in the same swapGroup.
+ * - Mousedown on badge → activates drag for that cell (pointer captured).
+ * - Drop targets highlight with `ring-2 ring-primary/50` during an active drag.
+ * - `onLayoutChange` called with `{ kind: 'swap', a, b }` after each successful swap.
+ * - No global edit badge / no edit mode toggle — drag is always available via badge.
+ * - `layoutMode` prop still accepted (for insert mode / controlled state future use).
+ * - `dndMode` defaults to `'swap'`.
  */
 export const Matrix = MatrixImpl;

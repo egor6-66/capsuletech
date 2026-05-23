@@ -10,6 +10,8 @@ export interface INormalizedSlot {
   minSize?: number;
   maxSize?: number;
   draggable: boolean;
+  /** Свап-группа (передаётся в preset → ICell.swapGroup). */
+  swapGroup?: string;
 }
 
 /**
@@ -37,6 +39,7 @@ export const normalizeSlotValue = (slot: SlotValue | undefined): INormalizedSlot
       minSize?: number;
       maxSize?: number;
       draggable?: boolean;
+      swapGroup?: string;
     };
     return {
       children: config.children,
@@ -44,6 +47,7 @@ export const normalizeSlotValue = (slot: SlotValue | undefined): INormalizedSlot
       minSize: config.minSize,
       maxSize: config.maxSize,
       draggable: config.draggable ?? false,
+      swapGroup: config.swapGroup,
     };
   }
 

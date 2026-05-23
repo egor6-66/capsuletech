@@ -5,8 +5,14 @@
  * function body) because createDraggable / createDroppable call createMemo /
  * createEffect internally — these require an active reactive owner.
  *
- * Manages a cellId→JSX map reflecting current swap state. On drop: swaps
- * entries a↔b and emits onLayoutChange.
+ * v2 badge-UX changes:
+ * - Drag is triggered ONLY via DragBadge (pointerdown on badge → dnd.startDrag).
+ * - Cell element is registered as draggable but with disabled=true so the cell
+ *   surface itself does not start a drag.
+ * - Drop targets show a ring highlight when a drag is active and the cell is a
+ *   valid target (isOver + canDrop).
+ * - `enabled` accessor is no longer tied to layoutMode; caller passes `() => true`
+ *   when 2+ resizable draggable cells exist.
  */
 
 import type { IDraggable, IDroppable } from '@capsuletech/web-dnd';
@@ -20,7 +26,11 @@ import type { ICell, IRow, LayoutChangeEvent } from '../interfaces';
 
 interface ISwapEngineOptions {
   rows: Accessor<IRow[]>;
-  /** True when layoutMode === 'edit' && dndMode === 'swap'. */
+  /**
+   * When false, accepts() returns false (no drops allowed).
+   * In the badge-UX, caller passes `() => true` unconditionally — the badge
+   * is only shown when 2+ resizable cells exist, so swap is always valid.
+   */
   enabled: Accessor<boolean>;
   onLayoutChange?: (e: LayoutChangeEvent) => void;
 }
@@ -29,10 +39,21 @@ export interface ISwapEngine {
   /** Reactive getter of children for a given cellId (reflects swap state). */
   getCellChildren: (cellId: string) => JSX.Element;
   /**
-   * Returns a combined drag+drop ref callback for the given cell element.
-   * Safe for any cell — non-draggable cells get a no-op ref.
+   * Returns a ref callback for the cell element — registers it as a draggable
+   * source + droppable target. The cell element itself does NOT trigger drag
+   * (disabled=true); drag starts from the DragBadge via dnd.startDrag.
    */
   bindCell: (cell: ICell, rowId: string | undefined) => (el: HTMLElement) => void;
+  /**
+   * Returns reactive drop-highlight state for a cell.
+   * `isOver` — pointer is over this cell during an active drag.
+   * `canDrop` — isOver && this cell accepts the active drag payload.
+   */
+  getCellDropState: (cellId: string) => { isOver: Accessor<boolean>; canDrop: Accessor<boolean> };
+  /** Draggable id string for a given cellId — used by DragBadge. */
+  getDraggableId: (cellId: string) => string;
+  /** Number of draggable cells registered (determines badge visibility). */
+  draggableCount: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,10 +149,13 @@ export const createSwapEngine = (opts: ISwapEngineOptions): ISwapEngine => {
     const group = resolveGroup(cell, rowId);
     const cellId = cell.id;
 
+    // disabled=true: badge calls dnd.startDrag directly; the cell element
+    // is registered so the DnD context can track it, but pointerdown on the
+    // cell surface itself does not start a drag.
     const draggable = createDraggable({
       id: `cell:${cellId}`,
       data: () => ({ cellId, swapGroup: group }),
-      disabled: () => !opts.enabled(),
+      disabled: () => true,
     });
 
     const droppable = createDroppable({
@@ -151,7 +175,6 @@ export const createSwapEngine = (opts: ISwapEngineOptions): ISwapEngine => {
           doSwap(d.cellId, cellId);
         }
       },
-      disabled: () => !opts.enabled(),
     });
 
     bindingMap.set(cellId, { draggable, droppable });
@@ -172,5 +195,21 @@ export const createSwapEngine = (opts: ISwapEngineOptions): ISwapEngine => {
       binding.droppable.ref(el);
     };
 
-  return { getCellChildren, bindCell };
+  const getCellDropState = (
+    cellId: string,
+  ): { isOver: Accessor<boolean>; canDrop: Accessor<boolean> } => {
+    const binding = bindingMap.get(cellId);
+    if (!binding) return { isOver: () => false, canDrop: () => false };
+    return { isOver: binding.droppable.isOver, canDrop: binding.droppable.canDrop };
+  };
+
+  const getDraggableId = (cellId: string): string => `cell:${cellId}`;
+
+  return {
+    getCellChildren,
+    bindCell,
+    getCellDropState,
+    getDraggableId,
+    draggableCount: bindingMap.size,
+  };
 };

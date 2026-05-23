@@ -204,7 +204,6 @@
     "storybook:build": "storybook build"
   },
   "dependencies": {
-    "@capsuletech/web-dnd": "workspace:*",
     "@corvu/resizable": "^0.2.5",
     "class-variance-authority": "^0.7.1",
     "solid-motionone": "^1.0.4"

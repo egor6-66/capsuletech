@@ -1,18 +1,22 @@
 /**
- * Tests for swap-mode DnD in Matrix v2 (Phase 1.2).
+ * Tests for swap-mode DnD in Matrix v2 — badge UX (Phase 1.2 v2).
  *
- * Direct DOM pointer-event simulation would couple this to web-dnd's internal
- * pointer-handling. Instead we test the contract:
+ * Badge-UX contract:
+ * - A DragBadge (grip icon button) renders inside each draggable cell when
+ *   2+ draggable cells exist (otherwise no swap target exists).
+ * - No global edit badge / no edit-mode toggle.
+ * - Drag is triggered via badge pointerdown → dnd.startDrag; cell surface
+ *   itself does not initiate drag.
+ * - Drop → onLayoutChange fires with { kind: 'swap', a, b }.
+ * - swapGroup constraint enforced (badge still shown but drop rejected).
  *
- *  - `createSwapEngine` is a pure factory that returns getCellChildren/bindCell.
- *  - On a successful drop callback, onLayoutChange fires with { kind: 'swap', a, b }.
- *  - getCellChildren reflects the swap after onDrop.
- *  - swapGroup constraint is enforced (accepts predicate returns false across groups).
- *
- * We invoke web-dnd's `createDroppable` configuration manually by exercising
- * the `accepts` predicate and `onDrop` handler that `createSwapEngine` would
- * register internally. To do this without poking internals, we render a tiny
- * Matrix instance and read its public surface (`onLayoutChange`).
+ * Full pointer-event DnD is an e2e / Storybook concern. Unit tests cover:
+ *   1. Badge renders when 2+ draggable cells.
+ *   2. Badge NOT rendered when < 2 draggable cells.
+ *   3. Badge count matches draggable cell count.
+ *   4. onLayoutChange handler wires without errors.
+ *   5. Non-draggable cells render without badge.
+ *   6. No crash on preset with only main slot (no draggable cells).
  */
 /* @vitest-environment jsdom */
 import { render } from 'solid-js/web';
@@ -35,12 +39,11 @@ afterEach(() => {
   document.body.removeChild(container);
 });
 
-describe('Matrix — swap-mode DnD', () => {
-  it('renders draggable cells with data-* attributes (web-dnd hooks attached)', () => {
+describe('Matrix — badge-UX swap DnD', () => {
+  it('badge renders on each draggable cell when 2+ draggable cells exist', () => {
     cleanup = render(
       () => (
         <Matrix
-          layoutMode="edit"
           dndMode="swap"
           rows={[
             {
@@ -71,37 +74,149 @@ describe('Matrix — swap-mode DnD', () => {
       container,
     );
 
+    const badges = container.querySelectorAll('[aria-label="Drag to swap cell"]');
+    expect(badges.length).toBe(2);
+    // Cell content still renders
     expect(container.querySelector('[data-testid="cell-a"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="cell-b"]')).not.toBeNull();
   });
 
-  it('non-draggable cells render without ref binding (no error)', () => {
-    expect(() => {
-      cleanup = render(
-        () => (
-          <Matrix
-            preset="app-shell"
-            slots={{
-              header: <div data-testid="hdr">H</div>,
-              main: <div data-testid="main">M</div>,
-              footer: <div data-testid="ftr">F</div>,
-            }}
-          />
-        ),
-        container,
-      );
-    }).not.toThrow();
-
-    expect(container.querySelector('[data-testid="hdr"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="main"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="ftr"]')).not.toBeNull();
-  });
-
-  it('layoutMode toggles via uncontrolled badge — initial view, no DnD active', () => {
+  it('badge NOT rendered when only 1 draggable cell (nothing to swap with)', () => {
     cleanup = render(
       () => (
         <Matrix
-          // No layoutMode → uncontrolled, badge controls it.
+          dndMode="swap"
+          rows={[
+            {
+              id: 'r',
+              resizable: true,
+              cells: [
+                {
+                  id: 'a',
+                  children: <div>A</div>,
+                  draggable: true,
+                  swapGroup: 'g',
+                  width: 0.5,
+                  resizable: true,
+                },
+                {
+                  id: 'b',
+                  children: <div>B</div>,
+                  // NOT draggable
+                  width: 0.5,
+                  resizable: true,
+                },
+              ],
+            },
+          ]}
+        />
+      ),
+      container,
+    );
+
+    const badges = container.querySelectorAll('[aria-label="Drag to swap cell"]');
+    expect(badges.length).toBe(0);
+  });
+
+  it('badge NOT rendered when no draggable cells at all', () => {
+    cleanup = render(
+      () => <Matrix preset="app-shell" slots={{ main: <div data-testid="m">M</div> }} />,
+      container,
+    );
+
+    const badges = container.querySelectorAll('[aria-label="Drag to swap cell"]');
+    expect(badges.length).toBe(0);
+    expect(container.querySelector('[data-testid="m"]')).not.toBeNull();
+  });
+
+  it('3 draggable cells → 3 badges', () => {
+    cleanup = render(
+      () => (
+        <Matrix
+          dndMode="swap"
+          rows={[
+            {
+              id: 'r',
+              resizable: true,
+              cells: [
+                {
+                  id: 'a',
+                  children: <div>A</div>,
+                  draggable: true,
+                  swapGroup: 'g',
+                  width: 0.33,
+                  resizable: true,
+                },
+                {
+                  id: 'b',
+                  children: <div>B</div>,
+                  draggable: true,
+                  swapGroup: 'g',
+                  width: 0.34,
+                  resizable: true,
+                },
+                {
+                  id: 'c',
+                  children: <div>C</div>,
+                  draggable: true,
+                  swapGroup: 'g',
+                  width: 0.33,
+                  resizable: true,
+                },
+              ],
+            },
+          ]}
+        />
+      ),
+      container,
+    );
+
+    const badges = container.querySelectorAll('[aria-label="Drag to swap cell"]');
+    expect(badges.length).toBe(3);
+  });
+
+  it('badge has title="Drag to swap" for discoverability', () => {
+    cleanup = render(
+      () => (
+        <Matrix
+          dndMode="swap"
+          rows={[
+            {
+              id: 'r',
+              resizable: true,
+              cells: [
+                {
+                  id: 'a',
+                  children: <div>A</div>,
+                  draggable: true,
+                  swapGroup: 'g',
+                  width: 0.5,
+                  resizable: true,
+                },
+                {
+                  id: 'b',
+                  children: <div>B</div>,
+                  draggable: true,
+                  swapGroup: 'g',
+                  width: 0.5,
+                  resizable: true,
+                },
+              ],
+            },
+          ]}
+        />
+      ),
+      container,
+    );
+
+    const badge = container.querySelector('[aria-label="Drag to swap cell"]');
+    expect(badge?.getAttribute('title')).toBe('Drag to swap');
+  });
+
+  it('no global edit-mode badge rendered', () => {
+    cleanup = render(
+      () => (
+        <Matrix
           rows={[
             {
               cells: [
@@ -115,32 +230,43 @@ describe('Matrix — swap-mode DnD', () => {
       container,
     );
 
-    // EditBadge renders because at least one cell is draggable.
-    const badge = container.querySelector('button[aria-label="Toggle layout edit mode"]');
-    expect(badge).not.toBeNull();
-    // Initial mode is 'view'.
-    expect(badge!.getAttribute('aria-pressed')).toBe('false');
+    // Old EditBadge used aria-label="Toggle layout edit mode" — must be gone
+    expect(container.querySelector('button[aria-label="Toggle layout edit mode"]')).toBeNull();
   });
 
-  it('badge does NOT render when no cells are draggable', () => {
-    cleanup = render(
-      () => <Matrix preset="app-shell" slots={{ main: <div>only main</div> }} />,
-      container,
-    );
-
-    const badge = container.querySelector('button[aria-label="Toggle layout edit mode"]');
-    expect(badge).toBeNull();
-  });
-
-  it('badge click toggles aria-pressed (uncontrolled mode)', () => {
+  it('non-draggable cells in same row render without badge', () => {
     cleanup = render(
       () => (
         <Matrix
+          dndMode="swap"
           rows={[
             {
+              id: 'r',
+              resizable: true,
               cells: [
-                { id: 'a', children: <div>A</div>, draggable: true, swapGroup: 'g' },
-                { id: 'b', children: <div>B</div>, draggable: true, swapGroup: 'g' },
+                {
+                  id: 'a',
+                  children: <div data-testid="cell-a">A</div>,
+                  draggable: true,
+                  swapGroup: 'g',
+                  width: 0.5,
+                  resizable: true,
+                },
+                {
+                  id: 'b',
+                  children: <div data-testid="cell-b">B</div>,
+                  // NOT draggable
+                  width: 0.5,
+                  resizable: true,
+                },
+                {
+                  id: 'c',
+                  children: <div data-testid="cell-c">C</div>,
+                  draggable: true,
+                  swapGroup: 'g',
+                  width: 0.0,
+                  resizable: true,
+                },
               ],
             },
           ]}
@@ -149,50 +275,19 @@ describe('Matrix — swap-mode DnD', () => {
       container,
     );
 
-    const badge = container.querySelector(
-      'button[aria-label="Toggle layout edit mode"]',
-    ) as HTMLButtonElement;
-    expect(badge.getAttribute('aria-pressed')).toBe('false');
-    badge.click();
-    expect(badge.getAttribute('aria-pressed')).toBe('true');
-    badge.click();
-    expect(badge.getAttribute('aria-pressed')).toBe('false');
+    // 2 draggable cells → 2 badges; non-draggable cell 'b' has no badge
+    const badges = container.querySelectorAll('[aria-label="Drag to swap cell"]');
+    expect(badges.length).toBe(2);
+    expect(container.querySelector('[data-testid="cell-b"]')).not.toBeNull();
   });
 
-  it('controlled layoutMode — badge click does NOT toggle (parent owns state)', () => {
-    cleanup = render(
-      () => (
-        <Matrix
-          layoutMode="view"
-          rows={[
-            {
-              cells: [
-                { id: 'a', children: <div>A</div>, draggable: true, swapGroup: 'g' },
-                { id: 'b', children: <div>B</div>, draggable: true, swapGroup: 'g' },
-              ],
-            },
-          ]}
-        />
-      ),
-      container,
-    );
-
-    const badge = container.querySelector(
-      'button[aria-label="Toggle layout edit mode"]',
-    ) as HTMLButtonElement;
-    expect(badge.getAttribute('aria-pressed')).toBe('false');
-    badge.click();
-    // Still view — parent didn't update layoutMode prop.
-    expect(badge.getAttribute('aria-pressed')).toBe('false');
-  });
-
-  it('onLayoutChange callback is wired (accepts a handler without errors)', () => {
+  it('onLayoutChange handler wires without errors', () => {
     const onLayoutChange = vi.fn();
     expect(() => {
       cleanup = render(
         () => (
           <Matrix
-            layoutMode="edit"
+            dndMode="swap"
             onLayoutChange={onLayoutChange}
             rows={[
               {
@@ -207,8 +302,36 @@ describe('Matrix — swap-mode DnD', () => {
         container,
       );
     }).not.toThrow();
-    // No swap happened — callback not yet invoked. End-to-end swap simulation
-    // requires pointer events; that's a Storybook visual + e2e test concern.
+    // No pointer events fired — callback not invoked yet
     expect(onLayoutChange).not.toHaveBeenCalled();
+  });
+
+  it('preset app-shell with draggable sidebar + rightBar → 2 badges', () => {
+    cleanup = render(
+      () => (
+        <Matrix
+          preset="app-shell"
+          slots={{
+            main: <div data-testid="main">M</div>,
+            sidebar: {
+              children: <div data-testid="sidebar">S</div>,
+              draggable: true,
+              swapGroup: 'aside',
+            },
+            rightBar: {
+              children: <div data-testid="rightBar">R</div>,
+              draggable: true,
+              swapGroup: 'aside',
+            },
+          }}
+        />
+      ),
+      container,
+    );
+
+    const badges = container.querySelectorAll('[aria-label="Drag to swap cell"]');
+    expect(badges.length).toBe(2);
+    expect(container.querySelector('[data-testid="main"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
   });
 });
