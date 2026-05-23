@@ -57,6 +57,10 @@ type: index
 - [[git|🌿 Git workflow — GitHub Flow + Conventional Commits]]
 - [[releases|🚀 Releases — Nx Release, registries, env]]
 
+## 🛠️ Backend & Runtime
+
+- [[09-backend/desktop|Desktop shell (Tauri 2)]] — `@capsuletech/desktop` пакет для запуска приложений в окне
+
 ## 📦 Пакеты
 
 - [[core|@capsuletech/web-core]]
