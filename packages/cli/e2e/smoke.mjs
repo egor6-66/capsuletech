@@ -6,7 +6,7 @@
  *
  * Воспроизводит **prod-сценарий** первого внешнего пользователя:
  *   1. Пустая isolated среда (fixture + verdaccio storage очищены).
- *   2. Spawn Verdaccio на порту 4873 с isolated storage (./verdaccio-tmp/storage).
+ *   2. Spawn Verdaccio на порту 4874 с isolated storage (./verdaccio-tmp/storage).
  *   3. release-local --group=all --tag=latest → publish'ит все @capsuletech/*.
  *   4. CAPSULE_CI=1 capsule create workspace → init fixture workspace.
  *   5. pnpm install (workspace).
@@ -17,8 +17,8 @@
  *  10. Cleanup (kill child tree).
  *
  * Self-contained: НЕ требует running Verdaccio, НЕ требует pre-published
- * packages. Любые external Verdaccio на :4873 — конфликт, fail с понятным
- * error.
+ * packages. Fixture использует :4874 (собственный порт). :4873 зарезервирован
+ * для manual Verdaccio пользователя — smoke его НЕ трогает.
  *
  * Все spawn'д PID-ы tracked. cleanup-on-exit (exit/SIGINT/SIGTERM/uncaught)
  * убивает всё дерево через `taskkill /F /T /PID` (Windows) / `kill -9 -PID`
@@ -31,7 +31,7 @@
  *   node packages/cli/e2e/smoke.mjs
  * ==========================================================================*/
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -42,7 +42,7 @@ const VERDACCIO_TMP_DIR = join(__dirname, 'verdaccio-tmp');
 const VERDACCIO_CONFIG = join(__dirname, 'verdaccio-config.yml');
 const CLI_BIN = join(REPO_ROOT, 'packages', 'cli', 'bin', 'capsule.mjs');
 const RELEASE_LOCAL = join(REPO_ROOT, 'scripts', 'release-local.mjs');
-const VERDACCIO_URL = 'http://localhost:4873';
+const VERDACCIO_URL = 'http://localhost:4874';
 const APP_NAME = 'e2e-app';
 const VERDACCIO_WAIT_MS = 15_000;
 const DEV_WAIT_MS = 30_000;
@@ -146,9 +146,10 @@ const probeUrl = async (url) => {
 };
 
 // ---------------------------------------------------------------------------
-// 0. Pre-flight: освободить :4873. Если занят — мог остаться stale Verdaccio от
-//    предыдущего failed run. Detect owner, kill (только если verdaccio-tmp/ есть
-//    — наш-fixture indicator), иначе fail with explicit message.
+// 0. Pre-flight: освободить :4874 (наш порт). Если занят — мог остаться stale
+//    Verdaccio от предыдущего failed run. Kill только если verdaccio-tmp/ есть
+//    (наш-fixture indicator). Иначе fail с explicit message.
+//    :4873 НЕ трогаем — зарезервирован для manual Verdaccio пользователя.
 // ---------------------------------------------------------------------------
 const killPortOwner = async (port) => {
   if (process.platform !== 'win32') {
@@ -158,34 +159,37 @@ const killPortOwner = async (port) => {
       p.on('close', () => r());
     });
   }
+  // shell: false — powershell.exe is the executable, $-vars must NOT go through cmd.exe
   return new Promise((r) => {
     const p = spawn(
-      'powershell',
+      'powershell.exe',
       [
+        '-NonInteractive',
+        '-NoProfile',
         '-Command',
-        `$c = Get-NetTCPConnection -LocalPort ${port} -ErrorAction SilentlyContinue; if ($c) { $c | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue } }`,
+        `Get-NetTCPConnection -LocalPort ${port} -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }`,
       ],
-      { stdio: 'ignore', shell: true },
+      { stdio: 'ignore', shell: false },
     );
     p.on('close', () => r());
   });
 };
 
-await step('preflight (:4873 free)', async () => {
+await step('preflight (:4874 free)', async () => {
   const status = await probeUrl(VERDACCIO_URL);
   if (status === 0) return;
   // Port занят. Если у нас есть verdaccio-tmp/ — это stale fixture Verdaccio, kill.
   if (existsSync(VERDACCIO_TMP_DIR)) {
-    log(`stale fixture Verdaccio detected on :4873 — killing`);
-    await killPortOwner(4873);
+    log(`stale fixture Verdaccio detected on :4874 — killing`);
+    await killPortOwner(4874);
     await new Promise((r) => setTimeout(r, 1500));
     const after = await probeUrl(VERDACCIO_URL);
-    if (after !== 0) throw new Error(`could not free :4873 after kill (still ${after})`);
+    if (after !== 0) throw new Error(`could not free :4874 after kill (still ${after})`);
     return;
   }
   throw new Error(
-    `port 4873 in use by external Verdaccio (no fixture state found). ` +
-      `Kill your manual Verdaccio before running this fixture.`,
+    `port 4874 in use by something else (no fixture state found). ` +
+      `capsule smoke reserves :4874 — free it before running this fixture.`,
   );
 });
 
@@ -209,7 +213,7 @@ await step('spawn Verdaccio', async () => {
   const verdaccioBin = join(REPO_ROOT, 'node_modules', '.bin',
     process.platform === 'win32' ? 'verdaccio.cmd' : 'verdaccio');
   verdaccioProc = trackChild(
-    spawn(verdaccioBin, ['--config', VERDACCIO_CONFIG, '--listen', '4873'], {
+    spawn(verdaccioBin, ['--config', VERDACCIO_CONFIG, '--listen', '4874'], {
       cwd: __dirname,
       stdio: 'pipe',
       shell: SHELL,
@@ -251,6 +255,32 @@ await step('capsule create workspace', async () => {
   });
   if (code !== 0) throw new Error(`exit ${code}`);
   if (!existsSync(join(FIXTURE_DIR, 'package.json'))) throw new Error('workspace package.json missing');
+});
+
+// ---------------------------------------------------------------------------
+// 4a. Patch fixture .npmrc → point @capsuletech:registry to :4874
+//     The CLI template hardcodes :4873. Smoke runs its own Verdaccio on :4874,
+//     so we rewrite the scaffolded .npmrc to use VERDACCIO_URL here.
+//     Also fix the stale //localhost:4876/ auth token (template typo, see
+//     owner-cli PR #145) to the correct host used by smoke's Verdaccio.
+// ---------------------------------------------------------------------------
+await step('patch fixture .npmrc → :4874', async () => {
+  const npmrcPath = join(FIXTURE_DIR, '.npmrc');
+  if (!existsSync(npmrcPath)) throw new Error('.npmrc not found after workspace scaffold');
+  let content = readFileSync(npmrcPath, 'utf8');
+  // Replace @capsuletech:registry value (any localhost port)
+  content = content.replace(
+    /@capsuletech:registry=http:\/\/localhost:\d+\//,
+    `@capsuletech:registry=${VERDACCIO_URL}/`,
+  );
+  // Replace any stale //localhost:<port>/ auth token lines with correct host
+  const registryHost = new URL(VERDACCIO_URL).host; // localhost:4874
+  content = content.replace(
+    /\/\/localhost:\d+\/:_authToken=\S+/g,
+    `//${registryHost}/:_authToken=secretVerdaccioToken`,
+  );
+  writeFileSync(npmrcPath, content);
+  log(`fixture .npmrc patched → @capsuletech:registry=${VERDACCIO_URL}/`);
 });
 
 // ---------------------------------------------------------------------------
