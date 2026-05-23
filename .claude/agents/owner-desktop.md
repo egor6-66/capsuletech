@@ -183,8 +183,8 @@ export function runBuild(opts: RunBuildOptions): Promise<void>;
 - [ ] **PR 4** Config type — `desktop` section в `defineCapsuleConfig` (coordinated с owner-builders)
 - [ ] **PR 5** CLI command (coordinated с owner-cli) — `capsule desktop dev/build` импортирует `runDev`/`runBuild`
 - [x] **PR 6** Verdaccio publish — `prepack` hook + `nx.json:release.groups.cli` + `scripts/release-local.mjs` (главный). Smoke в `capsule-test` — coordinated с owner-tests
-- [ ] **PR 7** Docs (coordinated с docs-writer) — `docs/_meta/desktop.md` + `docs/09-backend/desktop.md`
-- [ ] **PR 8** Cleanup (главный) — удалить `scripts/desktop.mjs`, root alias, обновить `CLAUDE.md`
+- [x] **PR 7** Docs (docs-writer) — `docs/_meta/desktop.md` (AI-anchor) + `docs/09-backend/desktop.md` (user-guide) + `docs/00-index.md` update
+- [x] **PR 8** Cleanup (главный) — удалили `scripts/desktop.mjs`, root alias из `package.json`, обновили `CLAUDE.md` (новая секция Desktop с ссылками на user-guide + AI-anchor), ADR 017 status → implemented
 
 ### Phase 2 — multi-platform distribution (отдельный ADR)
 
@@ -237,9 +237,9 @@ export function runBuild(opts: RunBuildOptions): Promise<void>;
 | `apps/<app>/capsule.config.ts` | framework-developer | user content, не наша зона |
 | `nx.json:release.groups.cli` | главный | release configuration |
 | `scripts/release-local.mjs` | главный | shared infra |
-| `scripts/desktop.mjs` | главный (удаляется в PR 8) | shared infra |
+| ~~`scripts/desktop.mjs`~~ | удалён в PR 8 (миграция в `packages/desktop/src/runner.ts`) | — |
 | `.claude/agents/owner-desktop.md` (этот файл) | главный | agent definitions правятся главным, не сами собой |
-| `CLAUDE.md` секция Desktop | главный (обновляется в PR 8) | shared doc |
+| `CLAUDE.md` секция Desktop | главный | shared doc (обновлена в PR 8) |
 
 При тривиальном fix в чужой зоне (typo, missing serde derive в shared types) — можешь предложить, но координируй с главным/соответствующим owner'ом.
 
@@ -317,9 +317,9 @@ CI job (создаётся в PR 6): `desktop-test.yml` запускает `pnpm
 - [CLAUDE.md](../../CLAUDE.md) — POLICY section + Backend секция (обновляется в PR 8 → Desktop section)
 - [ADR 017](../../docs/01-architecture/adr/017-desktop-package.md) — контракт пакета и план PR 1-8
 - [packages/desktop/OWNERSHIP.md](../../packages/desktop/OWNERSHIP.md) — конвенция монорепо
-- [docs/_meta/desktop.md](../../docs/_meta/desktop.md) — AI-anchor (после PR 7)
-- [docs/09-backend/desktop.md](../../docs/09-backend/desktop.md) — user-guide (после PR 7)
-- [scripts/desktop.mjs](../../scripts/desktop.mjs) — текущая реализация, мигрирует в `src/` в PR 3, удаляется в PR 8
+- [docs/_meta/desktop.md](../../docs/_meta/desktop.md) — AI-anchor
+- [docs/09-backend/desktop.md](../../docs/09-backend/desktop.md) — user-guide для external consumer'ов
+- ~~`scripts/desktop.mjs`~~ — удалён в PR 8, логика в [packages/desktop/src/runner.ts](../../packages/desktop/src/runner.ts)
 - [owner-scriber](./owner-scriber.md) — sibling Rust зона (backend/scriber/), образец стиля
 - [owner-cli](./owner-cli.md) — consumer (capsule desktop command в PR 5)
 - [owner-builders](./owner-builders.md) — тип `desktop` секции в `defineCapsuleConfig` (PR 4)

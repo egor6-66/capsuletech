@@ -1,13 +1,13 @@
 ---
-tags: [hca, adr, proposed]
-status: proposed
+tags: [hca, adr, implemented]
+status: implemented
 date: 2026-05-23
 ---
 
 # ADR 017 — Desktop package extraction (`@capsuletech/desktop`)
 
-> [!info] Status: proposed
-> Контракт для выноса `backend/desktop/` в самостоятельный npm-пакет `@capsuletech/desktop` + интеграция с `@capsuletech/cli` через команду `capsule desktop`. Реализуется в 8 PR'ах (см. Roadmap).
+> [!success] Status: implemented (2026-05-23)
+> Phase 1 закрыт: 8 PR'ов merged (PR 1 ccdecee → PR 8 cleanup). `@capsuletech/desktop` живёт в `packages/desktop/`, CLI command `capsule desktop dev|build <app>`, Verdaccio publish работает, docs в `docs/09-backend/desktop.md` + `docs/_meta/desktop.md`. Phase 2 (multi-platform) — отдельный ADR при появлении триггера.
 
 ## Контекст
 

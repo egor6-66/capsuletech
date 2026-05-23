@@ -118,11 +118,11 @@ nx g @nx/js:library --name=@capsuletech/X --directory=packages/X --importPath=@c
 # Запуск приложения — всегда из его директории, чтобы Vite видел правильный cwd
 cd apps/sandbox && pnpm dev   # node ../../packages/cli/bin/capsule.mjs (clack-меню)
 
-# Desktop (Tauri 2) — обёртка над любым apps/<app>
+# Desktop (Tauri 2) — обёртка над любым apps/<app>, см. ADR 017
 # dev: сначала запусти apps/<app> как обычно (vite), потом:
-pnpm desktop sandbox --url=http://localhost:5173
+pnpm capsule desktop dev sandbox
 # build: собери apps/<app>, потом:
-pnpm desktop:build sandbox
+pnpm capsule desktop build sandbox
 ```
 
 > [!important]
@@ -135,16 +135,21 @@ pnpm desktop:build sandbox
 ```
 backend/
   fs/                      shared FS-утилиты (общие для всех Rust-crate'ов)
-  desktop/                 Tauri 2 shell — одна обёртка для всех apps/<app>
   scriber/                 LLM-агент (Ollama-based)
     ollama/                lib: HTTP-клиент к Ollama + streaming
     tools/                 lib: tool-calling протокол
     server/                bin `capsule-server`: axum HTTP/SSE
 ```
 
-`pnpm dev:backend` поднимает `capsule-server` (агентский). В будущем рядом со `scriber/` появится отдельный crate для web-test endpoints — `backend/` это и есть **весь** Rust-код проекта.
+`pnpm dev:backend` поднимает `capsule-server` (агентский). В будущем рядом со `scriber/` появится отдельный crate для web-test endpoints — `backend/` это Rust-код агента.
 
-**Desktop shell** (`backend/desktop/`) — параметризуется на лету: `scripts/desktop.mjs` пишет временный override `.tauri.<app>.json` (productName, identifier, devUrl/frontendDist) и дергает `tauri dev|build --config <override>`. Сами апп ничего про Tauri не знают, никаких контроллеров/features для desktop пока нет — Tauri-API подключаем по необходимости позже.
+### Desktop (Tauri 2) — `@capsuletech/desktop`
+
+Tauri-shell вынесен в standalone npm-пакет `packages/desktop/` (ADR 017). Rust crate в `packages/desktop/native/` (standalone Cargo, не member `backend/Cargo.toml`). Public API — `runDev`/`runBuild` принимают typed `IDesktopConfig` из `apps/<app>/capsule.config.ts:desktop`. CLI команда `capsule desktop dev|build <app>` дёргает API напрямую (PR 5).
+
+Параметризация (`productName`, `identifier`, `icon`, `window.*`) — typed секция `desktop?: IDesktopConfig` в `defineCapsuleConfig`. См. [`docs/09-backend/desktop.md`](docs/09-backend/desktop.md) — user-guide, [`docs/_meta/desktop.md`](docs/_meta/desktop.md) — AI-anchor.
+
+Single-platform binary на Phase 1 (multi-platform — Phase 2 отдельным ADR).
 
 ## Архитектурные слои (HCA)
 
