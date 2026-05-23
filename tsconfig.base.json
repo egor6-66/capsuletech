@@ -121,6 +121,9 @@
       ],
       "@capsuletech/canvas-three": [
         "packages/canvas/three/src/index.ts"
+      ],
+      "@capsuletech/desktop": [
+        "packages/desktop/src/index.ts"
       ]
     }
   }

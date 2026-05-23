@@ -10,8 +10,8 @@ last-updated: 2026-05-23
 
 Tauri-shell host для capsule apps. Library с public API `runDev`/`runBuild` (orchestrate Vite + Tauri) + pre-built бинарь (`dist/bin/capsule-desktop[.exe]`). Дёргается из `@capsuletech/cli` командой `capsule desktop dev|build <app>`.
 
-> [!warning] Status: skeleton (фаза 1, PR 1/8)
-> Контракт зафиксирован в [ADR 017](../../docs/01-architecture/adr/017-desktop-package.md). Имплементация в PR 2-8. На текущий момент пакет содержит только package.json + этот OWNERSHIP.md.
+> [!info] Status: JS wrapper + build pipeline implemented (PR 3/8)
+> JS wrapper (`src/`) + build pipeline (`scripts/`) завершены. `runDev`/`runBuild` API готов. Следующее: PR 4 (config type, owner-builders) → PR 5 (CLI action, owner-cli).
 
 ## Зона ответственности
 
@@ -74,20 +74,37 @@ export function runBuild(opts: RunBuildOptions): Promise<void>;
 
 ## Quirks / gotchas
 
-_На текущий момент пусто — пакет skeleton. Будет наполняться в PR 2/3._
+Мигрированы из `scripts/desktop.mjs` + новые из PR 3:
 
-Предсказуемые грабли (мигрируют из `scripts/desktop.mjs` в PR 3):
-- Override-файл `.tauri.<app>.json` нужен только пока tauri-процесс жив — cleanup на SIGINT/SIGTERM/exit/uncaughtException (`scripts/desktop.mjs:124-145`).
-- Windows `--bundles` явный CLI flag — `tauri 2.x --config <file>` иногда лотерея с merge'ом `bundle.targets` (`scripts/desktop.mjs:114-119`).
-- Параметризация в Tauri config: `productName`, `identifier`, `version`, `build.{devUrl,frontendDist,beforeDevCommand,beforeBuildCommand}`, `app.windows[]`, `bundle.active` — все эти поля override'аются на лету.
+1. **Override-файл cleanup идемпотентный.** `cleanedUp` flag + `existsSync` + try/catch в `runner.ts:cleanupOverride`. SIGINT/SIGTERM/exit/uncaughtException — все сходятся в одну функцию. Без идемпотентности double-unlink бросает.
+
+2. **Windows `--bundles` явный CLI flag.** `process.platform === 'win32' && kind === 'build'` → `['--bundles', 'msi,nsis']` в argv. `tauri build --config <file>` merge с `bundle.targets:"all"` ненадёжен — build выходит 0, `target/release/bundle/` пустой.
+
+3. **`spawn` с `shell: true` обязательно.** На Windows pnpm не находится через PATH без `shell: true`. На Unix тоже OK.
+
+4. **`cwd: nativeDir` обязателен для tauri spawn.** Tauri CLI ищет `tauri.conf.json` относительно cwd. Если cwd = workspace root — fail.
+
+5. **`CAPSULE_APP` / `CAPSULE_WORKSPACE_ROOT` env vars** прокидываются в child process. Сохранено из `scripts/desktop.mjs:164` для обратной совместимости.
+
+6. **`.tauri.<app>.json` — per-app имя файла.** Позволяет параллельный запуск двух app'ов (sandbox + agent) одновременно без коллизии файлов.
+
+7. **`beforeDevCommand` / `beforeBuildCommand` всегда пустые.** Tauri иначе попытается запустить свой Vite. Capsule управляет Vite через `@capsuletech/vite-builder`. Обязательный override.
+
+8. **`identifier` — обязательный параметр.** В отличие от старого `scripts/desktop.mjs`, fallback из имени app'а убран. Тип `IDesktopConfig.identifier: string` (не optional). User получает ошибку компиляции если не задал.
+
+9. **Dist `__tests__/` в dts output.** Решено через `tsconfig.json:exclude: ["src/**/__tests__/**"]` — libConfig dts плагин читает этот tsconfig и не эмитит тестовые .d.ts файлы.
+
+10. **`cargo build --release` node-deprecation warning** о `shell: true` с args. Это Node.js DEP0190 (args + shell). Не критично для build-time скрипта — `spawnSync` с `shell: true` нужен на Windows для `cargo` через PATH.
+
+11. **Build pipeline разделён** (PR 3, CI compat). `pnpm build` = только vite (JS-артефакты, CI-friendly). `pnpm build:native` = cargo + copy бинаря в `dist/bin/` (требует Tauri OS deps + Rust toolchain). `pnpm build:all` = full local pipeline. CI собирает только JS (через `pnpm nx run-many -t build`); бинарь собирается перед release publish — локально (фаза 1) или matrix-build (фаза 2).
 
 ## План рефакторинга / оптимизаций
 
 PR 1-8 (см. ADR 017 Roadmap):
 
-- [ ] **PR 1** ADR 017 + skeleton + owner-desktop agent _(in progress)_
-- [ ] **PR 2** Crate move `backend/desktop/` → `packages/desktop/native/`. `backend/Cargo.toml` обновить, убрать `"desktop"` из workspace.members. Cargo standalone (`edition = "2021"`, `version = "0.1.0"`)
-- [ ] **PR 3** JS wrapper + build pipeline. `scripts/desktop.mjs` логика → `src/`. `pnpm build` собирает Rust crate + копирует бинарь в `dist/bin/`
+- [x] **PR 1** ADR 017 + skeleton + owner-desktop agent
+- [x] **PR 2** Crate move `backend/desktop/` → `packages/desktop/native/`. `backend/Cargo.toml` обновить, убрать `"desktop"` из workspace.members. Cargo standalone (`edition = "2021"`, `version = "0.1.0"`)
+- [x] **PR 3** JS wrapper + build pipeline. `scripts/desktop.mjs` логика → `src/`. `pnpm build` = только vite (JS); `pnpm build:native` = cargo + binary copy; `pnpm build:all` = full local pipeline
 - [ ] **PR 4** Config type расширение — секция `desktop` в `defineCapsuleConfig`. Coordinated с owner-builders
 - [ ] **PR 5** CLI command — `capsule desktop dev/build <app>` импортирует `runDev`/`runBuild` напрямую (вместо `execa scripts/desktop.mjs`). Coordinated с owner-cli
 - [ ] **PR 6** Verdaccio publish — добавить `@capsuletech/desktop` в `nx.json:release.groups.cli`. Smoke в `capsule-test`. Coordinated с owner-tests

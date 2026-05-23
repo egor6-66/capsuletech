@@ -112,6 +112,73 @@ importers:
         specifier: ~4.1.0
         version: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
 
+  apps/sandbox:
+    dependencies:
+      '@capsuletech/shared-zod':
+        specifier: workspace:*
+        version: link:../../packages/shared/zod
+      '@capsuletech/web-core':
+        specifier: workspace:*
+        version: link:../../packages/web/core
+      '@capsuletech/web-map':
+        specifier: workspace:*
+        version: link:../../packages/web/map
+      '@capsuletech/web-profiler':
+        specifier: workspace:*
+        version: link:../../packages/web/profiler
+      '@capsuletech/web-query':
+        specifier: workspace:*
+        version: link:../../packages/web/query
+      '@capsuletech/web-renderer':
+        specifier: workspace:*
+        version: link:../../packages/web/renderer
+      '@capsuletech/web-router':
+        specifier: workspace:*
+        version: link:../../packages/web/router
+      '@capsuletech/web-state':
+        specifier: workspace:*
+        version: link:../../packages/web/state
+      '@capsuletech/web-style':
+        specifier: workspace:*
+        version: link:../../packages/web/style
+      '@capsuletech/web-ui':
+        specifier: workspace:*
+        version: link:../../packages/web/ui
+      '@kobalte/core':
+        specifier: ^0.13.0
+        version: 0.13.11(solid-js@1.9.12)
+      '@tanstack/router-core':
+        specifier: ^1.169.0
+        version: 1.171.2
+      '@tanstack/solid-router':
+        specifier: ^1.169.0
+        version: 1.170.4(solid-js@1.9.12)
+      '@tanstack/solid-table':
+        specifier: ^8.21.3
+        version: 8.21.3(solid-js@1.9.12)
+      '@tanstack/solid-virtual':
+        specifier: ^3.13.24
+        version: 3.13.24(solid-js@1.9.12)
+      '@xstate/solid':
+        specifier: ^2.0.0
+        version: 2.0.0(solid-js@1.9.12)(xstate@5.31.1)
+      maplibre-gl:
+        specifier: ^4
+        version: 4.7.1
+      solid-js:
+        specifier: 1.9.12
+        version: 1.9.12
+      xstate:
+        specifier: ^5.0.0
+        version: 5.31.1
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      '@capsuletech/cli':
+        specifier: latest
+        version: 0.1.1(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@testing-library/jest-dom@6.9.1)(@types/react@19.2.15)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+
   packages/builders/biome: {}
 
   packages/builders/compliance:
@@ -302,9 +369,18 @@ importers:
 
   packages/desktop:
     devDependencies:
+      '@capsuletech/lib-builder':
+        specifier: workspace:*
+        version: link:../builders/lib
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../builders/vite
+      '@types/node':
+        specifier: 25.9.0
+        version: 25.9.0
+      vitest:
+        specifier: ~4.1.0
+        version: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
 
   packages/shared/zod:
     dependencies:
@@ -1306,6 +1382,28 @@ packages:
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
+
+  '@capsuletech/cli@0.1.1':
+    resolution: {integrity: sha512-0/Z802E5aBAN22lyU/WSMBPpZlhOvZvJ4PgDVP9zHIVJG3E0DPhkgZgQN2Z3U0vjT8eOVA4yf79Xa+Uaezpk/g==}
+    hasBin: true
+
+  '@capsuletech/compliance@0.1.1':
+    resolution: {integrity: sha512-4c/IXBHX4n3hCgQJVnIK4bpufd0euCfnOSj79iTEypGoNW4LyYwS2z6ZhRHBZzu5l+CTiD/kPSAgpUVby0w3Ww==}
+
+  '@capsuletech/lib-builder@0.1.1':
+    resolution: {integrity: sha512-uMU1V1XHBK7GBVL3f1q+PIuqhT19SQBlpzxaKEXhqdH6JiiwfWp+A1zzULhpNPo9njIvd9FTWPvu50WTVSDvrg==}
+
+  '@capsuletech/vite-builder@0.1.1':
+    resolution: {integrity: sha512-QDtuiyKJPD4ogND+/GTUmR/QIeaW44L1v2Iz5mvqDra4dX4XJxH3Vk3VKTOLGXKfUIt4ZHydAy9Froxx6AqMZw==}
+    peerDependencies:
+      solid-js: 1.9.12
+      solid-refresh: '*'
+      vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
+    peerDependenciesMeta:
+      solid-refresh:
+        optional: true
+      vite:
+        optional: true
 
   '@clack/core@1.3.1':
     resolution: {integrity: sha512-fT1qHVGAag4IEkrupZ6lRRbNCs1vS9P01KB/sG8zKgvUztbYtFBtQpjSITNwooDZ83tpsPzP0mRNs1/KVszCRA==}
@@ -7341,6 +7439,110 @@ snapshots:
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
+
+  '@capsuletech/cli@0.1.1(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))(@testing-library/jest-dom@6.9.1)(@types/react@19.2.15)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))':
+    dependencies:
+      '@capsuletech/compliance': 0.1.1
+      '@capsuletech/vite-builder': 0.1.1(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+      '@clack/prompts': 1.4.0
+      chalk: 5.6.2
+      commander: 14.0.3
+      console-table-printer: 2.15.0
+      execa: 9.6.1
+      ink: 7.0.3(@types/react@19.2.15)(react@19.2.6)
+      ink-text-input: 6.0.0(ink@7.0.3(@types/react@19.2.15)(react@19.2.6))(react@19.2.6)
+      jiti: 2.4.2
+      nx: 22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21))
+      react: 19.2.6
+      string-width: 8.2.1
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@nuxt/kit'
+      - '@rsbuild/core'
+      - '@rspack/core'
+      - '@swc-node/register'
+      - '@swc/core'
+      - '@tanstack/react-router'
+      - '@testing-library/jest-dom'
+      - '@types/react'
+      - '@vue/language-core'
+      - '@vueuse/core'
+      - bufferutil
+      - debug
+      - esbuild
+      - react-devtools-core
+      - rolldown
+      - rollup
+      - solid-js
+      - solid-refresh
+      - supports-color
+      - typescript
+      - utf-8-validate
+      - vite
+      - webpack
+
+  '@capsuletech/compliance@0.1.1':
+    dependencies:
+      '@babel/parser': 7.29.3
+      '@babel/traverse': 7.29.0
+      '@babel/types': 7.29.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@capsuletech/lib-builder@0.1.1(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))':
+    dependencies:
+      vite-plugin-dts: 5.0.0(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+      vite-plugin-solid: 2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+      vite-tsconfig-paths: 6.1.1(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@rspack/core'
+      - '@testing-library/jest-dom'
+      - '@vue/language-core'
+      - esbuild
+      - rolldown
+      - rollup
+      - solid-js
+      - supports-color
+      - typescript
+      - vite
+      - webpack
+
+  '@capsuletech/vite-builder@0.1.1(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(solid-refresh@0.6.3(solid-js@1.9.12))(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))':
+    dependencies:
+      '@babel/generator': 7.29.1
+      '@babel/parser': 7.29.3
+      '@babel/traverse': 7.29.0
+      '@babel/types': 7.29.0
+      '@capsuletech/compliance': 0.1.1
+      '@capsuletech/lib-builder': 0.1.1(@testing-library/jest-dom@6.9.1)(@vue/language-core@3.1.8(typescript@5.9.3))(esbuild@0.27.7)(rolldown@1.0.1)(rollup@4.60.4)(solid-js@1.9.12)(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+      '@nx/devkit': 22.7.2(nx@22.7.2(@swc-node/register@1.11.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/types@0.1.26)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.21)))
+      '@tailwindcss/vite': 4.3.0(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+      '@tanstack/router-vite-plugin': 1.167.6(vite-plugin-solid@2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)))(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+      jiti: 2.4.2
+      solid-js: 1.9.12
+      unplugin-auto-import: 21.0.0
+      vite-plugin-solid: 2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+      vite-tsconfig-paths: 6.1.1(typescript@5.9.3)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+    optionalDependencies:
+      solid-refresh: 0.6.3(solid-js@1.9.12)
+      vite: 8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@nuxt/kit'
+      - '@rsbuild/core'
+      - '@rspack/core'
+      - '@tanstack/react-router'
+      - '@testing-library/jest-dom'
+      - '@vue/language-core'
+      - '@vueuse/core'
+      - esbuild
+      - nx
+      - rolldown
+      - rollup
+      - supports-color
+      - typescript
+      - webpack
 
   '@clack/core@1.3.1':
     dependencies:

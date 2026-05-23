@@ -17,12 +17,18 @@
     "dist"
   ],
   "scripts": {
-    "build": "echo 'PR 3 — build pipeline TBD (vite build + cargo build + copy)'",
-    "test": "echo 'PR 3 — tests TBD'"
+    "build": "vite build",
+    "build:native": "node scripts/build-native.mjs",
+    "build:all": "vite build && node scripts/build-native.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {},
   "peerDependencies": {},
   "devDependencies": {
-    "@capsuletech/vite-builder": "workspace:*"
+    "@capsuletech/vite-builder": "workspace:*",
+    "@capsuletech/lib-builder": "workspace:*",
+    "@types/node": "25.9.0",
+    "vitest": "~4.1.0"
   }
 }
