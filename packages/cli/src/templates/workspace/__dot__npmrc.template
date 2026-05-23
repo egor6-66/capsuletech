@@ -5,7 +5,7 @@ registry=https://registry.npmjs.org/
 # Если Verdaccio не нужен — удали две строки ниже, и @capsuletech/* будут тянуться
 # из публичного npm.
 @capsuletech:registry=http://localhost:4873/
-//localhost:4876/:_authToken=secretVerdaccioToken
+//localhost:4873/:_authToken=secretVerdaccioToken
 
 # Автоустановка peerDependencies — capsule-пакеты декларируют все runtime-singletons
 # (solid-js, xstate, @tanstack/*, @kobalte/core, ...) как peer, и pnpm должен их
