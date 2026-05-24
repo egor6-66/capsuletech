@@ -206,16 +206,21 @@ export function runBuild(opts: RunBuildOptions): Promise<void>;
 
 ## Зависимости (Rust crate)
 
-### `native/Cargo.toml` deps (минимум, после PR 2)
+### `native/Cargo.toml` deps (текущее состояние)
 
-- `tauri = { version = "2", features = [] }` — base shell
+- `tauri = { version = "2", features = [] }` — base shell (resolved `2.11.2`)
+- `tauri-plugin-dialog = "2"` — native file/folder/message dialogs (resolved `2.7.1`)
 - `serde = { version = "1", features = ["derive"] }`
 - `serde_json = "1"`
 - `[build-dependencies] tauri-build = { version = "2", features = [] }`
 
-**НЕТ** dep на `backend/fs/`, `backend/scriber/*` — проверено (текущий `backend/desktop/Cargo.toml` тоже без них). `native/` полностью autonomous.
+Capability: `dialog:default` в `capabilities/default.json` — grants open/save/message/ask.
 
-При добавлении Tauri plugin'а (`tauri-plugin-fs`, `tauri-plugin-dialog`, etc.) — обновить both `Cargo.toml` deps + JS-bindings в `tauri::Builder` через `.plugin(...)` в `lib.rs`.
+**НЕТ** dep на `backend/fs/`, `backend/scriber/*` — `native/` полностью autonomous.
+
+**`@tauri-apps/plugin-dialog` JS bindings** — НЕ peerDep `@capsuletech/desktop`. Apps ставят сами (как `@tauri-apps/api`). Обоснование: `@capsuletech/desktop` — build-time library (node process, spawns Tauri); JS plugin bindings нужны только в webview consumer'а. Coupling сюда — ложная зависимость.
+
+При добавлении нового Tauri plugin'а: (1) dep в `Cargo.toml`, (2) `.plugin(tauri_plugin_X::init())` в `lib.rs`, (3) `"X:default"` в `capabilities/default.json`, (4) `cargo check`, (5) обновить этот список.
 
 ### `src/` JS deps (минимум, после PR 3)
 
