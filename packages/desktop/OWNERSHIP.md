@@ -131,6 +131,20 @@ pnpm --filter @capsuletech/desktop test
 pnpm test:e2e:cli   # включает desktop tarball assertion (после PR 6)
 ```
 
+## Зависимости (Rust crate) — active plugins
+
+| Crate | Version | Purpose |
+|---|---|---|
+| `tauri` | `2` (resolved `2.11.2`) | Tauri core shell |
+| `tauri-plugin-dialog` | `2` (resolved `2.7.1`) | Native file/folder/message dialogs |
+| `serde` / `serde_json` | `1` | JSON serialization (override config) |
+
+Capability key: `dialog:default` — grants all dialog permissions (open file, save file, message, ask). Added to `capabilities/default.json`.
+
+**JS bindings for consumers:** `@tauri-apps/plugin-dialog` — NOT a dep/peerDep of `@capsuletech/desktop`. Apps install it directly alongside `@tauri-apps/api`. Rationale: `@capsuletech/desktop` is a build-time library (node process, spawns Tauri); it has no runtime in the webview. The JS plugin bindings live in the webview context of the consuming app. Mixing concerns into `@capsuletech/desktop` peerDeps would create a fake coupling.
+
+**Adding a new Tauri plugin:** (1) add crate dep to `Cargo.toml`, (2) `.plugin(tauri_plugin_X::init())` in `lib.rs`, (3) add `"X:default"` to `capabilities/default.json`, (4) `cargo check` to verify, (5) update this table + OWNERSHIP.md.
+
 ## Cross-package dependencies
 
 | Зона | Owner |
