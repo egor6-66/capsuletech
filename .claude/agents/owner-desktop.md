@@ -29,7 +29,7 @@ await runBuild({ app: 'sandbox', dist: '/abs/path', desktop: {...}, version: '0.
 4. Cleanup override на любом exit (SIGINT/SIGTERM/uncaughtException/normal).
 
 **Consumer'ы:**
-- **`@capsuletech/cli`** — `capsule desktop dev <app>` / `capsule desktop build <app>` (PR 5)
+- **`@capsuletech/cli`** — `capsule desktop dev` / `capsule desktop build` (PR 5). Имя app'а auto-detect через `ctx.name` (требует `cd apps/<app>/`); positional argument **не принимается** (фикс positional bug #17).
 - **`apps/agent/`** — внутренний Tauri desktop для `backend/scriber/` (будущий, см. owner-scriber Roadmap PR-4)
 - **`capsule-agent-app`** (внешний repo на том же PC через Verdaccio) — пустой пока, будет наполняться после PR 7 (docs)
 
@@ -259,7 +259,7 @@ export function runBuild(opts: RunBuildOptions): Promise<void>;
 | `src/override.ts` | unit | vitest (стандарт) | PR 3 |
 | `src/runner.ts` | integration с mock tauri CLI | vitest + child-process mocking (или execa stub) | PR 3 |
 | `native/` Rust | minimal — `cargo build` smoke | `cargo check` в CI | PR 3 / CI setup в PR 6 |
-| End-to-end | smoke в `capsule-test` | `capsule desktop dev sandbox` → Tauri окно + devUrl ping | PR 6 |
+| End-to-end | smoke в `capsule-test` | `cd apps/sandbox && capsule desktop dev` → Tauri окно + devUrl ping | PR 6 |
 
 Запуск:
 ```bash

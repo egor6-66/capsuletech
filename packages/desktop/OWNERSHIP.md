@@ -119,7 +119,7 @@ PR 1-8 (см. ADR 017 Roadmap):
 |---|---|---|
 | Unit | `src/__tests__/override.test.ts` (PR 3) | scaffolding override config — input → expected `.tauri.<app>.json` |
 | Integration | `src/__tests__/runner.test.ts` (PR 3) | child-process orchestration — mock tauri CLI, проверить spawn args + cleanup |
-| E2E | `packages/cli/e2e/` (PR 6 расширение) | `capsule desktop dev sandbox` — Tauri окно открывается + devUrl connects |
+| E2E | `packages/cli/e2e/` (PR 6 расширение) | `cd apps/sandbox && capsule desktop dev` — Tauri окно открывается + devUrl connects (имя app'а через `ctx.name`, не positional) |
 
 Перед изменением:
 ```bash

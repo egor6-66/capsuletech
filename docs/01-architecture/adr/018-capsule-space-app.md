@@ -76,7 +76,7 @@ apps/capsule-space/
 
 **Naming**:
 - `src/` — capsule HCA convention (vite-builder / CLI / templates ожидают именно `src/`). Не отклоняемся — иначе framework-level change.
-- `back/` — Rust backend. Появляется только в Phase 4 (до этого capsule-space использует generic `@capsuletech/desktop` shell через `capsule desktop dev capsule-space`). В Phase 4 — это **full backend** с Tauri shell + scriber lib embed (не просто generic shell как `packages/desktop/native/`).
+- `back/` — Rust backend. Появляется только в Phase 4 (до этого capsule-space использует generic `@capsuletech/desktop` shell через `cd apps/capsule-space && pnpm capsule desktop dev`). В Phase 4 — это **full backend** с Tauri shell + scriber lib embed (не просто generic shell как `packages/desktop/native/`).
 
 **Почему unified в apps/capsule-space/, а не split (frontend в apps + backend в backend/scriber)?**
 
@@ -109,7 +109,7 @@ User решит после видимого результата. Возможн
 
 | # | Phase | Что | Framework gaps |
 |---|---|---|---|
-| **0** | Scaffold | `apps/capsule-space/{src/, capsule.config.ts, package.json, ...}` — **БЕЗ `back/`**, Tauri окно открывается через `capsule desktop dev capsule-space`, Hello Page | — (использует существующий `@capsuletech/desktop`) |
+| **0** | Scaffold | `apps/capsule-space/{src/, capsule.config.ts, package.json, ...}` — **БЕЗ `back/`**, Tauri окно открывается через `cd apps/capsule-space && pnpm capsule desktop dev`, Hello Page | — (использует существующий `@capsuletech/desktop`) |
 | **1** | Onboarding + persistence | Mini-form name (Page `/onboarding`), Tauri store через `tauri-plugin-store`, redirect на `/workspace` | tauri-plugin-store wiring в `@capsuletech/desktop` (flag → owner-desktop) |
 | **2** | Widget 3 (Projects) | File browser (Tauri fs api), switch projects, LRU last-used | tauri-plugin-fs deps + опционально workspace manager (зависит от §3) |
 | **3** | Widget 2 (Agent Chat) | Single agent, SSE к scriber-server (manually spawned для dev), multi-agent позже | `feat/scriber-v2` rebase + API freeze + SSE через web-query preRequest |
@@ -153,7 +153,7 @@ User описывает виджеты в **одном** workspace с **cross-wi
 
 Отвергнут. Это duplicate `@capsuletech/desktop/native/` без real cause в Phase 0-3. Лучше:
 
-Phase 0-3: НЕТ `apps/capsule-space/back/` вообще. Capsule-space использует `capsule desktop dev capsule-space` как любой другой app (через generic `@capsuletech/desktop`).
+Phase 0-3: НЕТ `apps/capsule-space/back/` вообще. Capsule-space использует `cd apps/capsule-space && pnpm capsule desktop dev` как любой другой app (через generic `@capsuletech/desktop`).
 
 Phase 4: `back/` появляется как либо:
 - **eject pattern** — копия `packages/desktop/native/` + scriber deps, capsule-space переходит на own Cargo build (перестаёт использовать `@capsuletech/desktop`)
@@ -177,7 +177,7 @@ Phase 4: `back/` появляется как либо:
 
 - **Desktop UI запускается Phase 0** (Tauri окно через минуты после scaffold)
 - **Framework gaps flag'аются по мере необходимости** (не upfront over-engineering)
-- **ADR 017 reused** — `capsule desktop dev capsule-space` работает с Phase 0
+- **ADR 017 reused** — `cd apps/capsule-space && pnpm capsule desktop dev` работает с Phase 0
 - **Scriber refactor (feat/scriber-v2) не блокирует UI** — HTTP integration в Phase 3
 - **Widget framework decision информирован** — после Phase 1 видно что реально нужно
 - **Phased rollout мин costly** — каждая phase = visible result + точечный pre-req

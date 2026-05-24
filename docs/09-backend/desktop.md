@@ -79,14 +79,18 @@ pnpm dev
 
 ### Терминал 2: Tauri shell
 
+CLI берёт имя app'а из текущей директории (`ctx.name`), поэтому нужно `cd` сначала:
+
 ```bash
-capsule desktop dev <app>
+cd apps/<app>
+pnpm capsule desktop dev
 ```
 
 Например, если ваше приложение называется `sandbox`:
 
 ```bash
-capsule desktop dev sandbox
+cd apps/sandbox
+pnpm capsule desktop dev
 ```
 
 Tauri окно откроется и подключится к Vite dev-серверу. После этого:
@@ -113,7 +117,8 @@ pnpm build
 ### Сборка Tauri bundle
 
 ```bash
-capsule desktop build <app>
+cd apps/<app>
+pnpm capsule desktop build
 ```
 
 Результаты лежат в `packages/desktop/native/target/release/bundle/`:
@@ -136,7 +141,7 @@ capsule desktop build <app>
 
 1. **Vite dev-сервер запущен?** Откройте в браузере URL который напечатал Vite (обычно `http://localhost:3000`). Если сервер не отвечает → перезапустите его.
 
-2. **Правильный порт в команде?** `capsule desktop dev <app>` автоматически читает `devServerPort` из config'а. Если вы запустили Vite на другом порту → либо измените config, либо передайте URL напрямую (если поддерживается).
+2. **Правильный порт в команде?** `pnpm capsule desktop dev` (из `apps/<app>/`) автоматически читает `devServerPort` из config'а. Если вы запустили Vite на другом порту → либо измените config, либо передайте URL флагом (`--url=http://localhost:5173`).
 
 3. **Tauri CLI установлен?** Проверьте:
    ```bash
@@ -152,8 +157,9 @@ capsule desktop build <app>
 # Очистите target
 cargo clean --manifest-path packages/desktop/native/Cargo.toml
 
-# Пересоберите
-capsule desktop build <app>
+# Пересоберите (из apps/<app>/)
+cd apps/<app>
+pnpm capsule desktop build
 ```
 
 ### ❌ "Override-файл `.tauri.<app>.json` остался в `packages/desktop/native/`"
