@@ -30,6 +30,16 @@ export type SlotValue =
        * общий `swapGroup` на нужных слотах.
        */
       swapGroup?: string;
+      /**
+       * Явный override resizable для slot.
+       *
+       * - header: default = true (vertical resize). Size = initialSize ?? 0.1.
+       * - sidebar/main/rightBar: default = true (horizontal resize).
+       * - footer: default = true (vertical resize row).
+       *
+       * Если не задан — preset применяет свои defaults.
+       */
+      resizable?: boolean;
     };
 
 export interface IRow {

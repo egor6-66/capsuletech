@@ -42,8 +42,8 @@ describe('appShellResolver', () => {
     const [headerRow, middleRow] = rows;
 
     expect(headerRow.id).toBe('header-row');
-    expect(headerRow.height).toBe('auto');
-    expect(headerRow.resizable).toBe(false);
+    expect(headerRow.height).toBe(0.1); // default initialSize
+    expect(headerRow.resizable).toBe(true); // default resizable
     expect(headerRow.cells).toHaveLength(1);
     expect(headerRow.cells[0].id).toBe('header');
     expect(headerRow.cells[0].tag).toBe('header');
@@ -51,8 +51,8 @@ describe('appShellResolver', () => {
 
     expect(middleRow.id).toBe('middle-row');
     expect(middleRow.resizable).toBe(true);
-    // No footer → middle takes full remaining space as 'fr'
-    expect(middleRow.height).toBe('fr');
+    // header=0.1, no footer → middle = 1 - 0.1 - 0 = 0.9
+    expect(middleRow.height).toBe(0.9);
     expect(middleRow.cells).toHaveLength(1);
     expect(middleRow.cells[0].id).toBe('main');
   });
@@ -116,10 +116,10 @@ describe('appShellResolver', () => {
     expect(middleRow.height).toBe('fr');
   });
 
-  it('all 5 slots → middle-row height = 0.7 (footer default 0.3)', () => {
+  it('all 5 slots → middle-row height = 0.6 (header default 0.1 + footer default 0.3)', () => {
     const rows = appShellResolver({ header: H, sidebar: S, main: M, rightBar: R, footer: F });
     const middleRow = rows.find((r) => r.id === 'middle-row')!;
-    expect(middleRow.height).toBe(0.7);
+    expect(middleRow.height).toBe(0.6);
   });
 
   // ---------------------------------------------------------------------------

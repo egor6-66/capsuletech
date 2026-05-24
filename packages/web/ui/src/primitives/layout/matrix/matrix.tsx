@@ -80,6 +80,13 @@ const renderCell = (
   dndState: ICellDndState | undefined,
   /** Reactive: true when any drag is active — suppresses hover events on cell content. */
   isDragging: Accessor<boolean>,
+  /**
+   * True when this cell lives inside a row with `height === 'auto'`.
+   * In that case the outer element is content-driven (no explicit height), so the
+   * inner DnD wrapper MUST NOT use `absolute inset-0` (→ 0×0 box).
+   * Instead it renders inline-relative so the parent grows to fit content.
+   */
+  rowIsAutoHeight: boolean,
 ): JSX.Element => {
   const tag = cell.tag ?? 'div';
   const isMain = cell.id === 'main';
@@ -89,9 +96,24 @@ const renderCell = (
   // Cells with DnD need `position: relative` to host the absolute badge.
   // The badge must live outside the scroll container so it stays pinned to
   // the top-right corner even when cell content (e.g. DataTable) scrolls.
-  // Pattern: outer non-scroll wrapper (relative) → inner absolute inset-0
-  // scroll wrapper (ref) → badge sibling to the inner wrapper.
+  //
+  // Two nesting strategies depending on whether the row has a fixed height:
+  //
+  //   fixed-height row (default): outer relative → inner `absolute inset-0 overflow-auto`
+  //     The inner div fills the outer exactly, enabling overflow-scroll.
+  //
+  //   auto-height row (e.g. header with draggable=true): outer relative →
+  //     inner `relative overflow-auto` (inline, content-driven).
+  //     `absolute inset-0` would collapse to 0×0 because the outer has no
+  //     explicit height — the content would be invisible.
+  //
+  // The badge and drop overlay are `absolute` siblings to the inner wrapper in
+  // both cases; they rely on the outer `relative` container, not the inner.
   if (dndState) {
+    const innerClass = rowIsAutoHeight
+      ? 'relative overflow-auto w-full'
+      : 'absolute inset-0 overflow-auto';
+
     return (
       <Dynamic
         component={tag}
@@ -102,7 +124,7 @@ const renderCell = (
             into cell content (table row hover, map hover, etc.).
             DnD ref lives on the outer wrapper so elementFromPoint() always hits it. */}
         <div
-          class="absolute inset-0 overflow-auto"
+          class={innerClass}
           classList={{ 'pointer-events-none': isDragging() }}
         >
           {content}
@@ -153,21 +175,23 @@ const rowToFlexItems = (
   /** Saved sizes for this row's horizontal panels (index-aligned). */
   savedSizes: number[] | undefined,
   isDragging: Accessor<boolean>,
-): IFlexItem[] =>
-  row.cells.map((cell, i) => {
+): IFlexItem[] => {
+  const rowIsAutoHeight = row.height === 'auto';
+  return row.cells.map((cell, i) => {
     const widthIsNumber = typeof cell.width === 'number';
     const cellRef = cell.draggable && bindCell ? bindCell(cell, row.id) : NOOP_REF;
     const dndState = getCellDndState ? getCellDndState(cell) : undefined;
     // Prefer session-persisted size; fall back to declared cell.width.
     const resolvedSize = savedSizes?.[i] ?? (widthIsNumber ? (cell.width as number) : undefined);
     return {
-      children: renderCell(cell, animated, router, getSwappedChildren, cellRef, dndState, isDragging),
+      children: renderCell(cell, animated, router, getSwappedChildren, cellRef, dndState, isDragging, rowIsAutoHeight),
       resizable: cell.resizable ?? false,
       initialSize: resolvedSize,
       minSize: undefined,
       maxSize: undefined,
     };
   });
+};
 
 const rowHasResizable = (row: IRow): boolean => row.cells.some((c) => c.resizable === true);
 
@@ -218,6 +242,7 @@ const renderRow = (
     );
   }
 
+  const rowIsAutoHeight = row.height === 'auto';
   return (
     <div
       ref={rowDropRef}
@@ -228,7 +253,7 @@ const renderRow = (
         {(cell) => {
           const cellRef = cell.draggable && bindCell ? bindCell(cell, row.id) : NOOP_REF;
           const dndState = getCellDndState ? getCellDndState(cell) : undefined;
-          return renderCell(cell, animated, router, getSwappedChildren, cellRef, dndState, isDragging);
+          return renderCell(cell, animated, router, getSwappedChildren, cellRef, dndState, isDragging, rowIsAutoHeight);
         }}
       </For>
     </div>

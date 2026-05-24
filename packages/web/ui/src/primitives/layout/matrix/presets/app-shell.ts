@@ -6,8 +6,11 @@ type AppShellSlots = LayoutPresets['app-shell'];
 /**
  * Built-in preset resolver для `'app-shell'`.
  *
- * Replicates current Matrix 5-slot layout:
- * - header (top, height='auto', not resizable)
+ * All slots default to `resizable: true`; `initialSize` always sets the initial
+ * row/cell size regardless of resizable flag. `resizable: false` disables only
+ * the interactive resize handle — the size is still `initialSize`.
+ *
+ * - header (top, height = initialSize ?? 0.1, resizable = true by default)
  * - sidebar + main + rightBar (middle row, resizable)
  * - footer (bottom, resizable)
  *
@@ -43,12 +46,15 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
 
   const rows: IRow[] = [];
 
-  // Header row — fixed height ('auto'), not resizable
+  // Header row —
+  //   default: height = initialSize ?? 0.1, resizable = true.
+  //   resizable: false disables the interactive handle but size is still initialSize.
   if (header) {
+    const headerResizable = header.resizable ?? true;
     rows.push({
       id: 'header-row',
-      height: 'auto',
-      resizable: false,
+      height: header.initialSize ?? 0.1,
+      resizable: headerResizable,
       cells: [
         {
           id: 'header',
@@ -56,6 +62,7 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
           children: header.children,
           draggable: header.draggable,
           swapGroup: header.swapGroup ?? 'band',
+          resizable: headerResizable,
         },
       ],
     });
@@ -70,7 +77,7 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
       tag: 'aside',
       children: sidebar.children,
       width: sidebar.initialSize ?? 0.2,
-      resizable: true,
+      resizable: sidebar.resizable ?? true,
       draggable: sidebar.draggable,
       swapGroup: sidebar.swapGroup ?? 'aside',
     });
@@ -88,7 +95,7 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
     tag: 'main',
     children: main.children,
     width: mainWidth,
-    resizable: true,
+    resizable: main.resizable ?? true,
     draggable: main.draggable,
     swapGroup: main.swapGroup,
   });
@@ -99,14 +106,18 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
       tag: 'aside',
       children: rightBar.children,
       width: rightBar.initialSize ?? 0.2,
-      resizable: true,
+      resizable: rightBar.resizable ?? true,
       draggable: rightBar.draggable,
       swapGroup: rightBar.swapGroup ?? 'aside',
     });
   }
 
+  const headerInitialSize = header ? (header.initialSize ?? 0.1) : 0;
   const footerInitialSize = footer ? (footer.initialSize ?? 0.3) : 0;
-  const middleHeight: number | 'fr' = footer ? Math.max(0.1, 1 - footerInitialSize) : 'fr';
+  const middleHeight: number | 'fr' =
+    header || footer
+      ? Math.max(0.1, Math.round((1 - headerInitialSize - footerInitialSize) * 1e10) / 1e10)
+      : 'fr';
 
   rows.push({
     id: 'middle-row',
@@ -115,12 +126,12 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
     cells: middleCells,
   });
 
-  // Footer row — resizable
+  // Footer row — resizable by default
   if (footer) {
     rows.push({
       id: 'footer-row',
       height: footer.initialSize ?? 0.3,
-      resizable: true,
+      resizable: footer.resizable ?? true,
       cells: [
         {
           id: 'footer',
@@ -128,6 +139,7 @@ export const appShellResolver = (slots: AppShellSlots): IRow[] => {
           children: footer.children,
           draggable: footer.draggable,
           swapGroup: footer.swapGroup ?? 'band',
+          resizable: footer.resizable ?? true,
         },
       ],
     });
