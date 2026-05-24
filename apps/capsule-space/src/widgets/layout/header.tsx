@@ -1,5 +1,5 @@
 const Header = Widget((Ui) => (
-  <div class="h-full w-full flex items-center justify-between px-layout py-component border-b border-border gap-cell">
+  <div class="w-full flex items-center justify-between px-layout py-tight border-b border-border gap-cell">
     {/* Brand */}
     <div class="flex items-center gap-cell-tight">
       <span class="text-lg font-semibold tracking-tight">CAPSULE SPACE</span>
@@ -12,6 +12,7 @@ const Header = Widget((Ui) => (
     <div class="flex items-center gap-cell-tight">
       <Ui.ThemeSwitcher />
       <Ui.DarkModeToggle />
+      <Widgets.Layout.WindowControls />
     </div>
   </div>
 ));
