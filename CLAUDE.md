@@ -119,10 +119,11 @@ nx g @nx/js:library --name=@capsuletech/X --directory=packages/X --importPath=@c
 cd apps/sandbox && pnpm dev   # node ../../packages/cli/bin/capsule.mjs (clack-меню)
 
 # Desktop (Tauri 2) — обёртка над любым apps/<app>, см. ADR 017
-# dev: сначала запусти apps/<app> как обычно (vite), потом:
-pnpm capsule desktop dev sandbox
+# CLI auto-detect'ит app из cwd через ctx.name → cd обязателен.
+# dev: сначала запусти apps/<app> как обычно (vite), потом в другом терминале:
+cd apps/<app> && pnpm capsule desktop dev
 # build: собери apps/<app>, потом:
-pnpm capsule desktop build sandbox
+cd apps/<app> && pnpm capsule desktop build
 ```
 
 > [!important]

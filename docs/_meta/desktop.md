@@ -168,7 +168,7 @@ CI (`pnpm nx run-many -t build`) runs only `pnpm build` (no cargo). `pnpm build:
 | Unit | `src/__tests__/override.test.ts` | scaffolding: input → expected `.tauri.<app>.json` |
 | Integration | `src/__tests__/runner.test.ts` | spawn orchestration: mock tauri, check args + cleanup |
 | Smoke (Rust) | CI | `cargo check --manifest-path packages/desktop/native/Cargo.toml` |
-| E2E | `packages/cli/e2e/` (после PR 6) | `capsule desktop dev sandbox` → Tauri окно + devUrl connects |
+| E2E | `packages/cli/e2e/` (после PR 6) | `cd apps/sandbox && capsule desktop dev` → Tauri окно + devUrl connects |
 
 ## Что менять когда
 
