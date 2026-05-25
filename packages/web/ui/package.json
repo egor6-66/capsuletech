@@ -227,7 +227,7 @@
     "lucide-solid": "^1.16.0",
     "storybook": "^10",
     "storybook-solidjs-vite": "^10",
-    "vite": "^8.0.13",
+    "vite": "^8.0.14",
     "vite-plugin-solid": "^2.11.12",
     "vite-tsconfig-paths": "^6.1.1"
   }
