@@ -71,6 +71,8 @@ interface IResizableFlexProps {
   items: IFlexItem[];
   orientation: FlexOrientation;
   withHandle?: boolean;
+  /** Disable handle pointer interaction (layout still applies). */
+  handleDisabled?: boolean;
   class?: string;
   /** Forwarded to corvu ResizableRoot — fires whenever panel sizes change. */
   onSizesChange?: (sizes: number[]) => void;
@@ -109,7 +111,11 @@ const ResizableFlex = (props: IResizableFlexProps) => {
                 return !!next && item.resizable !== false && next.resizable !== false;
               })()}
             >
-              <ResizableHandle withHandle={props.withHandle} />
+              <ResizableHandle
+                withHandle={props.withHandle}
+                disabled={props.handleDisabled}
+                classList={{ 'pointer-events-none': !!props.handleDisabled }}
+              />
             </Show>
           </>
         )}
@@ -184,6 +190,7 @@ export const Flex = <T extends ValidComponent = 'div'>(props: IFlexProps<T>) => 
     'style',
     'items',
     'withHandle',
+    'handleDisabled',
     'onSizesChange',
   ]);
   const [poly, others] = splitProps(polyAndRest, ['as']);
@@ -219,6 +226,7 @@ export const Flex = <T extends ValidComponent = 'div'>(props: IFlexProps<T>) => 
           items={own.items!}
           orientation={orientation()}
           withHandle={own.withHandle}
+          handleDisabled={own.handleDisabled}
           class={own.class}
           onSizesChange={own.onSizesChange}
         />

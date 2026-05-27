@@ -87,6 +87,17 @@ const renderCell = (
    * Instead it renders inline-relative so the parent grows to fit content.
    */
   rowIsAutoHeight: boolean,
+  /**
+   * Reactive layout mode. В `'edit'` показываем edit-affordances (dashed border
+   * на interactive cells + drag-badges). В `'view'` — чистый рендер без какого
+   * либо UI-намёка на возможность ресайза/переноса.
+   */
+  layoutMode: Accessor<'view' | 'edit'>,
+  /**
+   * True если эта cell хоть как-то interactive (draggable | cell.resizable |
+   * родительский row.resizable). Только interactive-cells получают edit-border.
+   */
+  isInteractive: boolean,
 ): JSX.Element => {
   const tag = cell.tag ?? 'div';
   const isMain = cell.id === 'main';
@@ -119,6 +130,13 @@ const renderCell = (
         component={tag}
         ref={cellRef}
         class={`${isMain ? matrixSlots.resizeMain : matrixSlots.resizeSlot} relative`}
+        classList={{
+          // Persistent edit-affordance: тонкая dashed-рамка на interactive
+          // cells показывает зону, которую можно перетаскивать / ресайзить.
+          // Только в layoutMode='edit'. В drag-time доминирует overlay ниже.
+          'outline outline-1 outline-dashed outline-border outline-offset-[-1px]':
+            isInteractive && layoutMode() === 'edit',
+        }}
       >
         {/* Inner scroll wrapper; pointer-events-none during drag prevents hover leaking
             into cell content (table row hover, map hover, etc.).
@@ -155,6 +173,12 @@ const renderCell = (
       component={tag}
       ref={cellRef}
       class={isMain ? matrixSlots.resizeMain : matrixSlots.resizeSlot}
+      classList={{
+        // Non-DnD path: cell не draggable, но может быть resizable
+        // (через cell.resizable или row.resizable). Edit-affordance тут же.
+        'outline outline-1 outline-dashed outline-border outline-offset-[-1px]':
+          isInteractive && layoutMode() === 'edit',
+      }}
     >
       {content}
     </Dynamic>
@@ -175,6 +199,7 @@ const rowToFlexItems = (
   /** Saved sizes for this row's horizontal panels (index-aligned). */
   savedSizes: number[] | undefined,
   isDragging: Accessor<boolean>,
+  layoutMode: Accessor<'view' | 'edit'>,
 ): IFlexItem[] => {
   const rowIsAutoHeight = row.height === 'auto';
   return row.cells.map((cell, i) => {
@@ -183,8 +208,24 @@ const rowToFlexItems = (
     const dndState = getCellDndState ? getCellDndState(cell) : undefined;
     // Prefer session-persisted size; fall back to declared cell.width.
     const resolvedSize = savedSizes?.[i] ?? (widthIsNumber ? (cell.width as number) : undefined);
+    const isInteractive =
+      !!cell.draggable || !!cell.resizable || !!row.resizable;
     return {
-      children: renderCell(cell, animated, router, getSwappedChildren, cellRef, dndState, isDragging, rowIsAutoHeight),
+      children: renderCell(
+        cell,
+        animated,
+        router,
+        getSwappedChildren,
+        cellRef,
+        dndState,
+        isDragging,
+        rowIsAutoHeight,
+        layoutMode,
+        isInteractive,
+      ),
+      // resizable не gate'ится по layoutMode: иначе все items станут resizable=false,
+      // Flex переключится в StaticItemsFlex (без corvu Panel) и cells схлопнутся в 0.
+      // Layout-mode выключает handle через `withHandle` + `handleDisabled` (см. вызовы Flex ниже).
       resizable: cell.resizable ?? false,
       initialSize: resolvedSize,
       minSize: undefined,
@@ -212,6 +253,7 @@ const renderRow = (
   /** Called when corvu reports new horizontal sizes for this row. */
   onRowSizesChange: ((sizes: number[]) => void) | undefined,
   isDragging: Accessor<boolean>,
+  layoutMode: Accessor<'view' | 'edit'>,
 ): JSX.Element => {
   const hasResizable = rowHasResizable(row);
   // Cross-row drop target ref — only meaningful in insert mode (bindRow defined).
@@ -227,14 +269,17 @@ const renderRow = (
       getCellDndState,
       savedSizes,
       isDragging,
+      layoutMode,
     );
+    const isEdit = layoutMode() === 'edit';
     return (
       <div ref={rowDropRef} class="relative h-full min-h-0 flex-1 overflow-hidden">
         <div class="absolute inset-0">
           <Flex
             orientation="horizontal"
             items={items}
-            withHandle
+            withHandle={isEdit}
+            handleDisabled={!isEdit}
             onSizesChange={onRowSizesChange}
           />
         </div>
@@ -253,7 +298,20 @@ const renderRow = (
         {(cell) => {
           const cellRef = cell.draggable && bindCell ? bindCell(cell, row.id) : NOOP_REF;
           const dndState = getCellDndState ? getCellDndState(cell) : undefined;
-          return renderCell(cell, animated, router, getSwappedChildren, cellRef, dndState, isDragging, rowIsAutoHeight);
+          const isInteractive =
+            !!cell.draggable || !!cell.resizable || !!row.resizable;
+          return renderCell(
+            cell,
+            animated,
+            router,
+            getSwappedChildren,
+            cellRef,
+            dndState,
+            isDragging,
+            rowIsAutoHeight,
+            layoutMode,
+            isInteractive,
+          );
         }}
       </For>
     </div>
@@ -279,9 +337,11 @@ const rowsToVerticalItems = (
   /** Called when a horizontal row's corvu sizes change. Key = rowId ?? "r<index>". */
   onRowSizesChange: ((rowKey: string, sizes: number[]) => void) | undefined,
   isDragging: Accessor<boolean>,
-): IFlexItem[] =>
-  rows.map((row, i) => {
+  layoutMode: Accessor<'view' | 'edit'>,
+): IFlexItem[] => {
+  return rows.map((row, i) => {
     const heightIsNumber = typeof row.height === 'number';
+    // resizable не gate'ится по layoutMode (см. комментарий в rowToFlexItems).
     const isResizable = row.resizable ?? true;
     const rowKey = row.id ?? `r${i}`;
     const rowSaved = getRowSavedSizes ? getRowSavedSizes(rowKey) : undefined;
@@ -303,11 +363,13 @@ const rowsToVerticalItems = (
         rowSaved,
         rowOnChange,
         isDragging,
+        layoutMode,
       ),
       resizable: isResizable,
       initialSize: resolvedHeight,
     };
   });
+};
 
 const hasVerticalResizable = (rows: IRow[]): boolean =>
   rows.some((r) => r.resizable === true || typeof r.height === 'number');
@@ -352,9 +414,11 @@ const MatrixContent = (props: IMatrixContentProps) => {
   const dnd = useDnD();
   const isDragging = createMemo(() => dnd.state.activeId() !== null);
 
-  // Swap is enabled whenever dndMode is 'swap' — layoutMode is no longer the gate.
-  // Badge visibility (2+ draggable cells) is the UX gate.
-  const swapEnabled = createMemo(() => props.dndMode() === 'swap');
+  // Swap / insert / badges все gate'ятся по layoutMode. В 'view' — статичный
+  // layout без DnD UI; в 'edit' — DnD активен и виден.
+  const swapEnabled = createMemo(
+    () => props.layoutMode() === 'edit' && props.dndMode() === 'swap',
+  );
   const insertEnabled = createMemo(
     () => props.layoutMode() === 'edit' && props.dndMode() === 'insert',
   );
@@ -398,7 +462,12 @@ const MatrixContent = (props: IMatrixContentProps) => {
 
   // Badge is shown on each draggable cell only when 2+ draggable cells exist
   // (otherwise there is nothing to swap with).
-  const showBadges = createMemo(() => swap.draggableCount >= 2 && props.dndMode() === 'swap');
+  const showBadges = createMemo(
+    () =>
+      props.layoutMode() === 'edit' &&
+      swap.draggableCount >= 2 &&
+      props.dndMode() === 'swap',
+  );
 
   // Effective rows: insert mode mutates layout structure; swap mode does not.
   const effectiveRows = createMemo(() =>
@@ -495,6 +564,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
           getRowSavedSizes,
           onRowSizesChange,
           isDragging,
+          props.layoutMode,
         );
         return (
           <div class="relative h-full w-full overflow-hidden">
@@ -502,7 +572,8 @@ const MatrixContent = (props: IMatrixContentProps) => {
               <Flex
                 orientation="vertical"
                 items={verticalItems}
-                withHandle
+                withHandle={props.layoutMode() === 'edit'}
+                handleDisabled={props.layoutMode() !== 'edit'}
                 onSizesChange={onVerticalSizesChange}
               />
             </div>
@@ -526,6 +597,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
         getRowSavedSizes,
         onRowSizesChange,
         isDragging,
+        props.layoutMode,
       );
 
       // Walk rows in order: emit shrink-0 divs for auto rows, and a single flex-1
@@ -547,6 +619,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
                 getRowSavedSizes(rowKey),
                 (sizes) => onRowSizesChange(rowKey, sizes),
                 isDragging,
+                props.layoutMode,
               )}
             </div>
           );
@@ -559,7 +632,8 @@ const MatrixContent = (props: IMatrixContentProps) => {
               <Flex
                 orientation="vertical"
                 items={verticalItems}
-                withHandle
+                withHandle={props.layoutMode() === 'edit'}
+                handleDisabled={props.layoutMode() !== 'edit'}
                 onSizesChange={onVerticalSizesChange}
               />
             </div>
@@ -589,6 +663,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
                     getRowSavedSizes(rowKey),
                     (sizes) => onRowSizesChange(rowKey, sizes),
                     isDragging,
+                    props.layoutMode,
                   )}
                 </div>
               );
@@ -604,6 +679,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
               getRowSavedSizes(rowKey),
               (sizes) => onRowSizesChange(rowKey, sizes),
               isDragging,
+              props.layoutMode,
             );
           }}
         </For>

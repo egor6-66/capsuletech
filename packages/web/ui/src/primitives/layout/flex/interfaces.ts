@@ -84,6 +84,15 @@ export interface IFlexOwnProps {
    */
   withHandle?: boolean;
   /**
+   * Отключить интерактивность всех resize-handles (только в resizable-mode).
+   * Layout остаётся живым (panels рендерятся, размеры применены), но pointer-drag
+   * по разделителю не сработает — handle получает `disabled` от corvu +
+   * `pointer-events: none` дополнительно, чтобы блокировать hover-cursor.
+   *
+   * Use case: Matrix `layoutMode='view'` — статичный layout без resize-affordance.
+   */
+  handleDisabled?: boolean;
+  /**
    * Callback, fired whenever corvu panel sizes change (только в resizable-mode).
    * Forwarded to corvu ResizableRoot as `onSizesChange`.
    */

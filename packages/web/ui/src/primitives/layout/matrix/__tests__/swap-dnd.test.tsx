@@ -44,7 +44,7 @@ describe('Matrix — badge-UX swap DnD', () => {
     cleanup = render(
       () => (
         <Matrix
-          dndMode="swap"
+          dndMode="swap" layoutMode="edit"
           rows={[
             {
               id: 'r',
@@ -85,7 +85,7 @@ describe('Matrix — badge-UX swap DnD', () => {
     cleanup = render(
       () => (
         <Matrix
-          dndMode="swap"
+          dndMode="swap" layoutMode="edit"
           rows={[
             {
               id: 'r',
@@ -133,7 +133,7 @@ describe('Matrix — badge-UX swap DnD', () => {
     cleanup = render(
       () => (
         <Matrix
-          dndMode="swap"
+          dndMode="swap" layoutMode="edit"
           rows={[
             {
               id: 'r',
@@ -179,7 +179,7 @@ describe('Matrix — badge-UX swap DnD', () => {
     cleanup = render(
       () => (
         <Matrix
-          dndMode="swap"
+          dndMode="swap" layoutMode="edit"
           rows={[
             {
               id: 'r',
@@ -238,7 +238,7 @@ describe('Matrix — badge-UX swap DnD', () => {
     cleanup = render(
       () => (
         <Matrix
-          dndMode="swap"
+          dndMode="swap" layoutMode="edit"
           rows={[
             {
               id: 'r',
@@ -287,7 +287,7 @@ describe('Matrix — badge-UX swap DnD', () => {
       cleanup = render(
         () => (
           <Matrix
-            dndMode="swap"
+            dndMode="swap" layoutMode="edit"
             onLayoutChange={onLayoutChange}
             rows={[
               {
@@ -311,6 +311,7 @@ describe('Matrix — badge-UX swap DnD', () => {
       () => (
         <Matrix
           preset="app-shell"
+          layoutMode="edit"
           slots={{
             main: <div data-testid="main">M</div>,
             sidebar: {
