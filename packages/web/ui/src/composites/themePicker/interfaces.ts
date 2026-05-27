@@ -18,4 +18,15 @@ export interface IThemePickerProps {
   triggerLabel?: string | JSX.Element;
   /** Extra CSS classes forwarded to the trigger button. */
   class?: string;
+  /**
+   * Render mode.
+   *  - `'standalone'` (default) — own `<Dropdown>` root + Trigger + Content.
+   *    Используется как полностью самостоятельный widget (settings page,
+   *    toolbar, etc.).
+   *  - `'sub'` — `<Dropdown.Sub>` + `SubTrigger` + `SubContent`. Используется
+   *    ВНУТРИ другого `<Dropdown.Content>` как nested submenu (header menu,
+   *    context menu и т.п.). Открытие/закрытие синхронизировано с parent
+   *    через Kobalte context — без конфликта focus / outside-click.
+   */
+  mode?: 'standalone' | 'sub';
 }

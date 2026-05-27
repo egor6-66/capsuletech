@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite';
 import { createSignal } from 'solid-js';
 
+import { Dropdown } from '../../primitives/dropdown';
 import { ThemePicker } from './themePicker';
 
 const meta = {
@@ -44,6 +45,24 @@ export const Subset: Story = {
 export const CustomTriggerLabel: Story = {
   name: 'custom trigger label',
   render: () => <ThemePicker triggerLabel="Choose theme" />,
+};
+
+// ---------------------------------------------------------------------------
+// Nested — sub mode inside a parent Dropdown
+// ---------------------------------------------------------------------------
+
+export const Nested: Story = {
+  name: 'nested · sub mode inside parent Dropdown',
+  render: () => (
+    <Dropdown>
+      <Dropdown.Trigger>Open menu</Dropdown.Trigger>
+      <Dropdown.Content>
+        <Dropdown.Item>Some action</Dropdown.Item>
+        <Dropdown.Separator />
+        <ThemePicker mode="sub" />
+      </Dropdown.Content>
+    </Dropdown>
+  ),
 };
 
 // ---------------------------------------------------------------------------
