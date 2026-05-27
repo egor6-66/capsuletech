@@ -45,6 +45,11 @@
     "./providers": {
       "types": "./dist/providers/index.d.ts",
       "import": "./dist/providers.mjs"
+    },
+    "./app-config": {
+      "types": "./dist/app-config.d.ts",
+      "import": "./dist/app-config.mjs",
+      "default": "./dist/app-config.mjs"
     }
   },
   "publishConfig": {

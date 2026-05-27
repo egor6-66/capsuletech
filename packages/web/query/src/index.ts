@@ -1,3 +1,4 @@
+import './app-config-augment'; // side-effect: activate IAppConfig module augmentation
 export { createQueryClient, getQueryClient, QueryClient, setQueryClient } from './client';
 export type {
   ApiConfig,

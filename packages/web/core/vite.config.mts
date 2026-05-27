@@ -5,6 +5,7 @@ export default libConfig({
     index: 'src/index.ts',
     create: 'src/create/index.ts',
     providers: 'src/providers/index.ts',
+    'app-config': 'src/app-config.ts',
   },
   name: 'CapsuleCore',
   runtime: 'isomorphic',

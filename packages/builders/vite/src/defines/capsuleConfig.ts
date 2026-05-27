@@ -106,13 +106,31 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
         // NB: список wrapper'ов и define-фабрик — из единого источника
         // (plugins/constants). Когда добавляешь новый wrapper/factory —
         // правишь только constants.ts.
+        //
+        // `dirs:` намеренно НЕ задан. Раньше тут было
+        // `dirs: [join(capsuleRoot, 'registry')]`, что заставляло
+        // unplugin-auto-import сканировать `.capsule/registry/*.ts` и
+        // экспонировать каждый named export (Widgets, Views, …, endpoints)
+        // как глобальный identifier. Это создавало catastrophic circular:
+        // AutoImport видит `endpoints` как identifier в createApi.ts (где
+        // это локальный параметр, не declaration) → инжектит `import { endpoints }
+        // from '/registry/endpoints'` → endpoints.ts тянет app-уровень
+        // `src/endpoints/auth.ts` → auth.ts импортит `@capsuletech/web-query`
+        // → cycle закрывается, evaluation web-query ещё не закончен,
+        // defineEndpoint в TDZ → `ReferenceError: Cannot access
+        // 'defineEndpoint' before initialization`.
+        //
+        // Runtime registry-объекты (`Widgets`/`Views`/…) НЕ нужны как
+        // auto-import: bootstrap.tsx сам делает `Object.assign(globalThis,
+        // _registry)`, а TS-типизация приходит из slots.d.ts
+        // (ExportGeneratorPlugin). `endpoints` глобал не нужен вовсе —
+        // в Feature идёт `services.api.X.Y(...)`, не `endpoints.X.Y`.
         imports: [
           { '@capsuletech/web-core': [...WRAPPER_NAMES] },
           ...Object.entries(DEFINE_FACTORIES).map(([mod, names]) => ({
             [mod]: [...names],
           })),
         ],
-        dirs: [join(capsuleRoot, 'registry')],
         dts: './@types/capsule-imports.d.ts',
       }),
       HMRWrappingPlugin(),
