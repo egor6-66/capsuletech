@@ -210,6 +210,36 @@
       "types": "./dist/components/dropdownMenu/*.d.ts",
       "import": "./dist/components/dropdownMenu/*.mjs",
       "default": "./dist/components/dropdownMenu/*.mjs"
+    },
+    "./darkModeToggle": {
+      "types": "./dist/components/darkModeToggle/index.d.ts",
+      "import": "./dist/components/darkModeToggle/index.mjs",
+      "default": "./dist/components/darkModeToggle/index.mjs"
+    },
+    "./darkModeToggle/*": {
+      "types": "./dist/components/darkModeToggle/*.d.ts",
+      "import": "./dist/components/darkModeToggle/*.mjs",
+      "default": "./dist/components/darkModeToggle/*.mjs"
+    },
+    "./layoutModeToggle": {
+      "types": "./dist/components/layoutModeToggle/index.d.ts",
+      "import": "./dist/components/layoutModeToggle/index.mjs",
+      "default": "./dist/components/layoutModeToggle/index.mjs"
+    },
+    "./layoutModeToggle/*": {
+      "types": "./dist/components/layoutModeToggle/*.d.ts",
+      "import": "./dist/components/layoutModeToggle/*.mjs",
+      "default": "./dist/components/layoutModeToggle/*.mjs"
+    },
+    "./themePicker": {
+      "types": "./dist/components/themePicker/index.d.ts",
+      "import": "./dist/components/themePicker/index.mjs",
+      "default": "./dist/components/themePicker/index.mjs"
+    },
+    "./themePicker/*": {
+      "types": "./dist/components/themePicker/*.d.ts",
+      "import": "./dist/components/themePicker/*.mjs",
+      "default": "./dist/components/themePicker/*.mjs"
     }
   },
   "files": [

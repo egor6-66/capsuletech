@@ -87,16 +87,22 @@ export const Dropdown = Object.assign(DropdownBase, {
   SubContent: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSubContent'),
 });
 
-// ThemeSwitcher из @capsuletech/web-style (plain Solid component, не web-ui primitive).
-// Субпасс ./switcher отсутствует в package.json web-style — импортируем из основного
-// barrel (framework gap, делегировано architect для добавления subpath в web-style).
-export const ThemeSwitcher = createLazy(
-  () => import('@capsuletech/web-style'),
-  'ThemeSwitcher',
-);
+// Switcher widgets — переехали из @capsuletech/web-style в @capsuletech/web-ui
+// composites (web-style теперь только signal stores + helpers, без visual UI).
+// Все три используют hooks из web-style под капотом (useTheme/useDarkMode/useLayoutMode).
+//
+// `ThemeSwitcher` (`<select>`) удалён — заменён `ThemePicker` (Dropdown-based).
 export const DarkModeToggle = createLazy(
-  () => import('@capsuletech/web-style'),
+  () => import('@capsuletech/web-ui/darkModeToggle'),
   'DarkModeToggle',
+);
+export const LayoutModeToggle = createLazy(
+  () => import('@capsuletech/web-ui/layoutModeToggle'),
+  'LayoutModeToggle',
+);
+export const ThemePicker = createLazy(
+  () => import('@capsuletech/web-ui/themePicker'),
+  'ThemePicker',
 );
 export const MapView = createLazy(
   () => import('@capsuletech/web-map'),
