@@ -1,30 +1,38 @@
 /**
- * Auth feature — обрабатывает click на submit-кнопке.
+ * Auth feature — FSM idle → submitting → idle.
  *
  * Flow:
- *   onClick → фильтр по tag 'submit' (raw, не alias — alias только на query-стороне)
- *   → store.values(['@input']) собирает inputs через alias-зонтик в Record<name, value>
- *   → api.auth.login → token в localStorage / error в console.
+ *   idle.onClick (tag 'submit') → state.set('submitting')
+ *   submitting.onInit → store.patch для loader/disable → api.auth.login → cleanup → state.set('idle')
  *
- * Почему onClick, а не submit:
- *   UiProxy маршрутизирует события по DOM event name (onClick/onInput/…),
- *   не по тегам. Tag 'submit' — маркер для фильтра ВНУТРИ handler'а.
- *   См. packages/web/core/src/engine/ui-proxy.tsx (вызов `ctx.controller[name]`).
+ * Демонстрирует возможности фреймворка:
+ *  - per-state lifecycle (onInit/onExit)
+ *  - tag-based runtime patches (store.patch)
+ *  - store.values для сбора form-payload по alias-зонтику
+ *  - UiProxy сам инжектит kind-tags ('input'/'button') — в View их в meta нет.
  */
 const Auth = Feature(({ api }) => ({
   initial: 'idle',
 
   states: {
     idle: {
-      onClick: async ({ target, store }) => {
+      onClick: ({ target, state }) => {
         const tags = (target.meta?.tags ?? []) as readonly string[];
-        if (!tags.includes('submit')) return;
+        if (tags.includes('submit')) state.set('submitting');
+      },
+    },
 
+    submitting: {
+      onInit: async ({ store, state }) => {
         if (!api) {
           // eslint-disable-next-line no-console
           console.error('[auth] api client not initialized — check capsule.app.ts > api');
+          state.set('idle');
           return;
         }
+
+        store.patch(['@submit'], { loading: true });
+        store.patch(['@input'], { disabled: true });
 
         const values = store.values(['@input']) as { login?: string; password?: string };
 
@@ -39,6 +47,10 @@ const Auth = Feature(({ api }) => ({
         } catch (err) {
           // eslint-disable-next-line no-console
           console.error('[auth] login failed:', err);
+        } finally {
+          store.patch(['@submit'], { loading: false });
+          store.patch(['@input'], { disabled: false });
+          state.set('idle');
         }
       },
     },

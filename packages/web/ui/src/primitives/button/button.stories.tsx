@@ -1,4 +1,4 @@
-import { ArrowRight, Loader2, Plus, Send, Trash2 } from 'lucide-solid';
+import { ArrowRight, Plus, Send, Trash2 } from 'lucide-solid';
 import type { Meta, StoryObj } from 'storybook-solidjs-vite';
 
 import { Button } from '.';
@@ -17,6 +17,7 @@ const meta = {
       options: ['default', 'sm', 'lg', 'icon'],
     },
     disabled: { control: 'boolean' },
+    loading: { control: 'boolean' },
   },
   args: {
     variant: 'default',
@@ -77,15 +78,12 @@ export const DestructiveWithIcon: Story = {
   },
 };
 
-export const Loading: Story = {
-  args: {
-    disabled: true,
-    children: (
-      <>
-        <Loader2 class="animate-spin" /> Loading
-      </>
-    ),
-  },
+export const LoadingButton: Story = {
+  args: { loading: true, children: 'Sign in' },
+};
+
+export const LoadingSmall: Story = {
+  args: { loading: true, size: 'sm', children: 'Sign in' },
 };
 
 export const IconOnly: Story = {

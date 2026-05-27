@@ -17,6 +17,23 @@ export { deriveInputType, deriveName, getTargetData, TAG_TO_INPUT_TYPE };
  * в reactive-снапшот).
  */
 type EventName = 'onClick' | 'onInput' | 'onChange' | 'onBlur' | 'onFocus' | 'onKeyDown';
+
+/**
+ * Whitelist primitive'ов UI-кита, для которых UiProxy автоматически инжектит
+ * kind-tag в `meta.tags` перед registerComponent / event-binding.
+ *
+ * Расширять осознанно: каждый entry означает что apps смогут опустить явный тег
+ * и store.pick / deriveName получат его автоматически.
+ * Радио / Switch и т.п. — пока не добавляем (не используются в ewc).
+ */
+const KIND_TAGS: Record<string, string> = {
+  Input: 'input',
+  Textarea: 'input',
+  Select: 'input',
+  Checkbox: 'input',
+  Button: 'button',
+};
+
 const EVENT_HANDLERS: Record<EventName, { updateStore: boolean }> = {
   onClick: { updateStore: false },
   onInput: { updateStore: true },
@@ -76,12 +93,21 @@ const safeCall = (fn: any, ...args: any[]) => {
  * скармливать произвольный stub-компонент без поднятия всего `web-ui` lazy-graph'а.
  * Public-API контракт (UiProxy returns Proxy over Ui) сохранён 1:1.
  */
-export const wrapComponent = (ctx: ICtx<any>, wrapperProps: any, OriginalComponent: any): any => {
+export const wrapComponent = (
+  ctx: ICtx<any>,
+  wrapperProps: any,
+  OriginalComponent: any,
+  componentName?: string,
+): any => {
   if (!OriginalComponent) return undefined;
 
   if (typeof OriginalComponent !== 'function' && typeof OriginalComponent !== 'object') {
     return OriginalComponent;
   }
+
+  // kind-tag для данного primitive'а (undefined если не в whitelist).
+  // Вычисляется один раз на wrap-time — componentName стабилен.
+  const kindTag = componentName ? KIND_TAGS[componentName] : undefined;
 
   const ComponentWrapper = (componentProps: any) => {
     const merged = mergeProps(wrapperProps, componentProps, {
@@ -104,11 +130,25 @@ export const wrapComponent = (ctx: ICtx<any>, wrapperProps: any, OriginalCompone
 
     const id = createUniqueId();
 
+    // effectiveMeta — геттер, чтобы при обновлении props.meta (dynamicMeta-патч)
+    // все читатели ниже автоматически получали свежий объект с kind-tag.
+    // Если kindTag уже присутствует в tags — не дублируем.
+    const getEffectiveMeta = () => {
+      const baseMeta = props.meta;
+      if (!kindTag) return baseMeta;
+      const userTags: readonly string[] = baseMeta?.tags ?? [];
+      const tagsWithKind = userTags.includes(kindTag)
+        ? userTags
+        : [...userTags, kindTag];
+      return { ...baseMeta, tags: tagsWithKind };
+    };
+
     // Реактивная регистрация: на mount + при любом изменении props
     createEffect(() => {
-      const name = deriveName(props.meta);
+      const effectiveMeta = getEffectiveMeta();
+      const name = deriveName(effectiveMeta);
       ctx.store.registerComponent({
-        [id]: { ...props, ...(name ? { name } : {}) },
+        [id]: { ...props, meta: effectiveMeta, ...(name ? { name } : {}) },
       });
     });
 
@@ -124,7 +164,8 @@ export const wrapComponent = (ctx: ICtx<any>, wrapperProps: any, OriginalCompone
         if ((e as any)[marker]) return;
         (e as any)[marker] = true;
 
-        const data = getTargetData(e, props, deriveName(props.meta));
+        const effectiveMeta = getEffectiveMeta();
+        const data = getTargetData(e, { ...props, meta: effectiveMeta }, deriveName(effectiveMeta));
         if (updateStore && data.name) {
           // Patch только runtime-меняющиеся поля. meta/name уже в components[id] через
           // registerComponent (mount-time, единоразово). Раньше тут был ctx.store.update
@@ -139,7 +180,7 @@ export const wrapComponent = (ctx: ICtx<any>, wrapperProps: any, OriginalCompone
 
     const dynamicProps = {
       get class() {
-        const name = deriveName(props.meta);
+        const name = deriveName(getEffectiveMeta());
         const custom = name ? ctx.store.styles?.[name] || '' : '';
         return `${props.class || ''} ${custom}`.trim();
       },
@@ -149,12 +190,12 @@ export const wrapComponent = (ctx: ICtx<any>, wrapperProps: any, OriginalCompone
       // name прокидывается под капотом — для нативных DOM-элементов (input/button/select),
       // которым нужно name-атрибут (form-data, accessibility, label-for-by-id).
       get name() {
-        return deriveName(props.meta);
+        return deriveName(getEffectiveMeta());
       },
       // type DOM-инпута, выведенный из тега (password / email / phone / number / text).
       // Если автор Entity указал `type="..."` явно — уважаем его (props.type win'ит).
       get type() {
-        return props.type ?? deriveInputType(props.meta);
+        return props.type ?? deriveInputType(getEffectiveMeta());
       },
       ...eventBindings,
     };
@@ -173,6 +214,8 @@ export const wrapComponent = (ctx: ICtx<any>, wrapperProps: any, OriginalCompone
     get(target, prop: string) {
       const subComponent = (OriginalComponent as any)[prop];
       if (subComponent) {
+        // Sub-components (Card.Header, Field.Label и т.д.) — componentName не передаём,
+        // они не в KIND_TAGS whitelist и auto-tag для них не нужен.
         return wrapComponent(ctx, wrapperProps, subComponent);
       }
       return (target as any)[prop];
@@ -197,7 +240,7 @@ export const UiProxy = (Ui: Record<string, any>, ctx: ICtx<any>, wrapperProps: a
     { ...Ui },
     {
       get(target, propName: string) {
-        return wrapComponent(ctx, wrapperProps, (target as any)[propName]);
+        return wrapComponent(ctx, wrapperProps, (target as any)[propName], propName);
       },
     },
   );

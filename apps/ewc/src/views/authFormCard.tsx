@@ -2,14 +2,10 @@
  * AuthFormCard — stateless template для auth-форм (login/register).
  * Flat props (без вложенности через Shape) — Widget передаёт напрямую.
  *
- * Meta-tags (raw, без алиасов — алиасы только на query-стороне):
- *   login input    → ['login', 'input']     deriveName='login', матчится pick(['@input'])
- *   password input → ['password', 'input']  deriveName='password', deriveInputType→type=password,
- *                                           матчится pick(['@input'])
- *   submit button  → ['submit']             матчится pick(['@submit'])
- *
- * Порядок tags важен: deriveName берёт первый non-@ tag.
- * ID/имя ставим первым, type-маркер вторым.
+ * Meta-tags только role/id; kind-tags ('input'/'button') инжектит UiProxy.
+ *   login input    → ['login']     UiProxy добавит 'input' → матчится pick(['@input'])
+ *   password input → ['password']  + deriveInputType ('password') → type=password
+ *   submit button  → ['submit']    UiProxy добавит 'button'
  */
 const AuthFormCard = View(({ Card, Field, Input, Button, Link, Typography }, props) => (
   <Card class="w-96">
@@ -20,14 +16,14 @@ const AuthFormCard = View(({ Card, Field, Input, Button, Link, Typography }, pro
       <Field>
         <Field.Label>Login</Field.Label>
         <Field.Content>
-          <Input meta={{ tags: ['login', 'input'] }} />
+          <Input meta={{ tags: ['login'] }} />
         </Field.Content>
       </Field>
 
       <Field>
         <Field.Label>Password</Field.Label>
         <Field.Content>
-          <Input meta={{ tags: ['password', 'input'] }} />
+          <Input meta={{ tags: ['password'] }} />
         </Field.Content>
       </Field>
 

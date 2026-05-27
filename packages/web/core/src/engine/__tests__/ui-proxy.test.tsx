@@ -219,6 +219,93 @@ describe('wrapComponent — Proxy subcomponent (Field.Label-like)', () => {
   });
 });
 
+describe('wrapComponent — KIND_TAGS auto-inject', () => {
+  it('whitelist primitive (Input) without explicit "input" tag — registerComponent payload contains "input" in meta.tags', () => {
+    const ctx = mkCtx() as any;
+    // componentName='Input' simulates UiProxy.get('Input')
+    const Wrapped = wrapComponent(ctx, {}, StubInput, 'Input');
+    cleanup = render(() => <Wrapped meta={{ tags: ['login'] }} />, container);
+    expect(ctx.store.registerComponent).toHaveBeenCalledOnce();
+    const arg = ctx.store.registerComponent.mock.calls[0][0];
+    const [, registered] = Object.entries(arg)[0] as [string, any];
+    expect(registered.meta.tags).toContain('input');
+    expect(registered.meta.tags).toContain('login');
+  });
+
+  it('whitelist primitive with already-explicit "input" tag — does NOT duplicate', () => {
+    const ctx = mkCtx() as any;
+    const Wrapped = wrapComponent(ctx, {}, StubInput, 'Input');
+    cleanup = render(() => <Wrapped meta={{ tags: ['login', 'input'] }} />, container);
+    const arg = ctx.store.registerComponent.mock.calls[0][0];
+    const [, registered] = Object.entries(arg)[0] as [string, any];
+    const inputOccurrences = registered.meta.tags.filter((t: string) => t === 'input').length;
+    expect(inputOccurrences).toBe(1);
+  });
+
+  it('non-whitelist primitive (Card) — no auto-tag added', () => {
+    const StubCard = (props: any) => <div data-testid="card" {...props}>{props.children}</div>;
+    const ctx = mkCtx() as any;
+    // componentName='Card' is not in KIND_TAGS
+    const Wrapped = wrapComponent(ctx, {}, StubCard, 'Card');
+    cleanup = render(() => <Wrapped meta={{ tags: ['profile'] }} />, container);
+    const arg = ctx.store.registerComponent.mock.calls[0][0];
+    const [, registered] = Object.entries(arg)[0] as [string, any];
+    expect(registered.meta.tags).toEqual(['profile']);
+  });
+
+  it('deriveName for Input with tags=["login"] returns "login" (user-tags first)', () => {
+    const ctx = mkCtx() as any;
+    const Wrapped = wrapComponent(ctx, {}, StubInput, 'Input');
+    cleanup = render(() => <Wrapped meta={{ tags: ['login'] }} />, container);
+    const arg = ctx.store.registerComponent.mock.calls[0][0];
+    const [, registered] = Object.entries(arg)[0] as [string, any];
+    // deriveName picks the first non-@-prefixed tag — 'login' comes before 'input'
+    expect(registered.name).toBe('login');
+  });
+
+  it('Button component auto-injects "button" kind-tag', () => {
+    const ctx = mkCtx() as any;
+    const Wrapped = wrapComponent(ctx, {}, StubButton, 'Button');
+    cleanup = render(() => <Wrapped meta={{ tags: ['submit'] }}>Go</Wrapped>, container);
+    const arg = ctx.store.registerComponent.mock.calls[0][0];
+    const [, registered] = Object.entries(arg)[0] as [string, any];
+    expect(registered.meta.tags).toContain('button');
+    expect(registered.meta.tags).toContain('submit');
+  });
+
+  it('controller.onClick receives effectiveMeta with kind-tag injected', () => {
+    const ctx = mkCtx() as any;
+    const Wrapped = wrapComponent(ctx, {}, StubButton, 'Button');
+    cleanup = render(() => <Wrapped meta={{ tags: ['submit'] }}>Go</Wrapped>, container);
+    const btn = container.querySelector('[data-testid="btn"]') as HTMLButtonElement;
+    btn.click();
+    expect(ctx.controller.onClick).toHaveBeenCalledOnce();
+    const [target] = ctx.controller.onClick.mock.calls[0];
+    expect(target.meta.tags).toContain('button');
+  });
+
+  it('sub-component access (Card.Header) — NO kind-tag injected', () => {
+    const Header = (p: any) => <header data-testid="hdr" {...p}>{p.children}</header>;
+    const StubCard = Object.assign(
+      (p: any) => <div {...p}>{p.children}</div>,
+      { Header },
+    );
+    const ctx = mkCtx() as any;
+    // UiProxy would pass 'Card' as componentName; sub-component is accessed via Proxy.get
+    const WrappedCard = wrapComponent(ctx, {}, StubCard, 'Card');
+    const WrappedHeader = (WrappedCard as any).Header;
+
+    cleanup = render(
+      () => <WrappedHeader meta={{ tags: ['profile-header'] }}>Title</WrappedHeader>,
+      container,
+    );
+    const arg = ctx.store.registerComponent.mock.calls[0][0];
+    const [, registered] = Object.entries(arg)[0] as [string, any];
+    // 'Card' is not in KIND_TAGS and Header access doesn't propagate componentName
+    expect(registered.meta.tags).toEqual(['profile-header']);
+  });
+});
+
 describe('wrapComponent — safeCall error handling', () => {
   it('sync throw in user handler does NOT propagate', () => {
     const ctx = mkCtx() as any;
