@@ -24,7 +24,9 @@ import type {
 import type { Dropdown } from '@capsuletech/web-ui/dropdown';
 import type { DropdownMenu } from '@capsuletech/web-ui/dropdownMenu';
 import type { Typography } from '@capsuletech/web-ui/typography';
-import type { DarkModeToggle, ThemeSwitcher } from '@capsuletech/web-style';
+import type { DarkModeToggle } from '@capsuletech/web-ui/darkModeToggle';
+import type { LayoutModeToggle } from '@capsuletech/web-ui/layoutModeToggle';
+import type { ThemePicker } from '@capsuletech/web-ui/themePicker';
 import type { MapView } from '@capsuletech/web-map';
 import type { Link } from '@tanstack/solid-router';
 import type { Component, JSX, JSXElement } from 'solid-js';
@@ -144,8 +146,9 @@ type ViewUiRaw = {
   DataTable: typeof DataTable;
   Dropdown: typeof Dropdown;
   DropdownMenu: typeof DropdownMenu;
-  ThemeSwitcher: typeof ThemeSwitcher;
   DarkModeToggle: typeof DarkModeToggle;
+  LayoutModeToggle: typeof LayoutModeToggle;
+  ThemePicker: typeof ThemePicker;
   MapView: typeof MapView;
   Card: typeof Card;
   Typography: typeof Typography;
@@ -165,8 +168,9 @@ type WidgetUiRaw = {
   DataTable: typeof DataTable;
   Dropdown: typeof Dropdown;
   DropdownMenu: typeof DropdownMenu;
-  ThemeSwitcher: typeof ThemeSwitcher;
   DarkModeToggle: typeof DarkModeToggle;
+  LayoutModeToggle: typeof LayoutModeToggle;
+  ThemePicker: typeof ThemePicker;
   MapView: typeof MapView;
 };
 type PageUiRaw = { Layout: typeof Layout; Outlet: Outlet; Animate: typeof Animate };

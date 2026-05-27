@@ -307,31 +307,46 @@ describe('WidgetUi — DataTable: is callable and accepts IUiMetaProps', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Compile-time: ThemeSwitcher — plain callable (no sub-components)
-// Added to ViewUi + WidgetUi (2026-05-22). ThemeSwitcher is a plain Solid
-// component from @capsuletech/web-style; WithMetaProps callable-branch handles
-// it the same way as DataTable (no attached statics).
+// Compile-time: ThemePicker — Dropdown-based theme picker composite (web-ui).
+// Added to ViewUi + WidgetUi (replaces legacy ThemeSwitcher `<select>`).
 // ---------------------------------------------------------------------------
 
-describe('ViewUi — ThemeSwitcher: is callable and accepts IUiMetaProps', () => {
-  it('Ui.ThemeSwitcher is a function', () => {
-    expectTypeOf<ViewUi['ThemeSwitcher']>().toBeFunction();
+describe('ViewUi — ThemePicker: is callable and accepts IUiMetaProps', () => {
+  it('Ui.ThemePicker is a function', () => {
+    expectTypeOf<ViewUi['ThemePicker']>().toBeFunction();
   });
 
-  it('Ui.ThemeSwitcher accepts IUiMetaProps (meta prop)', () => {
-    type Props = Parameters<ViewUi['ThemeSwitcher']>[0];
+  it('Ui.ThemePicker accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['ThemePicker']>[0];
     expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
   });
 });
 
-describe('WidgetUi — ThemeSwitcher: is callable and accepts IUiMetaProps', () => {
-  it('Ui.ThemeSwitcher is a function', () => {
-    expectTypeOf<WidgetUi['ThemeSwitcher']>().toBeFunction();
+describe('WidgetUi — ThemePicker: is callable and accepts IUiMetaProps', () => {
+  it('Ui.ThemePicker is a function', () => {
+    expectTypeOf<WidgetUi['ThemePicker']>().toBeFunction();
   });
 
-  it('Ui.ThemeSwitcher accepts IUiMetaProps (meta prop)', () => {
-    type Props = Parameters<WidgetUi['ThemeSwitcher']>[0];
+  it('Ui.ThemePicker accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['ThemePicker']>[0];
     expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Compile-time: LayoutModeToggle — button toggle for Matrix layoutMode.
+// Added to ViewUi + WidgetUi alongside DarkModeToggle.
+// ---------------------------------------------------------------------------
+
+describe('ViewUi — LayoutModeToggle: is callable and accepts IUiMetaProps', () => {
+  it('Ui.LayoutModeToggle is a function', () => {
+    expectTypeOf<ViewUi['LayoutModeToggle']>().toBeFunction();
+  });
+});
+
+describe('WidgetUi — LayoutModeToggle: is callable and accepts IUiMetaProps', () => {
+  it('Ui.LayoutModeToggle is a function', () => {
+    expectTypeOf<WidgetUi['LayoutModeToggle']>().toBeFunction();
   });
 });
 

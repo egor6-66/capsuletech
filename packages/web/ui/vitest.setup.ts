@@ -14,3 +14,23 @@ Object.defineProperty(globalThis, 'ResizeObserver', {
   configurable: true,
   value: ResizeObserverMock,
 });
+
+// Why: jsdom does not implement window.matchMedia.
+// @capsuletech/web-style/switcher/theme reads matchMedia at module-load time
+// (initialDarkMode). Without this stub any test that imports a component
+// which transitively imports web-style throws
+// "TypeError: window.matchMedia is not a function".
+Object.defineProperty(globalThis, 'matchMedia', {
+  writable: true,
+  configurable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }),
+});
