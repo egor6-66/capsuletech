@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
+import { DEFINE_FACTORIES } from './constants';
 import { walkFiles, watcherManager } from '../utils';
 
 const ENDPOINTS_DIR = 'endpoints';
@@ -131,9 +132,30 @@ interface IProps {
 }
 
 /**
+ * Для каждой фабрики из DEFINE_FACTORIES — строка импорта и regex-детектор
+ * наличия уже существующего импорта. Используется в transform для инжекта
+ * отсутствующих импортов в endpoint-файлы (enforce: 'pre', до AutoImport).
+ *
+ * Цель: гарантировать наличие `defineEndpoint` и других фабрик без явного
+ * import в endpoint-файлах (canonical pattern). Инжект enforce:'pre' устраняет
+ * TDZ, возникающий при module-graph-chain через registry/endpoints.ts.
+ */
+const ENDPOINT_FACTORY_ENTRIES: Array<{ importLine: string; alreadyImportedRe: RegExp }> =
+  Object.entries(DEFINE_FACTORIES).flatMap(([pkg, names]) =>
+    names.map((name) => ({
+      importLine: `import { ${name} } from '${pkg}';`,
+      alreadyImportedRe: new RegExp(`\\bimport\\b[^;]*\\b${name}\\b`),
+    })),
+  );
+
+/**
  * Сканирует `apps/<app>/src/endpoints/**` и поддерживает в актуальном состоянии:
  *  - runtime-файл с namespace-tree (`endpoints` + тип `Endpoints`);
  *  - .d.ts с глобальным `CapsuleApi` (для типизации `services.api` в Feature).
+ *
+ * Дополнительно: как `enforce: 'pre'` transform, инжектирует фабрики из
+ * `DEFINE_FACTORIES` (`defineEndpoint` и др.) в начало файлов `src/endpoints/**`,
+ * чтобы они были доступны без явного import (canonical pattern).
  *
  * Зеркало структуры файлов:
  *  - `endpoints/user.ts`           → `endpoints.user`
@@ -144,6 +166,10 @@ export const EndpointsRegistryPlugin = ({ out, typesOut, watchDir }: IProps): Pl
   const known = new Map<string, Leaf>();
   let needsFlush = false;
   let scanned = false;
+
+  // Абсолютный путь к директории endpoints (watchDir = apps/<app>/src).
+  // Используется для определения, является ли файл endpoint-файлом.
+  const absEndpointsDir = resolve(watchDir, ENDPOINTS_DIR);
 
   const srcRelFromRegistry = (() => {
     // out: <root>/.capsule/registry/endpoints.ts
@@ -188,6 +214,27 @@ export const EndpointsRegistryPlugin = ({ out, typesOut, watchDir }: IProps): Pl
 
   return {
     name: 'endpoints-registry',
+    // enforce: 'pre' — инжектируем фабрики ДО AutoImport (enforce: 'post') и
+    // ДО solid-plugin, чтобы при module-graph-circular-chain (registry/endpoints →
+    // auth.ts → web-query) defineEndpoint был доступен немедленно, без TDZ.
+    enforce: 'pre',
+    transform(code, id) {
+      // Нормализуем id к forward-slash для кросс-платформенного сравнения.
+      const normId = id.replace(/\\/g, '/').split('?')[0];
+      const normEndpointsDir = absEndpointsDir.replace(/\\/g, '/');
+      // Файл должен лежать внутри src/endpoints/ и быть .ts/.tsx
+      if (!normId.startsWith(normEndpointsDir + '/')) return null;
+      if (!/\.[jt]sx?$/.test(normId)) return null;
+      // Инжектируем только отсутствующие импорты фабрик (идемпотентно).
+      const missing = ENDPOINT_FACTORY_ENTRIES
+        .filter(({ alreadyImportedRe }) => !alreadyImportedRe.test(code))
+        .map(({ importLine }) => importLine);
+      if (missing.length === 0) return null;
+      return {
+        code: `${missing.join('\n')}\n${code}`,
+        map: null,
+      };
+    },
     async buildStart() {
       await initialScan(resolve(watchDir));
     },

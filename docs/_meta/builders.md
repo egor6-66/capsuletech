@@ -49,7 +49,7 @@ biome-config → ничего (zero-deps, чисто config-файл)
 | `packages/builders/vite/src/plugins/constants.ts` | **SSOT** для `WRAPPER_NAMES`, `DEFINE_FACTORIES`, `LAYER_TO_NAMESPACE` |
 | `packages/builders/vite/src/plugins/HMRWrapping.ts` | babel-AST pre-transform: `const X = Page(...)` → `(props) => Page(...)(props)` + `export default` |
 | `packages/builders/vite/src/plugins/exportGenerator.ts` | watcher: scan `apps/*/src/{widgets,views,controllers,features,shapes,entities}` → `.capsule/registry/wrappers.ts` + `.capsule/@types/slots.d.ts`. Entities используют eager import (не lazy). |
-| `packages/builders/vite/src/plugins/endpointsRegistry.ts` | watcher: scan `apps/*/src/endpoints/**` → `.capsule/registry/endpoints.ts` + `.capsule/@types/api.d.ts` |
+| `packages/builders/vite/src/plugins/endpointsRegistry.ts` | watcher: scan `apps/*/src/endpoints/**` → `.capsule/registry/endpoints.ts` + `.capsule/@types/api.d.ts`. **enforce:'pre' transform**: инжектирует фабрики из `DEFINE_FACTORIES` в начало файлов `src/endpoints/**` (canonical pattern без явного import). |
 | `packages/builders/vite/src/plugins/router/index.ts` | RouterPlugin: ensureRoot + page-mirror generator + TanStackRouterVite |
 | `packages/builders/vite/src/plugins/router/template/__root.tsx.template` | шаблон корневого route |
 | `packages/builders/vite/src/plugins/scaffold/index.ts` | EnsureScaffoldPlugin: копирует `index.html / index.ts / bootstrap.tsx / paths.config.json / styles.css` в `.capsule/` если их нет |
@@ -73,7 +73,7 @@ biome-config → ничего (zero-deps, чисто config-файл)
 `packages/builders/vite/src/plugins/constants.ts` — **обязательно править ТОЛЬКО его**, не дублируй списки в плагинах:
 
 - `WRAPPER_NAMES = ['Page', 'Widget', 'View', 'Controller', 'Feature', 'Shape', 'Entity']` — потребители: HMRWrappingPlugin, AutoImport в capsuleConfig
-- `DEFINE_FACTORIES = { '@capsuletech/web-query': ['defineEndpoint'] }` — config-time фабрики, попадают в AutoImport, НЕ участвуют в HMR-обёртке
+- `DEFINE_FACTORIES = { '@capsuletech/web-query': ['defineEndpoint'] }` — config-time фабрики: (1) попадают в AutoImport для TSX-файлов, (2) **`EndpointsRegistryPlugin.transform` инжектирует их в `src/endpoints/**` как enforce:'pre'** (TDZ-safe, без зависимости от AutoImport timing)
 - `LAYER_TO_NAMESPACE = { widgets: 'Widgets', views: 'Views', controllers: 'Controllers', features: 'Features', shapes: 'Shapes', entities: 'Entities' }` — mapping для ExportGeneratorPlugin
 - `EAGER_IMPORT_LAYERS = Set(['entities'])` — слои, для которых ExportGeneratorPlugin генерирует eager `import X from '...'` вместо `lazy()`. Entity — plain value (zod schema), не Solid component.
 

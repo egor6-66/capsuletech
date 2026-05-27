@@ -45,7 +45,7 @@ const expectTransformed = (out: { code: string } | null) => {
  * output here as a characterization test so regressions surface immediately.
  */
 describe('generateRuntimeFile — type-cast characterization', () => {
-  it('generated runtime contains IAppConfig type-import and as-cast', () => {
+  it('generated runtime uses dynamic import for endpoints (TDZ fix)', () => {
     // Build the expected runtime string the same way the plugin does internally.
     // We replicate the shape rather than calling the private function directly.
     const aliases = {};
@@ -56,14 +56,20 @@ describe('generateRuntimeFile — type-cast characterization', () => {
       "import { createApi, setApiClient } from '@capsuletech/web-query';",
       "import { type IAppConfig } from '@capsuletech/web-query/app-config';",
       "import appConfigRaw from '../capsule.app';",
-      "import { endpoints } from './registry/endpoints';",
       '',
       'const appConfig = appConfigRaw as IAppConfig;',
       '',
       `registerAliases(${aliasesLiteral});`,
       '',
       'if (appConfig.api) {',
-      '  setApiClient(createApi(appConfig.api, endpoints));',
+      '  // Dynamic import breaks the circular ESM evaluation chain:',
+      '  // app-config.gen → registry/endpoints → auth.ts → @capsuletech/web-query',
+      '  // Browser fetches web-query in parallel with endpoints; static import causes',
+      '  // TDZ when auth.ts evaluates before defineEndpoint binding is ready.',
+      '  // Dynamic import defers endpoints load to a microtask after web-query init.',
+      "  import('./registry/endpoints').then(({ endpoints }) => {",
+      '    setApiClient(createApi(appConfig.api!, endpoints));',
+      '  });',
       '}',
       '',
     ];
@@ -76,6 +82,10 @@ describe('generateRuntimeFile — type-cast characterization', () => {
     expect(generated).not.toContain("import appConfig from '../capsule.app'");
     // Runtime guard is still present.
     expect(generated).toContain('if (appConfig.api)');
+    // Static endpoints import must NOT be present — it caused TDZ.
+    expect(generated).not.toContain("import { endpoints } from './registry/endpoints'");
+    // Dynamic import must be present instead.
+    expect(generated).toContain("import('./registry/endpoints').then(");
   });
 });
 

@@ -92,6 +92,7 @@
   --spacing-section: var(--space-section);
   --spacing-layout: var(--space-layout);
   --spacing-component: var(--space-component);
+  --spacing-tight: var(--space-tight);
 
   /* Typography scale — maps Tailwind text-* utilities to our size tokens.
      --text-{n} in @theme inline sets the font-size for the text-{n} utility. */
@@ -182,13 +183,13 @@
   --space-section: calc(var(--space-6) * var(--density));
   --space-layout: calc(var(--space-4) * var(--density));
   --space-component: calc(var(--space-3) * var(--density));
-  --space-container: calc(var(--space-3) * var(--density));
+  --space-tight: calc(var(--space-2) * var(--density));
 
   /* Backward compat: old names used by matrix variants (until Phase 2 migration) */
   --spacing-base: var(--space-4);
   --spacing-layout: var(--space-layout);
   --spacing-component: var(--space-component);
-  --spacing-container: var(--space-container);
+  --spacing-tight: var(--space-tight);
   --layout-padding: var(--space-layout);
   --component-padding: var(--space-component);
 
@@ -326,7 +327,6 @@
   scrollbar-width: thin;
 }
 
-
 @layer base {
   /* color-scheme: tells browser which native UI variant (scrollbars, form fields,
      focus outlines) to render. Must match the active colour palette. */
@@ -371,7 +371,15 @@
     margin: 0;
     line-height: inherit;
     letter-spacing: var(--tracking-normal, 0em);
-    font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+    font-family: var(
+      --font-sans,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif
+    );
   }
 
   button,
