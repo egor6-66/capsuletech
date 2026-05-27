@@ -21,6 +21,7 @@ const mkCtx = (overrides: Partial<any> = {}) => {
     registerComponent: vi.fn(),
     unregisterComponent: vi.fn(),
     update: vi.fn(),
+    updateComponent: vi.fn(),
     ctx: { foo: 'bar' },
     styles: {} as Record<string, string>,
     loading: false,
@@ -126,24 +127,38 @@ describe('wrapComponent — own meta path', () => {
     expect(userHandler).toHaveBeenCalledOnce();
   });
 
-  it('input event: updateStore=true → store.update called', () => {
+  it('input event: updateStore=true → store.updateComponent called with value+type only', () => {
     const ctx = mkCtx() as any;
     const Wrapped = wrapComponent(ctx, {}, StubInput);
     cleanup = render(() => <Wrapped meta={{ tags: ['email'] }} />, container);
     const inp = container.querySelector('[data-testid="inp"]') as HTMLInputElement;
     inp.value = 'foo@bar';
     inp.dispatchEvent(new Event('input', { bubbles: true }));
-    expect(ctx.store.update).toHaveBeenCalledOnce();
+    expect(ctx.store.updateComponent).toHaveBeenCalledOnce();
+    const arg = ctx.store.updateComponent.mock.calls[0][0];
+    const [, payload] = Object.entries(arg)[0] as [string, any];
+    expect(Object.keys(payload)).toEqual(['value', 'type']);
     expect(ctx.controller.onInput).toHaveBeenCalledOnce();
   });
 
-  it('click event: updateStore=false → store.update NOT called', () => {
+  it('input event: store.update (user namespace) NOT called', () => {
+    const ctx = mkCtx() as any;
+    const Wrapped = wrapComponent(ctx, {}, StubInput);
+    cleanup = render(() => <Wrapped meta={{ tags: ['email'] }} />, container);
+    const inp = container.querySelector('[data-testid="inp"]') as HTMLInputElement;
+    inp.value = 'foo@bar';
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(ctx.store.update).not.toHaveBeenCalled();
+  });
+
+  it('click event: updateStore=false → store.updateComponent NOT called', () => {
     const ctx = mkCtx() as any;
     const Wrapped = wrapComponent(ctx, {}, StubButton);
     cleanup = render(() => <Wrapped meta={{ tags: ['submit'] }}>Go</Wrapped>, container);
     const btn = container.querySelector('[data-testid="btn"]') as HTMLButtonElement;
     btn.click();
     expect(ctx.controller.onClick).toHaveBeenCalledOnce();
+    expect(ctx.store.updateComponent).not.toHaveBeenCalled();
     expect(ctx.store.update).not.toHaveBeenCalled();
   });
 });

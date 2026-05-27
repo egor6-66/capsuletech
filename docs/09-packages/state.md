@@ -41,13 +41,18 @@ import type {
 
 ```ts
 {
-  data:       TCtx,                    // переданный schema.context
+  data:       TCtx,                    // user state — только то, что в schema.context
   loading:    false,
   errors:     {} as Record<string, string>,
   styles:     {} as Record<string, string>,
-  components: {} as Record<string, ITarget>,
+  components: {} as Record<string, ITarget>,  // UI-registry: mount-time + runtime patches
+  props:      {} as Record<string, Record<string, any>>,
 }
 ```
+
+> [!important]
+> `data` — **только** user state (`schema.context`). Никаких UI id-ключей здесь нет и не должно быть.
+> UI-данные (value, type и т.п.) живут в `components[id]` и обновляются через `UPDATE_COMPONENT`.
 
 > [!info]
 > UI-события (`onClick`, `onInput`, ...) и `onInit`/`onExit` обрабатываются **не** через XState event-bus, а через [[controller-proxy|ControllerProxy]] и `createEffect` в [[controller-proxy|createLogicWrapper]]. XState — источник правды для `state.value` и transitions; всё остальное живёт сверху. См. [[008-hybrid-fsm-api|ADR 008]].
@@ -62,12 +67,13 @@ import type {
   ctx, loading, styles, errors, components,
 
   // мутации (отправляют ивент в машину)
-  update(payload),               // SET_DATA
+  update(payload),               // SET_DATA        → context.data (user state)
   setLoading(value),             // SET_LOADING
   setStyles(styles),             // SET_STYLES
   setErrors(errors),             // SET_ERRORS
-  registerComponent(payload),    // REGISTER_COMPONENT
+  registerComponent(payload),    // REGISTER_COMPONENT  — mount-time, единоразово
   unregisterComponent(id),       // UNREGISTER_COMPONENT
+  updateComponent(payload),      // UPDATE_COMPONENT    — runtime-патч в components[id]
 
   // tag-операции (объединяют meta.tags + dynamicMeta.tags)
   pick(tags, opts),              // Record<id, ITarget> — найти всех с тегами
@@ -78,6 +84,18 @@ import type {
 ```
 
 Опции для tag-операций: `{ lookDynamic?: boolean }` — учитывать ли `dynamicMeta.tags`. По умолчанию `true` (то есть Widget-сценарные теги тоже матчатся).
+
+### Семантика мутаций компонентов
+
+| Метод | XState event | Когда |
+|---|---|---|
+| `registerComponent(payload)` | `REGISTER_COMPONENT` | Единоразово на mount (UiProxy) |
+| `updateComponent(payload)` | `UPDATE_COMPONENT` | Runtime-патч: `value`, `type` и т.п. при onInput/onChange |
+| `unregisterComponent(id)` | `UNREGISTER_COMPONENT` | На unmount |
+
+`updateComponent` мержит patch поверх существующей записи — `meta`/`dynamicMeta` не перезаписываются. Неизвестный `id` (event пришёл до register'а или после unregister'а) игнорируется молча.
+
+`update(payload)` шлёт `SET_DATA` → `context.data` — это **отдельный** user-state namespace, никак не связанный с `components`.
 
 ## `helpers` (низкоуровневые)
 

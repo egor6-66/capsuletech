@@ -107,6 +107,24 @@ export const createState = <TCtx = any>(schema: IBaseStateSchema<TCtx>): AnyStat
           },
         }),
       },
+      // Runtime-патч к уже зарегистрированной записи компонента.
+      // Семантика: REGISTER_COMPONENT — единоразово на mount;
+      // UPDATE_COMPONENT — runtime-патч после register'а (value/type/etc).
+      // Неизвестный id молча игнорируется — порядок mount/event не должен валить app.
+      // payload — `{ [id]: { fieldName: value, ... } }`.
+      UPDATE_COMPONENT: {
+        actions: assign({
+          components: ({ context, event }: any) => {
+            const next = { ...context.components };
+            for (const [id, patch] of Object.entries(event.payload as Record<string, any>)) {
+              // skip unknown id — UPDATE предполагает прежнюю регистрацию через REGISTER_COMPONENT.
+              // Молча игнорим, чтобы порядок mount/event не ломал app.
+              if (next[id]) next[id] = { ...next[id], ...patch };
+            }
+            return next;
+          },
+        }),
+      },
       // Per-id patch'и props: мержим поверх существующего, без полной замены.
       // payload — `{ [id]: { propName: value, ... } }`.
       SET_PROPS: {

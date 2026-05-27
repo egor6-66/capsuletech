@@ -1,33 +1,38 @@
 /**
- * Auth feature — обрабатывает submit от form view.
+ * Auth feature — обрабатывает click на submit-кнопке.
  *
  * Flow:
- *   idle.submit (event с tag '@submit') → собирает inputs из store.ctx
- *   → api.auth.login(payload) → save token / log error.
+ *   onClick → фильтр по tag 'submit' (raw, не alias — alias только на query-стороне)
+ *   → store.values(['@input']) собирает inputs через alias-зонтик в Record<name, value>
+ *   → api.auth.login → token в localStorage / error в console.
  *
- * UiProxy auto-собирает inputs в `store.ctx` через `meta.name` (login/password).
- * Click button с tag '@submit' триггерит handler.
+ * Почему onClick, а не submit:
+ *   UiProxy маршрутизирует события по DOM event name (onClick/onInput/…),
+ *   не по тегам. Tag 'submit' — маркер для фильтра ВНУТРИ handler'а.
+ *   См. packages/web/core/src/engine/ui-proxy.tsx (вызов `ctx.controller[name]`).
  */
 const Auth = Feature(({ api }) => ({
   initial: 'idle',
 
   states: {
     idle: {
-      submit: async ({ store }) => {
+      onClick: async ({ target, store }) => {
+        const tags = (target.meta?.tags ?? []) as readonly string[];
+        if (!tags.includes('submit')) return;
+
         if (!api) {
           // eslint-disable-next-line no-console
           console.error('[auth] api client not initialized — check capsule.app.ts > api');
           return;
         }
 
-        const payload = {
-          login: (store.ctx as any).login ?? '',
-          password: (store.ctx as any).password ?? '',
-        };
+        const values = store.values(['@input']) as { login?: string; password?: string };
 
         try {
-          const result = await api.auth.login(payload);
-          // Token saved — next iteration добавим navigation.
+          const result = await api.auth.login({
+            login: values.login ?? '',
+            password: values.password ?? '',
+          });
           // eslint-disable-next-line no-console
           console.log('[auth] login ok:', result);
           localStorage.setItem('capsule-auth-token', result.token);

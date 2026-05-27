@@ -89,6 +89,21 @@ export const createBridge = (state: IBridgeStateSnapshot, send: IBridgeSend) => 
     registerComponent: (payload: Record<string, any>) =>
       send({ type: 'REGISTER_COMPONENT', payload }),
     unregisterComponent: (id: string) => send({ type: 'UNREGISTER_COMPONENT', id }),
+    /**
+     * Patch'ит runtime-поля у уже зарегистрированной записи компонента в `components[id]`.
+     * Используется UiProxy при onInput/onChange для merge актуального `value` в существующую
+     * запись (без перезаписи `meta`/`dynamicMeta`).
+     *
+     * Семантика разделения:
+     *  - `registerComponent({ [id]: { meta, name, ... } })` — единоразово на mount.
+     *  - `updateComponent({ [id]: { value, type } })` — runtime-патч после register'а.
+     *  - Если id не зарегистрирован (event пришёл до register / после unregister) — патч молча игнорится.
+     *    Это намеренно: порядок mount/event не должен валить app.
+     *
+     * Не путать с `update()`, который шлёт `SET_DATA` → `context.data` (user state из `schema.context`).
+     */
+    updateComponent: (payload: Record<string, any>) =>
+      send({ type: 'UPDATE_COMPONENT', payload }),
 
     // tag-операции (объединяют meta.tags + dynamicMeta.tags, раскрывают алиасы)
     pick: (tags: readonly string[], opts?: BridgeMatchOptions) =>
@@ -99,6 +114,38 @@ export const createBridge = (state: IBridgeStateSnapshot, send: IBridgeSend) => 
       matchByTags(state.context?.components ?? {}, tags, opts),
     matchEntry: (tags: readonly string[], opts?: BridgeMatchOptions) =>
       matchEntryByTags(state.context?.components ?? {}, tags, opts),
+
+    /**
+     * Собирает значения из компонентов, совпавших по тегам, в виде плоского словаря
+     * `{ [name]: value }`. Используется в submit-хэндлерах для сбора payload форм.
+     *
+     * Поведение:
+     *  - Под капотом вызывает `pickByTags` с теми же `opts`, что `pick` / `omit`.
+     *    `expandAliases: true` по умолчанию → `store.values(['@input'])` раскрывает
+     *    алиас и обходит все подходящие теги.
+     *  - Из каждого matched компонента берёт `comp.name` (string) как ключ и
+     *    `comp.value` (unknown) как значение.
+     *  - Компоненты **без `name`** пропускаются: это нормальный кейс (например,
+     *    `<Button meta={{tags:['@submit']}}>` не имеет name'а). Вызов
+     *    `store.values(['@submit'])` вернёт `{}`.
+     *  - При **одинаковом `name`** побеждает последняя запись (last write wins).
+     *    Это симптом ошибки разработчика (дублирующиеся name в одной форме), а не
+     *    намеренное поведение. Явно документируется, но не бросает исключение.
+     *
+     * @example
+     * const payload = store.values(['@input']) as { login?: string; password?: string };
+     */
+    values: (tags: readonly string[], opts?: BridgeMatchOptions): Record<string, unknown> => {
+      const matched = pickByTags(state.context?.components ?? {}, tags, opts);
+      const result: Record<string, unknown> = {};
+      for (const comp of Object.values(matched)) {
+        const c = comp as IRegisteredComponent;
+        if (c.name !== undefined && c.name !== null && c.name !== '') {
+          result[c.name as string] = c.value;
+        }
+      }
+      return result;
+    },
 
     /**
      * Tag-based мутатор — симметричен `pick/omit/match/matchEntry`. Находит

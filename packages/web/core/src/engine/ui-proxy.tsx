@@ -126,7 +126,11 @@ export const wrapComponent = (ctx: ICtx<any>, wrapperProps: any, OriginalCompone
 
         const data = getTargetData(e, props, deriveName(props.meta));
         if (updateStore && data.name) {
-          ctx.store.update({ [id]: data });
+          // Patch только runtime-меняющиеся поля. meta/name уже в components[id] через
+          // registerComponent (mount-time, единоразово). Раньше тут был ctx.store.update
+          // (SET_DATA), который шумил весь target в user namespace `context.data` —
+          // см. историю про разделение register/update в docs/09-packages/state.md.
+          ctx.store.updateComponent({ [id]: { value: data.value, type: data.type } });
         }
         safeCall(ctx.controller[name], data, ctx.store.ctx);
         safeCall(props[name], e);

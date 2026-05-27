@@ -160,6 +160,97 @@ describe('createState — REGISTER_COMPONENT / UNREGISTER_COMPONENT', () => {
   });
 });
 
+describe('createState — UPDATE_COMPONENT', () => {
+  it('merges patch into existing components[id]', () => {
+    const actor = makeActor({ initial: 'idle', states: { idle: {} } });
+    actor.send({
+      type: 'REGISTER_COMPONENT',
+      payload: { 'id-1': { meta: { tags: ['email'] }, name: 'email' } },
+    });
+
+    actor.send({ type: 'UPDATE_COMPONENT', payload: { 'id-1': { value: 'alice@example.com' } } });
+
+    const ctx = actor.getSnapshot().context as { components: Record<string, any> };
+    expect(ctx.components['id-1'].value).toBe('alice@example.com');
+  });
+
+  it('preserves other fields (meta) on partial patch', () => {
+    const actor = makeActor({ initial: 'idle', states: { idle: {} } });
+    actor.send({
+      type: 'REGISTER_COMPONENT',
+      payload: { 'id-1': { meta: { tags: ['email'] }, name: 'email', type: 'text' } },
+    });
+
+    actor.send({ type: 'UPDATE_COMPONENT', payload: { 'id-1': { value: 'alice' } } });
+
+    const ctx = actor.getSnapshot().context as { components: Record<string, any> };
+    expect(ctx.components['id-1'].meta).toEqual({ tags: ['email'] });
+    expect(ctx.components['id-1'].name).toBe('email');
+    expect(ctx.components['id-1'].type).toBe('text');
+    expect(ctx.components['id-1'].value).toBe('alice');
+  });
+
+  it('skips unknown id — no crash, no ghost entry', () => {
+    const actor = makeActor({ initial: 'idle', states: { idle: {} } });
+    // No REGISTER_COMPONENT — 'id-ghost' is unknown.
+    actor.send({ type: 'UPDATE_COMPONENT', payload: { 'id-ghost': { value: 'x' } } });
+
+    const ctx = actor.getSnapshot().context as { components: Record<string, any> };
+    expect(ctx.components).toEqual({});
+  });
+
+  it('patches multiple ids in one payload', () => {
+    const actor = makeActor({ initial: 'idle', states: { idle: {} } });
+    actor.send({
+      type: 'REGISTER_COMPONENT',
+      payload: {
+        'id-1': { meta: { tags: ['email'] }, name: 'email' },
+        'id-2': { meta: { tags: ['password'] }, name: 'password' },
+      },
+    });
+
+    actor.send({
+      type: 'UPDATE_COMPONENT',
+      payload: { 'id-1': { value: 'alice' }, 'id-2': { value: 'secret' } },
+    });
+
+    const ctx = actor.getSnapshot().context as { components: Record<string, any> };
+    expect(ctx.components['id-1'].value).toBe('alice');
+    expect(ctx.components['id-2'].value).toBe('secret');
+  });
+
+  it('multiple sequential UPDATE_COMPONENT events accumulate', () => {
+    const actor = makeActor({ initial: 'idle', states: { idle: {} } });
+    actor.send({
+      type: 'REGISTER_COMPONENT',
+      payload: { 'id-1': { meta: { tags: ['input'] }, name: 'search' } },
+    });
+
+    actor.send({ type: 'UPDATE_COMPONENT', payload: { 'id-1': { value: 'foo' } } });
+    actor.send({ type: 'UPDATE_COMPONENT', payload: { 'id-1': { value: 'foobar' } } });
+
+    const ctx = actor.getSnapshot().context as { components: Record<string, any> };
+    expect(ctx.components['id-1'].value).toBe('foobar');
+  });
+
+  it('does not touch context.data namespace after UPDATE_COMPONENT', () => {
+    const actor = makeActor({
+      initial: 'idle',
+      states: { idle: {} },
+      context: { counter: 0 },
+    });
+    actor.send({
+      type: 'REGISTER_COMPONENT',
+      payload: { 'id-1': { meta: { tags: ['input'] }, name: 'email' } },
+    });
+
+    actor.send({ type: 'UPDATE_COMPONENT', payload: { 'id-1': { value: 'test@example.com' } } });
+
+    const ctx = actor.getSnapshot().context as { data: { counter: number } };
+    expect(ctx.data).toEqual({ counter: 0 });
+  });
+});
+
 describe('createState — SET_PROPS', () => {
   it('merges per-id patch into existing props (does NOT replace)', () => {
     const actor = makeActor({ initial: 'idle', states: { idle: {} } });

@@ -101,6 +101,22 @@ describe('createBridge — mutations', () => {
     createBridge(mkState(), send).unregisterComponent('id-1');
     expect(send).toHaveBeenCalledWith({ type: 'UNREGISTER_COMPONENT', id: 'id-1' });
   });
+
+  it('updateComponent sends UPDATE_COMPONENT', () => {
+    const send = vi.fn();
+    createBridge(mkState(), send).updateComponent({ 'id-1': { value: 'alice' } });
+    expect(send).toHaveBeenCalledWith({
+      type: 'UPDATE_COMPONENT',
+      payload: { 'id-1': { value: 'alice' } },
+    });
+  });
+
+  it('updateComponent forwards payload as-is', () => {
+    const send = vi.fn();
+    const payload = { 'id-1': { value: 'x', type: 'email' }, 'id-2': { value: 42 } };
+    createBridge(mkState(), send).updateComponent(payload);
+    expect(send).toHaveBeenCalledWith({ type: 'UPDATE_COMPONENT', payload });
+  });
 });
 
 describe('createBridge — tag operations', () => {
@@ -208,6 +224,104 @@ describe('createBridge — patch (tag-based mutator)', () => {
     const bridge = createBridge(mkState({ components: { a: { meta: { tags: ['x'] } } } }), send);
     bridge.patch(['x'], () => ({}));
     expect(send).not.toHaveBeenCalled();
+  });
+});
+
+describe('createBridge — values', () => {
+  it('returns Record<name, value> keyed by component name', () => {
+    const bridge = createBridge(
+      mkState({
+        components: {
+          a: { meta: { tags: ['input'] }, name: 'login', value: 'alice' },
+          b: { meta: { tags: ['input'] }, name: 'password', value: 'secret' },
+        },
+      }),
+      vi.fn(),
+    );
+    expect(bridge.values(['input'])).toEqual({ login: 'alice', password: 'secret' });
+  });
+
+  it('skips components without a name', () => {
+    const bridge = createBridge(
+      mkState({
+        components: {
+          a: { meta: { tags: ['submit'] } }, // no name
+          b: { meta: { tags: ['input'] }, name: 'email', value: 'test@example.com' },
+        },
+      }),
+      vi.fn(),
+    );
+    expect(bridge.values(['submit'])).toEqual({});
+    expect(bridge.values(['input'])).toEqual({ email: 'test@example.com' });
+  });
+
+  it('last write wins when two components share the same name', () => {
+    // Duplicate names are a developer mistake; the method is lenient: last entry wins.
+    const bridge = createBridge(
+      mkState({
+        components: {
+          a: { meta: { tags: ['input'] }, name: 'email', value: 'first@example.com' },
+          b: { meta: { tags: ['input'] }, name: 'email', value: 'second@example.com' },
+        },
+      }),
+      vi.fn(),
+    );
+    const result = bridge.values(['input']);
+    expect(result).toHaveProperty('email');
+    // The value is one of the two; last iteration wins (object key order is insertion order).
+    expect(['first@example.com', 'second@example.com']).toContain(result.email);
+  });
+
+  it('expands aliases by default (expandAliases: true)', () => {
+    clearAliases();
+    registerAliases({ '@form-fields': ['login', 'password'] });
+
+    const bridge = createBridge(
+      mkState({
+        components: {
+          a: { meta: { tags: ['login'] }, name: 'login', value: 'alice' },
+          b: { meta: { tags: ['password'] }, name: 'password', value: 'secret' },
+          c: { meta: { tags: ['submit'] } },
+        },
+      }),
+      vi.fn(),
+    );
+    expect(bridge.values(['@form-fields'])).toEqual({ login: 'alice', password: 'secret' });
+
+    clearAliases();
+  });
+
+  it('does not expand aliases when expandAliases: false', () => {
+    clearAliases();
+    registerAliases({ '@form-fields': ['login', 'password'] });
+
+    const bridge = createBridge(
+      mkState({
+        components: {
+          a: { meta: { tags: ['login'] }, name: 'login', value: 'alice' },
+          b: { meta: { tags: ['password'] }, name: 'password', value: 'secret' },
+        },
+      }),
+      vi.fn(),
+    );
+    // With expandAliases: false the literal tag '@form-fields' is looked up —
+    // none of the components carry it, so result is empty.
+    expect(bridge.values(['@form-fields'], { expandAliases: false })).toEqual({});
+
+    clearAliases();
+  });
+
+  it('does not include dynamicMeta components when lookDynamic: false', () => {
+    const bridge = createBridge(
+      mkState({
+        components: {
+          a: { meta: { tags: ['input'] }, name: 'login', value: 'alice' },
+          b: { dynamicMeta: { tags: ['input'] }, name: 'dynamic', value: 'hidden' },
+        },
+      }),
+      vi.fn(),
+    );
+    expect(bridge.values(['input'], { lookDynamic: false })).toEqual({ login: 'alice' });
   });
 });
 
