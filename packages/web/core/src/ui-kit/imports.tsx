@@ -54,6 +54,14 @@ export const Field = Object.assign(FieldBase, {
 // 7. DataTable — smart table (sorting/pagination/selection/filtering), no sub-components
 export const DataTable = createLazy(() => import('@capsuletech/web-ui/dataTable'), 'DataTable');
 
+// 7a. DropdownMenu — declarative composite над Dropdown primitive. Принимает
+// `trigger` + `data: IDropdownMenuItem[]` (рекурсивная структура: item/sub/
+// separator/group) и сам строит дерево. Симметрия с DataTable: для Shape pattern.
+export const DropdownMenu = createLazy(
+  () => import('@capsuletech/web-ui/dropdownMenu'),
+  'DropdownMenu',
+);
+
 // 6. Компонент Table со вложенными частями
 const TableBase = createLazy(() => import('@capsuletech/web-ui/table'), 'Table');
 export const Table = Object.assign(TableBase, {

@@ -22,6 +22,7 @@ import type {
   Table,
 } from '@capsuletech/web-ui';
 import type { Dropdown } from '@capsuletech/web-ui/dropdown';
+import type { DropdownMenu } from '@capsuletech/web-ui/dropdownMenu';
 import type { Typography } from '@capsuletech/web-ui/typography';
 import type { DarkModeToggle, ThemeSwitcher } from '@capsuletech/web-style';
 import type { MapView } from '@capsuletech/web-map';
@@ -142,6 +143,7 @@ type ViewUiRaw = {
   Table: typeof Table;
   DataTable: typeof DataTable;
   Dropdown: typeof Dropdown;
+  DropdownMenu: typeof DropdownMenu;
   ThemeSwitcher: typeof ThemeSwitcher;
   DarkModeToggle: typeof DarkModeToggle;
   MapView: typeof MapView;
@@ -162,6 +164,7 @@ type WidgetUiRaw = {
   Table: typeof Table;
   DataTable: typeof DataTable;
   Dropdown: typeof Dropdown;
+  DropdownMenu: typeof DropdownMenu;
   ThemeSwitcher: typeof ThemeSwitcher;
   DarkModeToggle: typeof DarkModeToggle;
   MapView: typeof MapView;
