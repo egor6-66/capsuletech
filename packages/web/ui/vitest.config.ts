@@ -25,6 +25,8 @@ export default defineConfig({
           /@tanstack\/solid-router/,
           /@solidjs\/meta/,
           /@kobalte\/core/,
+          /solid-prevent-scroll/,
+          /solid-presence/,
         ],
       },
     },

@@ -21,6 +21,16 @@
       "import": "./dist/components/button/*.mjs",
       "default": "./dist/components/button/*.mjs"
     },
+    "./dropdown": {
+      "types": "./dist/components/dropdown/index.d.ts",
+      "import": "./dist/components/dropdown/index.mjs",
+      "default": "./dist/components/dropdown/index.mjs"
+    },
+    "./dropdown/*": {
+      "types": "./dist/components/dropdown/*.d.ts",
+      "import": "./dist/components/dropdown/*.mjs",
+      "default": "./dist/components/dropdown/*.mjs"
+    },
     "./card": {
       "types": "./dist/components/card/index.d.ts",
       "import": "./dist/components/card/index.mjs",
