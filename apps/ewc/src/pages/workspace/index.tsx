@@ -27,7 +27,7 @@ const Workspace = Page((Ui) => {
         header: {
           children: <Widgets.Headers.Main />,
           resizable: false,
-          initialSize: 0.03,
+          initialSize: 0.04,
         },
         main: {
           children: <Widgets.Tables.Calls />,

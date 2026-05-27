@@ -5,7 +5,7 @@
  */
 const WorkspaceHeader = View((Ui) => (
   <Ui.Layout.Flex align="center" gap={3}>
-    <Ui.Typography variant="h2">EWC 2.0</Ui.Typography>
+    <Ui.Typography variant="muted">EWC 2.0</Ui.Typography>
     <Ui.Typography variant="muted">workspace</Ui.Typography>
   </Ui.Layout.Flex>
 ));
