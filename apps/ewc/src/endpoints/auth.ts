@@ -4,7 +4,7 @@
  * `services.api.auth.login(input)` — генерируется EndpointsRegistryPlugin'ом.
  * Mock через `preRequest` — `resolve(data)` короткозамыкает pipeline без сетевого запроса.
  *
- * Mock creds: `login-user` / `pass-123`. Возвращает `{ token: 'mock-jwt-...' }`.
+ * Mock creds: `user` / `123`. Возвращает `{ token: 'mock-jwt-...' }`.
  * Любые другие — reject `Error('Invalid credentials')`.
  *
  * 800ms задержка симулирует сетевой round-trip — чтобы наглядно увидеть
@@ -25,7 +25,7 @@ export const login = defineEndpoint((z) => ({
   }),
   preRequest: async ({ input, resolve, reject }) => {
     await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
-    if (input.login === 'login-user' && input.password === 'pass-123') {
+    if (input.login === 'user' && input.password === '123') {
       resolve({ token: `mock-jwt-${Date.now()}` });
       return;
     }

@@ -11,7 +11,7 @@
  *  - store.values для сбора form-payload по alias-зонтику
  *  - UiProxy сам инжектит kind-tags ('input'/'button') — в View их в meta нет.
  */
-const Auth = Feature(({ api }) => ({
+const Auth = Feature(({ api, router }) => ({
   initial: 'idle',
 
   states: {
@@ -44,6 +44,7 @@ const Auth = Feature(({ api }) => ({
           // eslint-disable-next-line no-console
           console.log('[auth] login ok:', result);
           localStorage.setItem('capsule-auth-token', result.token);
+          router.goTo('/workspace');
         } catch (err) {
           // eslint-disable-next-line no-console
           console.error('[auth] login failed:', err);
