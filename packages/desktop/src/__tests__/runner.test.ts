@@ -1,7 +1,6 @@
 import { EventEmitter } from 'node:events';
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mock node:child_process ─────────────────────────────────────────────────
@@ -282,10 +281,7 @@ describe('runBuild — spawn args', () => {
     // Restore platform
     if (savedPlatform) Object.defineProperty(process, 'platform', savedPlatform);
 
-    const [cmd, args] = (spawn as ReturnType<typeof vi.fn>).mock.calls[0] as [
-      string,
-      string[],
-    ];
+    const [cmd, args] = (spawn as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string[]];
     expect(cmd).toBe('pnpm');
     expect(args[2]).toBe('build');
     expect(args[3]).toBe('--config');
