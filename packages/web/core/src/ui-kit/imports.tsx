@@ -64,6 +64,21 @@ export const Table = Object.assign(TableBase, {
   Cell:   createLazy(() => import('@capsuletech/web-ui/table'), 'TableCell'),
 });
 
+// 8. Dropdown — accessible menu primitive (Kobalte). Compound с 9 sub-components:
+// Trigger / Content / Item / Separator / Group / Label / Sub / SubTrigger / SubContent.
+const DropdownBase = createLazy(() => import('@capsuletech/web-ui/dropdown'), 'Dropdown');
+export const Dropdown = Object.assign(DropdownBase, {
+  Trigger:    createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownTrigger'),
+  Content:    createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownContent'),
+  Item:       createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownItem'),
+  Separator:  createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSeparator'),
+  Group:      createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownGroup'),
+  Label:      createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownLabel'),
+  Sub:        createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSub'),
+  SubTrigger: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSubTrigger'),
+  SubContent: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSubContent'),
+});
+
 // ThemeSwitcher из @capsuletech/web-style (plain Solid component, не web-ui primitive).
 // Субпасс ./switcher отсутствует в package.json web-style — импортируем из основного
 // barrel (framework gap, делегировано architect для добавления subpath в web-style).
