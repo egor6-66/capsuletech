@@ -69,15 +69,41 @@ store.pick(['@inputs'])         // Record<id, ITarget> — все смонтир
 store.omit(['disabled'])        // Record<id, ITarget> — все, КРОМЕ
 store.match(['submit'])         // ITarget | undefined  — первый совпавший
 store.matchEntry(['submit'])    // (ITarget & { id }) | undefined
+store.values(['@inputs'])       // Record<name, value> — payload форм из inputs
 ```
 
-Объединяют `meta.tags` + `dynamicMeta.tags`. Опция `{ lookDynamic: false }` отключает второй источник.
+Методы `pick`, `omit`, `match`, `matchEntry` объединяют `meta.tags` + `dynamicMeta.tags`. Опция `{ lookDynamic: false }` отключает второй источник.
+
+`store.values(tags)` возвращает плоский словарь `{ [comp.name]: comp.value }` для компонентов с указанными тегами. Skip компоненты без `name` (например `<Button meta={{tags:['submit']}}>` — у него нет `name`-атрибута, вызов `store.values(['@submit'])` вернёт `{}`). Last-write-wins при дублирующихся `name` (симптом ошибки разработчика). Подробнее — [[state]].
 
 ## Регистрация (политика C)
 
 В `store.components` попадают **только элементы с собственным `meta`** на JSX-узле. Структурные обёртки (`Field`, `Field.Label`, `Field.Content`) — не попадают, даже если унаследовали `dynamicMeta` от Entity.
 
 Это значит: `meta` стало явным opt-in флагом «элемент участвует в HCA-потоке». Подробнее — [[ui-proxy|UiProxy]].
+
+## Auto kind-tags (UiProxy whitelist)
+
+UiProxy автоматически инжектит kind-tag в `meta.tags` для известных примитивов. JSX в View может опустить эти теги — они появятся под капотом.
+
+| primitive | kind-tag |
+|---|---|
+| `Input`, `Textarea`, `Select`, `Checkbox` | `input` |
+| `Button` | `button` |
+
+Эффект:
+
+```tsx
+// До UiProxy:
+<Input meta={{ tags: ['login'] }} />
+
+// После UiProxy (то что попадает в registerComponent):
+// meta.tags = ['login', 'input']
+```
+
+`deriveName` берёт первый non-@ tag → пользовательский id (`'login'`) остаётся первым, kind-tag добавляется в конец. `store.pick(['@input'])` (alias `@input` раскрывается в `'input'`) находит и login, и password inputs.
+
+Whitelist — module-private в `packages/web/core/src/engine/ui-proxy.tsx > KIND_TAGS`. Расширяется точечно (см. [[021-uiproxy-auto-kind-tags|ADR 021]]).
 
 ## Соглашения по тегам
 

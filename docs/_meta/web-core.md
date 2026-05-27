@@ -3,7 +3,7 @@ tags: [meta, web-core, ai-context]
 status: documented
 type: ai-anchor
 audience: claude
-last-verified: 2026-05-21
+last-verified: 2026-05-27
 ---
 
 # 🤖 Web Core — AI context anchor
@@ -138,6 +138,35 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 - инжект реактивного `class` (с подмесом `store.styles[name]`), `disabled` (из `store.loading`), `name` (deriveName из tags)
 - `target` собирается как `{ meta, dynamicMeta, key, modifiers, payload }`
 
+### KIND_TAGS auto-inject (PR #167)
+
+`wrapComponent` принимает 4-й опциональный аргумент `componentName?: string`. Top-level `UiProxy` getter пробрасывает `propName` как `componentName`. Внутри `ComponentWrapper` функция `getEffectiveMeta()` аппендит kind-tag из whitelist к user-tags (без дублирования):
+
+```ts
+const KIND_TAGS: Record<string, string> = {
+  Input: 'input',
+  Textarea: 'input',
+  Select: 'input',
+  Checkbox: 'input',
+  Button: 'button',
+};
+```
+
+Все 5 читателей `effectiveMeta` (`registerComponent`, `getTargetData` в event bindings, `class`/`name`/`type` геттеры) используют `getEffectiveMeta()` вместо `props.meta` напрямую.
+
+Эффект: `<Input meta={{ tags: ['login'] }} />` достаточно. UiProxy сам добавит `'input'` → `store.pick(['@input'])` матчит после alias-expansion. Sub-components (`Card.Header`, `Field.Label`) НЕ получают kind-tag — `componentName` не пробрасывается через recursive proxy на sub-components (намеренно).
+
+### store.updateComponent вместо store.update (PR #166)
+
+Раньше при событии с `updateStore: true` UiProxy писал весь target в `ctx.store.update({ [id]: data })` (SET_DATA → `context.data[id]`). Теперь:
+
+```ts
+ctx.store.updateComponent({ [id]: { value: data.value, type: data.type } });
+// UPDATE_COMPONENT → merge в context.components[id]
+```
+
+Полный `target` (8 полей: name/value/type/meta/dynamicMeta/payload/key/modifiers) **по-прежнему** идёт в `ctx.controller[name]` как аргумент. В store-payload — только runtime-mutable поля (value/type). Семантика разделения: `registerComponent` — единоразово на mount; `updateComponent` — runtime patches, мержится в существующий `components[id]`; `update`/SET_DATA — user API для `schema.context`, UiProxy её больше не использует. Подробнее — [[web-state]] + [[020-component-data-flow-split]].
+
 ## ControllerProxy mechanic (engine/controller-proxy.ts)
 
 - Текущий стейт **читается из XState**: `state.value`. Собственного runtime нет.
@@ -188,6 +217,12 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 
 15. **`HMRWrappingPlugin` ожидает factory-call в default export.** `const X = View(...)` + `export default X` — обязательный паттерн. Плагин превращает `View(...)` в `(props) => View(...)(props)` чтобы HMR не сбрасывал state. Если `export default` отсутствует — HMR продолжит работать (плагин добавит), но TS не увидит default → сломается типизация slot-кодгена.
 
+21. **UiProxy KIND_TAGS auto-inject — module-private whitelist.** `KIND_TAGS` в `engine/ui-proxy.tsx` — закрытый объект, не экспортируется. Расширять точечно: каждый новый entry означает что apps могут опустить тег и он будет добавлен автоматически. Switch/Radio пока не добавлены (не используются в ewc). Sub-components (`Card.Header`, `Field.Label`) не затрагиваются: `componentName` forward'ится только из top-level `UiProxy` getter'а, через recursive proxy на sub-components — не пробрасывается (намеренно).
+
+22. **`store.update` (SET_DATA) больше не вызывается из UiProxy** (PR #166). UiProxy при событии с `updateStore: true` использует только `store.updateComponent` (UPDATE_COMPONENT → `context.components[id]`). `store.update` остаётся публичным API для user-land state (`schema.context`), но UiProxy его не трогает. Если увидишь `store.update` вызовы в engine-коде — это регрессия, смотри ADR [[020-component-data-flow-split]].
+
+23. **AutoImport `dirs:` убран** (PR #165, ADR [[019-autoimport-dirs-drop]]). Registry-объекты (`Widgets`/`Views`/`Shapes`/...) доступны как глобалы **только** через `Object.assign(globalThis, _registry)` в bootstrap. TS-типы — из `slots.d.ts` (ExportGeneratorPlugin). Строка `dirs: [join(capsuleRoot, 'registry')]` в `capsuleConfig.ts` удалена — она экспонировала named exports из `.capsule/registry/*.ts` как глобалы и вызывала self-import TDZ цикл через `createApi.ts`.
+
 ## Что менять когда
 
 | Хочу… | Куда лезть |
@@ -198,6 +233,7 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 | Добавить новый wrapper-слой (например `Adapter`) | `WRAPPER_NAMES` в `packages/builders/vite/src/plugins/constants.ts` (SSOT для AutoImport, делает owner-builders) + новый wrapper в `packages/web/core/src/wrappers/` + публичный API в `index.ts` + AI-anchor entry |
 | Добавить новое поле в `ITarget` (например `meta.section`) | `packages/web/core/src/wrappers/interfaces.ts > ITarget` + сборщик `target` в `engine/ui-proxy.tsx` + опционально `engine/derivation.ts` если выводится из tags. Tests! |
 | Добавить новый handler-event (`onScroll`) | `engine/ui-proxy.tsx > EVENT_HANDLERS` + (опц) `engine/derivation.ts > TAG_TO_INPUT_TYPE`. ADR 009. Tests! |
+| Добавить новый primitive в KIND_TAGS auto-inject (например `Switch`) | `engine/ui-proxy.tsx > KIND_TAGS` + характеризационный тест в `engine/__tests__/ui-proxy.test.tsx`. Сам primitive должен быть добавлен в `@capsuletech/web-ui` ДО этого. Sub-components не трогать — они обходятся через recursive proxy без `componentName`. |
 | Изменить wrapper-сигнатуру | `packages/web/core/src/wrappers/<wrapper>.tsx` + `interfaces.ts` (типы) + CLI templates (`packages/cli/src/templates/`) + `.claude/agents/{view,widget,page,shape}.md` + `CLAUDE.md` table + characterization tests. BREAKING → bump major. |
 | Расширить ShapeUiContext | `packages/web/core/src/wrappers/shape/context.tsx`. **Не плющить registries в Ui** — это уже было (PR #114, реверт). Если нужен новый namespace — отдельный Context. |
 | Добавить новый Provider в BaseProviders | `packages/web/core/src/providers/base.tsx` + публичный API из `web-core/providers`. Координируй с owner'ом нового пакета. |
@@ -208,7 +244,7 @@ Policy **C — own meta opt-in**: побочные эффекты (registration,
 ## Cross-links
 
 - OWNERSHIP: [packages/web/core/OWNERSHIP.md](../../packages/web/core/OWNERSHIP.md)
-- ADRs: [[001-xstate-only-fsm]], [[002-logic-wrapper-unification]], [[007-uiproxy-cleanup]], [[008-hybrid-fsm-with-direct-next]], [[009-event-handlers-hardcoded]]
+- ADRs: [[001-xstate-only-fsm]], [[002-logic-wrapper-unification]], [[007-uiproxy-cleanup]], [[008-hybrid-fsm-with-direct-next]], [[009-event-handlers-hardcoded]], [[019-autoimport-dirs-drop]], [[020-component-data-flow-split]], [[021-uiproxy-auto-kind-tags]]
 - Связанные пакеты: [[web-state]] (Bridge, IBaseStateSchema), [[web-router]] (router в services), [[web-ui]] (Ui-kit), [[web-style]] (theme tokens), [[web-profiler]] (VitalsMonitoring)
 - Builders: [[builders|builders.md]] — WRAPPER_NAMES, HMRWrappingPlugin, RouterPlugin, ExportGeneratorPlugin
 - Release: web-core в группе `web_base` (fixed-versioning, tag `web@{version}`)

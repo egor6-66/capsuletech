@@ -23,11 +23,12 @@ status: documented
 |---|---|---|---|
 | `variant` | `'default' \| 'destructive' \| 'outline' \| 'secondary' \| 'ghost' \| 'link'` | `'default'` | Визуальный стиль. |
 | `size` | `'default' \| 'sm' \| 'lg' \| 'icon'` | `'default'` | Высота / padding. `icon` — квадрат `h-9 w-9` для icon-only-кнопок. |
+| `loading` | `boolean` | `false` | При `true` — заменяет children на спиннер (`<Loader2 class="animate-spin" />`), auto-disable кнопку. |
 | `as` | `ValidComponent` | `'button'` | Полиморфный тег / компонент через `Slot`. |
 | `class` | `string` | — | Доп. Tailwind-классы (мержатся с CVA через `tailwind-merge`). |
 | `style` | `JSX.CSSProperties \| string` | — | Inline-стили. |
 | `disabled` | `boolean` | — | Стандартный HTML, плюс CVA выставляет `opacity-50 pointer-events-none`. |
-| `children` | `JSX.Element` | — | Текст и/или иконки. SVG автоматически получают `size-4 shrink-0`. |
+| `children` | `JSX.Element` | — | Текст и/или иконки. SVG автоматически получают `size-4 shrink-0`. Скрывается при `loading={true}`. |
 | `...rest` | DOM-атрибуты `T` | — | `onClick`, `type`, `id`, `aria-*`, `href` (при `as="a"`), … |
 
 Полный тип: `IButtonProps<T extends ValidComponent = 'button'>`.
@@ -92,6 +93,13 @@ import { Link } from '@tanstack/solid-router';
 <Button variant="destructive" disabled>Delete (locked)</Button>
 ```
 
+**С loading-state (async):**
+```tsx
+<Button loading={isSubmitting()}>Save</Button>
+```
+
+При `loading={true}` кнопка показывает спиннер вместо текста и автоматически disables. CVA базовый стиль задаёт `[&_svg]:size-4` — спиннер корректно масштабируется во всех variants и sizes.
+
 ## Storybook
 
 `http://localhost:6006/?path=/story/components-button--default` после `pnpm storybook` в `packages/web/ui/`.
@@ -100,7 +108,7 @@ Stories покрывают каждый variant + каждый size + loading-и
 
 ## Pitfalls
 
-- **Async без loading-state.** Button stateless — не показывает спиннер сам. На время async-операции отключай через `disabled` и подкладывай `<Loader2 class="animate-spin" />` в children.
+- **Async с loading-state.** Используй `loading={true}` для async-операций — prop автоматически покажет спиннер и отключит кнопку. Старый паттерн (`disabled` + manual `<Loader2>`) всё ещё работает, но менее удобен.
 - **Иерархия на странице.** Один `default` на экран. Остальные — `secondary`/`ghost`/`outline`. Несколько `default` рядом сбивают пользователя.
 - **Не путай `link`-variant с `<a>`.** `variant="link"` — это стилизация. Чтобы получить настоящую ссылку, добавь `as="a" href="…"` или `as={Link}`.
 - **Long children.** При длинном тексте кнопка не переносит — у CVA `whitespace-nowrap`. Если нужен перенос — переопредели `class="whitespace-normal"` или вынеси текст в `Typography` рядом.
