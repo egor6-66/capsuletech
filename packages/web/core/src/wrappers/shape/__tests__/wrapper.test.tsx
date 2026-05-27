@@ -359,7 +359,51 @@ describe('Shape batch flow — no template renders null', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 9. reactive data via signal
+// 9. single-object schema (ZodObject, non-array)
+// ---------------------------------------------------------------------------
+
+describe('Shape single-object schema — ZodObject data', () => {
+  it('passes defaults object to template as `data` prop', () => {
+    const { Template, getCapture } = makeCaptureTemplate('single-obj-defaults');
+
+    const MyShape = Shape(() => ({
+      schema: z.object({ title: z.string(), submitLabel: z.string() }),
+      defaults: { title: 'Login', submitLabel: 'Sign in' },
+      as: Template,
+    }));
+
+    cleanup = render(() => <MyShape />, container);
+    expect(getCapture().data).toEqual({ title: 'Login', submitLabel: 'Sign in' });
+  });
+
+  it('consumer data object overrides defaults for single-object schema', () => {
+    const { Template, getCapture } = makeCaptureTemplate('single-obj-override');
+
+    const MyShape = Shape(() => ({
+      schema: z.object({ title: z.string() }),
+      defaults: { title: 'Default' },
+      as: Template,
+    }));
+
+    cleanup = render(() => <MyShape data={{ title: 'Override' }} />, container);
+    expect(getCapture().data).toEqual({ title: 'Override' });
+  });
+
+  it('single-object schema with no defaults and no consumer data → data is undefined', () => {
+    const { Template, getCapture } = makeCaptureTemplate('single-obj-no-data');
+
+    const MyShape = Shape(() => ({
+      schema: z.object({ label: z.string() }),
+      as: Template,
+    }));
+
+    cleanup = render(() => <MyShape />, container);
+    expect(getCapture().data).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 10. reactive data via signal
 // ---------------------------------------------------------------------------
 
 describe('Shape batch flow — reactive data', () => {

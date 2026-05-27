@@ -21,8 +21,10 @@ import type {
   List,
   Table,
 } from '@capsuletech/web-ui';
+import type { Typography } from '@capsuletech/web-ui/typography';
 import type { DarkModeToggle, ThemeSwitcher } from '@capsuletech/web-style';
 import type { MapView } from '@capsuletech/web-map';
+import type { Link } from '@tanstack/solid-router';
 import type { Component, JSX, JSXElement } from 'solid-js';
 
 // -----------------------------------------------------------------------------
@@ -138,6 +140,9 @@ type ViewUiRaw = {
   ThemeSwitcher: typeof ThemeSwitcher;
   DarkModeToggle: typeof DarkModeToggle;
   MapView: typeof MapView;
+  Card: typeof Card;
+  Typography: typeof Typography;
+  Link: typeof Link;
 };
 
 type Outlet = () => JSXElement;
@@ -438,6 +443,7 @@ export type {
   IShapeFactory,
   IShapeUi,
   IShapeWrapper,
+  ShapeData,
   ShapeItem,
 } from './shape/types';
 

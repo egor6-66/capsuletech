@@ -9,7 +9,7 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['h1', 'h2', 'p', 'blockquote', 'code', 'lead'],
+      options: ['h1', 'h2', 'p', 'blockquote', 'code', 'lead', 'muted'],
     },
     color: {
       control: 'inline-radio',
@@ -66,6 +66,11 @@ export const Code: Story = {
   render: (args) => <Typography {...args}>npm install @capsuletech/web-ui</Typography>,
 };
 
+export const Muted: Story = {
+  args: { variant: 'muted' },
+  render: (args) => <Typography {...args}>Hint text — use for helper messages and secondary annotations.</Typography>,
+};
+
 export const Showcase: Story = {
   name: 'showcase · all variants',
   render: () => (
@@ -89,6 +94,7 @@ export const Showcase: Story = {
         Destructive-coloured warning.
       </Typography>
       <Typography variant="blockquote">A wise quote in italic with a left border.</Typography>
+      <Typography variant="muted">Muted hint — helper text, secondary annotations, timestamps.</Typography>
     </div>
   ),
 };
