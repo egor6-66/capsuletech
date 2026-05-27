@@ -132,21 +132,26 @@ interface IProps {
 }
 
 /**
- * Для каждой фабрики из DEFINE_FACTORIES — строка импорта и regex-детектор
- * наличия уже существующего импорта. Используется в transform для инжекта
- * отсутствующих импортов в endpoint-файлы (enforce: 'pre', до AutoImport).
+ * Endpoint-файлы используют только `defineEndpoint` — другие фабрики из
+ * DEFINE_FACTORIES (например, `defineAppConfig`) живут в `capsule.app.ts`,
+ * не в `endpoints/*.ts`. Поэтому pre-inject **захардкожен** на defineEndpoint:
+ * этот плагин знает про endpoint-каноничный паттерн (defineEndpoint без явного
+ * import), а не про все фабрики вообще.
  *
- * Цель: гарантировать наличие `defineEndpoint` и других фабрик без явного
- * import в endpoint-файлах (canonical pattern). Инжект enforce:'pre' устраняет
- * TDZ, возникающий при module-graph-chain через registry/endpoints.ts.
+ * Соответствующая запись в DEFINE_FACTORIES (`'@capsuletech/web-query':
+ * ['defineEndpoint']`) — single source of truth: меняешь её → ENDPOINT_FACTORY
+ * подхватывает (см. resolution ниже).
  */
-const ENDPOINT_FACTORY_ENTRIES: Array<{ importLine: string; alreadyImportedRe: RegExp }> =
-  Object.entries(DEFINE_FACTORIES).flatMap(([pkg, names]) =>
-    names.map((name) => ({
-      importLine: `import { ${name} } from '${pkg}';`,
-      alreadyImportedRe: new RegExp(`\\bimport\\b[^;]*\\b${name}\\b`),
-    })),
-  );
+const ENDPOINT_FACTORY = (() => {
+  const pkg = '@capsuletech/web-query';
+  const names = DEFINE_FACTORIES[pkg as keyof typeof DEFINE_FACTORIES];
+  const name = names?.find((n) => n === 'defineEndpoint');
+  if (!name) throw new Error('[endpoints-registry] defineEndpoint missing from DEFINE_FACTORIES');
+  return {
+    importLine: `import { ${name} } from '${pkg}';`,
+    alreadyImportedRe: new RegExp(`\\bimport\\b[^;]*\\b${name}\\b`),
+  };
+})();
 
 /**
  * Сканирует `apps/<app>/src/endpoints/**` и поддерживает в актуальном состоянии:
@@ -225,13 +230,10 @@ export const EndpointsRegistryPlugin = ({ out, typesOut, watchDir }: IProps): Pl
       // Файл должен лежать внутри src/endpoints/ и быть .ts/.tsx
       if (!normId.startsWith(normEndpointsDir + '/')) return null;
       if (!/\.[jt]sx?$/.test(normId)) return null;
-      // Инжектируем только отсутствующие импорты фабрик (идемпотентно).
-      const missing = ENDPOINT_FACTORY_ENTRIES
-        .filter(({ alreadyImportedRe }) => !alreadyImportedRe.test(code))
-        .map(({ importLine }) => importLine);
-      if (missing.length === 0) return null;
+      // Инжектируем defineEndpoint только если его ещё нет (идемпотентно).
+      if (ENDPOINT_FACTORY.alreadyImportedRe.test(code)) return null;
       return {
-        code: `${missing.join('\n')}\n${code}`,
+        code: `${ENDPOINT_FACTORY.importLine}\n${code}`,
         map: null,
       };
     },
