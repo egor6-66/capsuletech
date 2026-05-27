@@ -1,0 +1,24 @@
+{
+  "extends": [
+    "../../tsconfig.base.json",
+    "./.capsule/tsconfig.paths.json"
+  ],
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "moduleResolution": "bundler",
+    "moduleDetection": "force"
+  },
+  "include": [
+    "../../types/**/*.d.ts",
+    "src/**/*",
+    ".capsule/routes/**/*",
+    ".capsule/@types/*",
+    ".capsule/registry/*",
+    ".capsule/bootstrap.tsx",
+    ".capsule/index.ts",
+    ".capsule/paths.config.json",
+    "capsule.config.ts",
+    "capsule.app.ts"
+  ]
+}

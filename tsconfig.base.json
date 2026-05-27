@@ -26,6 +26,9 @@
       "@capsuletech/web-core/providers": [
         "packages/web/core/src/providers/index.ts"
       ],
+      "@capsuletech/web-core/app-config": [
+        "packages/web/core/src/app-config.ts"
+      ],
       "@capsuletech/web-core": [
         "packages/web/core/src/index.ts"
       ],
@@ -58,9 +61,6 @@
       ],
       "@capsuletech/web-profiler": [
         "packages/web/profiler/src/index.ts"
-      ],
-      "@capsuletech/web-query/app-config": [
-        "packages/web/query/src/app-config.ts"
       ],
       "@capsuletech/web-query": [
         "packages/web/query/src/index.ts"

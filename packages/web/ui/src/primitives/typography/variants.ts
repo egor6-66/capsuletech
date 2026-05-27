@@ -8,6 +8,7 @@ export const variants = {
     blockquote: 'mt-6 border-l-2 pl-6 italic',
     code: 'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold',
     lead: 'text-xl leading-relaxed text-muted-foreground',
+    muted: 'text-sm text-muted-foreground',
   },
   color: {
     default: 'text-foreground',

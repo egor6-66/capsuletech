@@ -9,7 +9,7 @@
 // the change propagates to every app without per-app duplication.
 
 import type { ICapsuleConfig } from '@capsuletech/vite-builder';
-import type { IAppConfig } from '@capsuletech/web-query/app-config';
+import type { IAppConfig } from '@capsuletech/web-core/app-config';
 
 declare global {
   /**

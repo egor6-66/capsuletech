@@ -7,6 +7,7 @@ export type {
   IShapeFactory,
   IShapeUi,
   IShapeWrapper,
+  ShapeData,
   ShapeItem,
 } from './types';
 export { Shape } from './wrapper';
