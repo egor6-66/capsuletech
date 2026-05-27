@@ -103,6 +103,8 @@ const openDropdown = async () => {
 // Tests
 // ---------------------------------------------------------------------------
 
+import { Dropdown } from '../../../primitives/dropdown';
+
 describe('ThemePicker composite', () => {
   describe('rendering', () => {
     it('renders a trigger button', () => {
@@ -160,6 +162,73 @@ describe('ThemePicker composite', () => {
 
       await waitFor(() => onChange.mock.calls.length > 0);
       expect(onChange).toHaveBeenCalledWith('damon');
+    });
+  });
+
+  describe('sub mode', () => {
+    it('mode="sub" does not render its own root trigger button — only the parent Trigger appears', () => {
+      cleanup = render(
+        () => (
+          <Dropdown>
+            <Dropdown.Trigger>Parent</Dropdown.Trigger>
+            <Dropdown.Content>
+              <ThemePicker mode="sub" />
+            </Dropdown.Content>
+          </Dropdown>
+        ),
+        container,
+      );
+
+      // Only the parent Dropdown.Trigger button is in the container.
+      // ThemePicker in sub mode must NOT inject its own root trigger button.
+      const buttons = container.querySelectorAll('button');
+      expect(buttons.length).toBe(1);
+      expect(buttons[0]!.textContent).toContain('Parent');
+    });
+
+    it('mode="sub" — SubTrigger is in the parent menu and SubContent reveals theme items on click', async () => {
+      cleanup = render(
+        () => (
+          <Dropdown>
+            <Dropdown.Trigger>Parent</Dropdown.Trigger>
+            <Dropdown.Content>
+              <ThemePicker
+                mode="sub"
+                themes={['black', 'damon', 'zen']}
+                triggerLabel={<span data-testid="sub-trigger-label">Theme</span>}
+              />
+            </Dropdown.Content>
+          </Dropdown>
+        ),
+        container,
+      );
+
+      // Open the parent dropdown.
+      click(container.querySelector('button')!);
+      await waitFor(() => document.body.querySelector('[role="menu"]') !== null);
+
+      // The sub-trigger label is now visible inside the portal-mounted parent menu.
+      const subTriggerLabel = document.body.querySelector('[data-testid="sub-trigger-label"]');
+      expect(subTriggerLabel).not.toBeNull();
+
+      // Click the SubTrigger element (its closest ancestor with role=menuitem).
+      const subTriggerEl = subTriggerLabel!.closest('[role="menuitem"]') ?? subTriggerLabel!.parentElement!;
+      click(subTriggerEl);
+
+      // Wait for sub-menu items to appear (two role=menu panels: parent + sub).
+      await waitFor(() => document.body.querySelectorAll('[role="menu"]').length >= 2);
+
+      const bodyText = document.body.textContent ?? '';
+      expect(bodyText).toContain('black');
+      expect(bodyText).toContain('damon');
+      expect(bodyText).toContain('zen');
+
+      // Active theme (black) must have the checkmark.
+      const items = Array.from(document.body.querySelectorAll('[role="menuitem"]'));
+      const blackItem = items.find(
+        (el) => el.textContent?.includes('black') && el.textContent.includes('✓'),
+      );
+      expect(blackItem).not.toBeNull();
     });
   });
 
