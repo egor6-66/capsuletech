@@ -21,6 +21,7 @@ import type {
   List,
   Table,
 } from '@capsuletech/web-ui';
+import type { Dropdown } from '@capsuletech/web-ui/dropdown';
 import type { Typography } from '@capsuletech/web-ui/typography';
 import type { DarkModeToggle, ThemeSwitcher } from '@capsuletech/web-style';
 import type { MapView } from '@capsuletech/web-map';
@@ -140,6 +141,7 @@ type ViewUiRaw = {
   Animate: typeof Animate;
   Table: typeof Table;
   DataTable: typeof DataTable;
+  Dropdown: typeof Dropdown;
   ThemeSwitcher: typeof ThemeSwitcher;
   DarkModeToggle: typeof DarkModeToggle;
   MapView: typeof MapView;
@@ -152,7 +154,18 @@ type ViewUiRaw = {
 
 type Outlet = () => JSXElement;
 
-type WidgetUiRaw = { Card: typeof Card; Outlet: Outlet; Animate: typeof Animate; Layout: typeof Layout; Table: typeof Table; DataTable: typeof DataTable; ThemeSwitcher: typeof ThemeSwitcher; DarkModeToggle: typeof DarkModeToggle; MapView: typeof MapView };
+type WidgetUiRaw = {
+  Card: typeof Card;
+  Outlet: Outlet;
+  Animate: typeof Animate;
+  Layout: typeof Layout;
+  Table: typeof Table;
+  DataTable: typeof DataTable;
+  Dropdown: typeof Dropdown;
+  ThemeSwitcher: typeof ThemeSwitcher;
+  DarkModeToggle: typeof DarkModeToggle;
+  MapView: typeof MapView;
+};
 type PageUiRaw = { Layout: typeof Layout; Outlet: Outlet; Animate: typeof Animate };
 
 /** Ui namespace доступный внутри View factory — все компоненты принимают IUiMetaProps. */

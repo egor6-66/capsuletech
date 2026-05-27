@@ -183,3 +183,18 @@ export const Dropdown = Object.assign(DropdownImpl, {
   SubTrigger,
   SubContent,
 });
+
+// Named re-exports под Table-pattern (web-core lazy uses individual symbols).
+// `Dropdown.Trigger`-style стабильный compound — выше, эти aliases — для
+// `createLazy(..., 'DropdownTrigger')` в web-core/ui-kit/imports.tsx.
+export {
+  Trigger as DropdownTrigger,
+  Content as DropdownContent,
+  Item as DropdownItem,
+  Separator as DropdownSeparator,
+  Group as DropdownGroup,
+  Label as DropdownLabel,
+  Sub as DropdownSub,
+  SubTrigger as DropdownSubTrigger,
+  SubContent as DropdownSubContent,
+};
