@@ -42,6 +42,15 @@ function EmptyState(props: { message?: string | import('solid-js').JSX.Element }
   );
 }
 
+/**
+ * Tailwind-классы для ячейки таблицы. Фиксируют high-priority три инварианта:
+ *  - `whitespace-nowrap` — текст не переносится в несколько строк (фикс height row'а).
+ *  - `overflow-hidden text-ellipsis` — длинный текст обрезается с `…`.
+ *  - `align-middle` — вертикальное центрирование (важно когда row имеет explicit height).
+ * Применяется и к `<th>`, и к `<td>` (см. TableHeaders + ...TableBody).
+ */
+const CELL_CLAMP_CLS = 'whitespace-nowrap overflow-hidden text-ellipsis';
+
 // Shared header rendering — used in both standard and infinite modes
 function TableHeaders<TData>(props: {
   table: TanstackTable<TData>;
@@ -56,7 +65,12 @@ function TableHeaders<TData>(props: {
             <For each={headerGroup.headers}>
               {(header) => (
                 <Table.Head
-                  class={props.sorting && header.column.getCanSort() ? 'cursor-pointer select-none' : undefined}
+                  class={[
+                    CELL_CLAMP_CLS,
+                    props.sorting && header.column.getCanSort() ? 'cursor-pointer select-none' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                   onClick={
                     props.sorting && header.column.getCanSort()
                       ? header.column.getToggleSortingHandler()
@@ -88,15 +102,19 @@ function TableHeaders<TData>(props: {
 function StandardTableBody<TData>(props: {
   rows: Row<TData>[];
   selection: boolean;
+  itemHeight?: number;
 }) {
   return (
     <Table.Body>
       <For each={props.rows}>
         {(row) => (
-          <Table.Row data-state={props.selection && row.getIsSelected() ? 'selected' : undefined}>
+          <Table.Row
+            data-state={props.selection && row.getIsSelected() ? 'selected' : undefined}
+            style={props.itemHeight ? { height: `${props.itemHeight}px` } : undefined}
+          >
             <For each={row.getVisibleCells()}>
               {(cell) => (
-                <Table.Cell>
+                <Table.Cell class={CELL_CLAMP_CLS}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </Table.Cell>
               )}
@@ -108,7 +126,22 @@ function StandardTableBody<TData>(props: {
   );
 }
 
-// Virtual infinite scroll table body
+/**
+ * Virtual infinite scroll table body.
+ *
+ * Container занимает 100% высоты родителя (`h-full`) и скроллится в обе оси.
+ * Внутри — обычный `<table>` с виртуализированным `<tbody>`:
+ *  - **spacer-padding** вместо `position: absolute` (последний ломал column
+ *    alignment, потому что absolute-positioned `<tr>` выпадает из table flow);
+ *  - первый `<tr>` — невидимый spacer высотой до начала первой видимой строки;
+ *  - последний `<tr>` — spacer высотой от конца последней видимой строки до
+ *    общей высоты scroll-области (`virtualizer.getTotalSize()`);
+ *  - middle rows — реальные `<Table.Row>` с фиксированной высотой `vRow.size`.
+ *
+ * `table-fixed` + `min-w-max` дают: колонки одной ширины (если не задана
+ * `columnDef.size`), table растёт по width до содержимого → если общая ширина
+ * больше контейнера, появляется horizontal scroll.
+ */
 function InfiniteTable<TData>(props: {
   table: TanstackTable<TData>;
   sorting: boolean;
@@ -142,53 +175,54 @@ function InfiniteTable<TData>(props: {
   });
 
   const rows = () => props.table.getRowModel().rows;
+  const virtualItems = () => virtualizer.getVirtualItems();
+  const paddingBefore = () => virtualItems()[0]?.start ?? 0;
+  const paddingAfter = () => {
+    const items = virtualItems();
+    const lastEnd = items[items.length - 1]?.end ?? 0;
+    return Math.max(0, virtualizer.getTotalSize() - lastEnd);
+  };
 
   return (
-    <div
-      ref={scrollEl}
-      class="relative overflow-auto scrollbar-hover"
-      style={{ height: '400px' }}
-    >
-      {/* Spacer: tells the browser the full scroll height */}
-      <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-        <Table>
-          <TableHeaders
-            table={props.table}
-            sorting={props.sorting}
-            style={{ position: 'sticky', top: '0', 'z-index': '1', background: 'var(--background)' }}
-          />
+    <div ref={scrollEl} class="h-full overflow-auto scrollbar-hover">
+      <Table class="table-fixed min-w-max">
+        <TableHeaders
+          table={props.table}
+          sorting={props.sorting}
+          style={{ position: 'sticky', top: '0', 'z-index': '1', background: 'var(--background)' }}
+        />
 
-          <Table.Body>
-            <For each={virtualizer.getVirtualItems()}>
-              {(vRow) => {
-                const row = () => rows()[vRow.index];
-                return (
-                  <Table.Row
-                    data-index={vRow.index}
-                    data-state={props.selection && row().getIsSelected() ? 'selected' : undefined}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: `${vRow.size}px`,
-                      transform: `translateY(${vRow.start}px)`,
-                    }}
-                  >
-                    <For each={row().getVisibleCells()}>
-                      {(cell) => (
-                        <Table.Cell>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </Table.Cell>
-                      )}
-                    </For>
-                  </Table.Row>
-                );
-              }}
-            </For>
-          </Table.Body>
-        </Table>
-      </div>
+        <Table.Body>
+          <Show when={paddingBefore() > 0}>
+            <tr style={{ height: `${paddingBefore()}px` }} />
+          </Show>
+
+          <For each={virtualItems()}>
+            {(vRow) => {
+              const row = () => rows()[vRow.index];
+              return (
+                <Table.Row
+                  data-index={vRow.index}
+                  data-state={props.selection && row().getIsSelected() ? 'selected' : undefined}
+                  style={{ height: `${vRow.size}px` }}
+                >
+                  <For each={row().getVisibleCells()}>
+                    {(cell) => (
+                      <Table.Cell class={CELL_CLAMP_CLS}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </Table.Cell>
+                    )}
+                  </For>
+                </Table.Row>
+              );
+            }}
+          </For>
+
+          <Show when={paddingAfter() > 0}>
+            <tr style={{ height: `${paddingAfter()}px` }} />
+          </Show>
+        </Table.Body>
+      </Table>
     </div>
   );
 }
@@ -280,32 +314,38 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
 
   const isEmpty = () => local.data.length === 0;
 
+  // Корневой контейнер — `h-full flex flex-col`. Toolbar/pagination — auto-height,
+  // table-секция — `flex-1 min-h-0` (растягивается по родителю + min-h-0 нужен,
+  // чтобы внутренний `h-full overflow-auto` InfiniteTable получил реальную
+  // высоту, а не схлопнулся в content height).
   return (
-    <div class={local.class}>
+    <div class={`flex h-full min-h-0 flex-col ${local.class ?? ''}`}>
       <Show when={local.toolbar !== undefined}>
         <div class="mb-component">{local.toolbar}</div>
       </Show>
 
-      <Show when={!isEmpty()} fallback={<EmptyState message={local.emptyMessage} />}>
-        <Show
-          when={isInfinite()}
-          fallback={
-            // --- Standard (non-virtual) render ---
-            <Table>
-              <TableHeaders table={table} sorting={!!local.sorting} />
-              <StandardTableBody rows={table.getRowModel().rows} selection={!!local.selection} />
-            </Table>
-          }
-        >
-          <InfiniteTable
-            table={table}
-            sorting={!!local.sorting}
-            selection={!!local.selection}
-            infinite={local.infinite!}
-            onLoadMore={local.onLoadMore}
-          />
+      <div class="min-h-0 flex-1">
+        <Show when={!isEmpty()} fallback={<EmptyState message={local.emptyMessage} />}>
+          <Show
+            when={isInfinite()}
+            fallback={
+              // --- Standard (non-virtual) render ---
+              <Table>
+                <TableHeaders table={table} sorting={!!local.sorting} />
+                <StandardTableBody rows={table.getRowModel().rows} selection={!!local.selection} />
+              </Table>
+            }
+          >
+            <InfiniteTable
+              table={table}
+              sorting={!!local.sorting}
+              selection={!!local.selection}
+              infinite={local.infinite!}
+              onLoadMore={local.onLoadMore}
+            />
+          </Show>
         </Show>
-      </Show>
+      </div>
 
       {/* Pagination controls (only when infinite is NOT enabled) */}
       <Show when={local.pagination && !local.infinite}>
