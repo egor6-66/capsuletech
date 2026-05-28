@@ -104,10 +104,22 @@ export const ThemePicker = createLazy(
   () => import('@capsuletech/web-ui/themePicker'),
   'ThemePicker',
 );
-export const MapView = createLazy(
-  () => import('@capsuletech/web-map'),
-  'MapView',
-);
+/**
+ * MapView — compound map component (Mapbox GL).
+ * Source / Layer / Sky / Marker / Terrain / TerrainPreset / BuildingsPreset живут внутри
+ * `<Ui.MapView>` (через MapContext) и доступны как `Ui.MapView.Source`, `Ui.MapView.Sky`, etc.
+ * Аналогичен Dropdown и Card по паттерну Object.assign.
+ */
+const MapViewBase = createLazy(() => import('@capsuletech/web-map'), 'MapView');
+export const MapView = Object.assign(MapViewBase, {
+  Source:          createLazy(() => import('@capsuletech/web-map'), 'Source'),
+  Layer:           createLazy(() => import('@capsuletech/web-map'), 'Layer'),
+  Terrain:         createLazy(() => import('@capsuletech/web-map'), 'Terrain'),
+  Sky:             createLazy(() => import('@capsuletech/web-map'), 'Sky'),
+  Marker:          createLazy(() => import('@capsuletech/web-map'), 'Marker'),
+  TerrainPreset:   createLazy(() => import('@capsuletech/web-map'), 'TerrainPreset'),
+  BuildingsPreset: createLazy(() => import('@capsuletech/web-map'), 'BuildingsPreset'),
+});
 
 // Реэкспорт сторонних утилит
 export { Link } from '@tanstack/solid-router';

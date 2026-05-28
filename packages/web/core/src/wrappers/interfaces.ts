@@ -27,7 +27,16 @@ import type { Typography } from '@capsuletech/web-ui/typography';
 import type { DarkModeToggle } from '@capsuletech/web-ui/darkModeToggle';
 import type { LayoutModeToggle } from '@capsuletech/web-ui/layoutModeToggle';
 import type { ThemePicker } from '@capsuletech/web-ui/themePicker';
-import type { MapView } from '@capsuletech/web-map';
+import type {
+  MapView,
+  Source,
+  Layer,
+  Terrain,
+  Sky,
+  TerrainPreset,
+  BuildingsPreset,
+  Marker,
+} from '@capsuletech/web-map';
 import type { Link } from '@tanstack/solid-router';
 import type { Component, JSX, JSXElement } from 'solid-js';
 
@@ -149,7 +158,15 @@ type ViewUiRaw = {
   DarkModeToggle: typeof DarkModeToggle;
   LayoutModeToggle: typeof LayoutModeToggle;
   ThemePicker: typeof ThemePicker;
-  MapView: typeof MapView;
+  MapView: typeof MapView & {
+    Source: typeof Source;
+    Layer: typeof Layer;
+    Terrain: typeof Terrain;
+    Sky: typeof Sky;
+    Marker: typeof Marker;
+    TerrainPreset: typeof TerrainPreset;
+    BuildingsPreset: typeof BuildingsPreset;
+  };
   Card: typeof Card;
   Typography: typeof Typography;
   Link: typeof Link;
@@ -171,7 +188,15 @@ type WidgetUiRaw = {
   DarkModeToggle: typeof DarkModeToggle;
   LayoutModeToggle: typeof LayoutModeToggle;
   ThemePicker: typeof ThemePicker;
-  MapView: typeof MapView;
+  MapView: typeof MapView & {
+    Source: typeof Source;
+    Layer: typeof Layer;
+    Terrain: typeof Terrain;
+    Sky: typeof Sky;
+    Marker: typeof Marker;
+    TerrainPreset: typeof TerrainPreset;
+    BuildingsPreset: typeof BuildingsPreset;
+  };
 };
 type PageUiRaw = { Layout: typeof Layout; Outlet: Outlet; Animate: typeof Animate };
 
