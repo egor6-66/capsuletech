@@ -201,6 +201,16 @@
       "import": "./dist/components/dataTable/*.mjs",
       "default": "./dist/components/dataTable/*.mjs"
     },
+    "./previewCard": {
+      "types": "./dist/components/previewCard/index.d.ts",
+      "import": "./dist/components/previewCard/index.mjs",
+      "default": "./dist/components/previewCard/index.mjs"
+    },
+    "./previewCard/*": {
+      "types": "./dist/components/previewCard/*.d.ts",
+      "import": "./dist/components/previewCard/*.mjs",
+      "default": "./dist/components/previewCard/*.mjs"
+    },
     "./dropdownMenu": {
       "types": "./dist/components/dropdownMenu/index.d.ts",
       "import": "./dist/components/dropdownMenu/index.mjs",
