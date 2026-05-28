@@ -3,12 +3,12 @@ name: "@capsuletech/web-map"
 owner-agent: owner-web-map
 group: web-map
 status: pre-1.0
-last-updated: 2026-05-22
+last-updated: 2026-05-28
 ---
 
 # @capsuletech/web-map
 
-Низкоуровневый Solid-wrapper над MapLibre GL JS: монтирует карту, прокидывает instance через Context, реактивно синхронизирует props.
+Низкоуровневый Solid-wrapper над MapLibre GL JS: монтирует карту, прокидывает instance через Context, реактивно синхронизирует props. Прямая интеграция с `maplibre-gl` без промежуточных обёрток (solid-map-gl удалён в пользу zero-leak implementation).
 
 ## Зона ответственности
 
@@ -35,6 +35,9 @@ last-updated: 2026-05-22
 - `MapContext` — Solid Context для прямого доступа (редко нужен)
 - `IMapViewProps` — тип props компонента
 - `IMapContext` — тип контекста (`{ map: Accessor<maplibregl.Map | undefined> }`)
+- `IViewport` — тип viewport snapshot (center/zoom/bearing/pitch), передаётся в `onViewportChange`
+- `POSITRON` — дефолтный светлый стиль (CARTO Positron)
+- `DARK_MATTER` — дефолтный тёмный стиль (CARTO Dark Matter)
 
 Изменение сигнатур — breaking change, координировать с главным.
 
@@ -42,7 +45,9 @@ last-updated: 2026-05-22
 
 | Prop | Тип | Default | Реактивный |
 |---|---|---|---|
-| `style` | `string \| StyleSpecification` | demotiles URL | да (тяжёлая замена) |
+| `style` | `string \| StyleSpecification` | POSITRON | да (тяжёлая замена, стирает layers) |
+| `darkStyle` | `string \| StyleSpecification` | DARK_MATTER | нет (только init) |
+| `attributionControl` | `boolean` | `false` | нет (только init) |
 | `center` | `LngLatLike` | undefined | да (jump, без анимации) |
 | `zoom` | `number` | undefined | да (jump) |
 | `bearing` | `number` | undefined | да (jump) |
@@ -52,14 +57,15 @@ last-updated: 2026-05-22
 | `maxBounds` | `LngLatBoundsLike` | undefined | нет (только init) |
 | `class` | `string` | undefined | — |
 | `classList` | `Record<string, bool>` | undefined | — |
+| `style_container` | `JSX.CSSProperties` | undefined | — |
 | `onLoad` | `(map) => void` | undefined | нет (once) |
+| `onViewportChange` | `(viewport: IViewport) => void` | undefined | — |
 | `children` | `JSX.Element` | undefined | — |
 
 ## Quirks / gotchas
 
-1. **0-size container crash / `jumpTo` NaN** (`src/MapView.tsx`) — maplibre 5+ вызывает `jumpTo({center})` прямо в конструкторе `new Map(...)`, даже без terrain. Если container имеет transient 0-size на момент вызова, projection matrix ещё не инициализирована → `camera.unproject()` → `NaN` → `"Invalid LngLat object: (NaN, NaN)"`.
-   **DO NOT pass `center` or `maxBounds` to the maplibre constructor.** Выставлять только после `'load'` через `setCenter`/`setMaxBounds` (так и сделано).
-   Дополнительная защита: `hasValidDimensions` guard в `init()` — конструктор не вызывается пока `clientWidth/clientHeight > 0`.
+1. **0-size container crash / `jumpTo` NaN** (`src/MapView.tsx`) — maplibre 4+ вызывает `jumpTo({center})` прямо в конструкторе `new Map(...)`. Если container имеет transient 0-size — projection matrix ещё не инициализирована → `_calcMatrices` → `"Invalid LngLat object: (NaN, NaN)"`.
+   **DO NOT pass `center`, `zoom`, `pitch`, `bearing`, `maxBounds` to the maplibre constructor.** Выставлять ТОЛЬКО после `'load'` через setters. ResizeObserver-gate в `onMount` защищает от вызова конструктора до появления размера контейнера.
 
 2. **`maplibre-gl.css` не подключается автоматически** — consumer сам обязан сделать `import 'maplibre-gl/dist/maplibre-gl.css'`. Без этого карта рендерится, но без UI-контролов и стилей.
 
@@ -67,16 +73,21 @@ last-updated: 2026-05-22
 
 4. **`onLoad` срабатывает один раз** — через `instance.once('load')`. После `setStyle` нужно слушать `'styledata'`. Сейчас не реализовано.
 
-5. **`maxBounds`, `minZoom`, `maxZoom` не реактивны** — только в initial config конструктора. Добавление `createEffect` для них — отдельная задача Iter 0.x (низкий приоритет).
+5. **`attributionControl: true` маппится на `{}`** — maplibre-gl 4 тип принимает `false | AttributionControlOptions`, не `boolean`. `props.attributionControl ? {} : false` в конструкторе.
 
-6. **center/zoom/bearing/pitch → jump без анимации** — `setCenter/Zoom/Bearing/Pitch()`. Для `flyTo`/`easeTo` — императивно через `useMap()`.
+6. **`maxBounds`, `minZoom`, `maxZoom` не реактивны** — только в initial config конструктора. Добавление `createEffect` — отдельная задача (низкий приоритет).
 
-7. **WebGL недоступен в jsdom** — тесты, которые реально монтируют MapLibre, упадут. Необходим mock или разнос pure-логики. Текущий план: тестировать ResizeObserver-gate через mock `maplibregl.Map` со spy на конструктор.
+7. **center/zoom/bearing/pitch → jump без анимации** — `setCenter/Zoom/Bearing/Pitch()`. Для `flyTo`/`easeTo` — императивно через `useMap()`.
+
+8. **WebGL недоступен в jsdom** — тесты, которые реально монтируют MapLibre, упадут. Необходим mock `maplibre-gl` со spy на конструктор и методы. Текущий подход (2026-05-28): `vi.mock('maplibre-gl', ...)` в обоих test-файлах.
+
+9. **Тёмная тема** — два источника: `prefers-color-scheme` media query (слушается через `matchMedia`) и класс `.dark` на `<body>` (через MutationObserver). Оба listener'а снимаются в `onCleanup`. Никакой утечки.
 
 ## Plan рефакторинга / roadmap
 
 - [x] **Iter 0 — skeleton** — `MapView` + `useMap()` + `MapContext`. (2026-05-19)
 - [x] **0-size container fix** — ResizeObserver-gated mount, устраняет NaN crash в resizable slots. (2026-05-22)
+- [x] **Drop solid-map-gl** — прямая интеграция с maplibre-gl, устранены 3 memory leak источника из solid-map-gl@1.13.0. Добавлены 33 unit-тесты. (2026-05-28)
 - [ ] **Iter 1 — layers API** — `<RasterLayer>`, `<VectorLayer>`, `<GeoJSONLayer>`. Каждый: `useMap` + `onCleanup` для `removeLayer`/`removeSource`. Re-add на `'styledata'`. (priority: high)
 - [ ] **Iter 2 — markers / custom HTML** — через Solid `render(() => ..., el)` для HTML-маркеров. (priority: high)
 - [ ] **Iter 3 — measurement / route tools** (priority: medium)
@@ -90,10 +101,12 @@ last-updated: 2026-05-22
 
 | Тип | Где | Что покрывает |
 |---|---|---|
-| Unit | `src/__tests__/map-view.test.tsx` | 7 тестов: 0-size → Map не создаётся; size > 0 → Map создаётся; deferred init после resize; no double-init; cleanup (remove + disconnect); observer disconnect без init; zero-size entries ignored |
-| Unit | — (TODO Iter 1) | Layer mount/cleanup, source registration |
+| Unit | `src/__tests__/map-view.test.tsx` | ResizeObserver-gated mount (5 тестов), camera props after load (3), memory cleanup (5 — matchMedia, ResizeObserver, map.remove, cycles) |
+| Unit | `src/__tests__/props-passthrough.test.tsx` | Constructor options (9), reactive prop sync (5), dark theme constants, useMap guard, container class/style (3) |
 | Integration | — | нет, WebGL требует реального браузера |
 | E2E | — | нет (пакет не в smoke fixture пока) |
+
+**Всего: 33 unit-теста, все проходят.**
 
 **Перед изменением:** `pnpm --filter @capsuletech/web-map test` должен быть green.
 **При breaking change в IMapViewProps:** обновить тесты + README.

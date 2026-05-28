@@ -4,16 +4,26 @@ import type {
   Map as MaplibreMap,
   StyleSpecification,
 } from 'maplibre-gl';
-import * as maplibre from 'maplibre-gl';
+import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { createEffect, createSignal, type JSX } from 'solid-js';
-import MapGL, { type Viewport } from 'solid-map-gl';
+import { createEffect, createSignal, type JSX, onCleanup, onMount } from 'solid-js';
 
 import { MapContext } from './context';
 import { DARK_MATTER, POSITRON } from './styles';
 
+/**
+ * Snapshot viewport — передаётся в `onViewportChange`.
+ * Собственный тип, не зависящий от solid-map-gl.
+ */
+export interface IViewport {
+  center?: LngLatLike;
+  zoom?: number;
+  bearing?: number;
+  pitch?: number;
+}
+
 export interface IMapViewProps {
-  /** URL стиля или inline StyleSpecification. По умолчанию — demotiles MapLibre. */
+  /** URL стиля или inline StyleSpecification. По умолчанию — POSITRON (CARTO). */
   style?: string | StyleSpecification;
   /**
    * Стиль для тёмной темы. Если задан, переключается автоматически:
@@ -40,7 +50,7 @@ export interface IMapViewProps {
   maxBounds?: LngLatBoundsLike;
   /** Поворот карты в градусах. */
   bearing?: number;
-  /** Наклон карты в градусах. */
+  /** Наклон карты в градусах (3D). */
   pitch?: number;
   /** CSS-класс контейнера карты. */
   class?: string;
@@ -55,7 +65,7 @@ export interface IMapViewProps {
    * Для controlled-mode: поднимите viewport во внешний state и передавайте
    * через `center`/`zoom`/`pitch`/`bearing`.
    */
-  onViewportChange?: (viewport: Viewport) => void;
+  onViewportChange?: (viewport: IViewport) => void;
   /** Дочерние компоненты (`<Source/>`, `<Layer/>`, `<Marker/>`, …). */
   children?: JSX.Element;
 }
@@ -63,111 +73,195 @@ export interface IMapViewProps {
 const DEFAULT_STYLE = POSITRON;
 const DEFAULT_DARK_STYLE = DARK_MATTER;
 
+/** Определяет активную тему: проверяет класс `.dark` на body И media query. */
+function isDarkMode(): boolean {
+  if (typeof document !== 'undefined' && document.body.classList.contains('dark')) return true;
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    return true;
+  return false;
+}
+
 /**
- * Обёртка над `solid-map-gl` (`<MapGL/>` от GIShub4) с подменой rendering
- * engine на MapLibre GL через `mapLib`.
+ * Корневой компонент карты. Монтирует `maplibre-gl.Map` на div,
+ * управляет lifecycle (init, cleanup), реактивно синхронизирует props.
  *
  * **Архитектурные решения:**
- *   - `viewport` хранится во внутреннем сигнале (как требует official docs
- *     solid-map-gl) — иначе reactive props ломают первичную инициализацию
- *     `_calcMatrices` и приводят к `Invalid LngLat (NaN, NaN)`.
- *   - Внешние изменения `center/zoom/pitch/bearing` синхронизируются через
- *     `createEffect`. Изнутри (drag/zoom user'ом) — наружу через
- *     `onViewportChange`.
- *   - `mapLib={maplibre}` — namespace-импорт (важно: не default). С default
- *     solid-map-gl не находит `mapLib.Map`.
- *   - Подмешан `MapContext.Provider` — дочерним компонентам доступен
- *     инстанс через `useMap()`.
- *
- * Контракт `IMapViewProps` — наш домен, расширяемый. Под капотом мапим
- * на solid-map-gl shape (`options` + `viewport`).
+ *   - Прямая интеграция с `maplibre-gl` без промежуточных обёрток.
+ *   - Инициализация за ResizeObserver-gate: `new Map()` не вызывается
+ *     пока container имеет нулевой размер (защита от NaN crash в `jumpTo`).
+ *   - `center`/`maxBounds` передаются ТОЛЬКО через `setCenter`/`setMaxBounds`
+ *     после `'load'`, НИКОГДА в конструктор — иначе `_calcMatrices` NaN при
+ *     transient-0-size контейнере.
+ *   - Тёмная тема: `prefers-color-scheme` слушается через `matchMedia` с
+ *     явным `removeEventListener` в `onCleanup` — без утечки.
+ *   - `MapContext.Provider` — дочерним компонентам доступен instance через `useMap()`.
  */
 export const MapView = (props: IMapViewProps) => {
+  let containerRef!: HTMLDivElement;
   const [map, setMap] = createSignal<MaplibreMap | undefined>(undefined);
 
-  // KNOWN LIMITATION (verified 2026-05-28):
-  // Каждый mount→unmount цикл MapView утекает ~5MB. Источник — upstream
-  // maplibre-gl: после `map.remove()` остаются неосвобождёнными tile
-  // worker pool, glyph atlases и sprite кэши. solid-map-gl уже зовёт
-  // `c?.remove()` в своём onCleanup; defensive дубль `map.remove()` на
-  // нашей стороне тоже не помогает (проверено в apps/ewc/dashboard).
-  // Mitigation для apps, где Map mount/unmount часто: держать MapView
-  // постоянно смонтированным и тогглить видимость через CSS вместо
-  // unmount route'ом. См. https://github.com/maplibre/maplibre-gl-js
-  // issues по `Map.remove() memory leak`.
+  // --- Theme resolution helpers ---
 
-  // Сборка viewport-объекта: ВКЛЮЧАЕМ только определённые поля. undefined
-  // в `center`/`zoom`/`pitch`/`bearing` ломает _calcMatrices внутри maplibre
-  // при инициализации.
-  const buildViewport = (): Viewport => {
-    const v: Viewport = {};
-    if (props.center !== undefined) v.center = props.center;
-    if (props.zoom !== undefined) v.zoom = props.zoom;
-    if (props.pitch !== undefined) v.pitch = props.pitch;
-    if (props.bearing !== undefined) v.bearing = props.bearing;
-    return v;
-  };
+  const lightStyle = () => props.style ?? DEFAULT_STYLE;
+  const darkStyle = () => props.darkStyle ?? DEFAULT_DARK_STYLE;
+  const resolveStyle = () => (isDarkMode() ? darkStyle() : lightStyle());
 
-  // Внутренний viewport-сигнал: solid-map-gl мутирует его на user-interactions,
-  // мы переписываем его снаружи через `createEffect` при изменении props.
-  const [viewport, setViewport] = createSignal<Viewport>(buildViewport());
+  onMount(() => {
+    let instance: MaplibreMap | undefined;
+    let initialized = false;
 
-  // Sync prop → viewport (controlled-mode): если родитель меняет center/zoom,
-  // карта подвигается. НЕ создаёт цикл с `onViewportChange`, т.к. setter
-  // вызывается только когда snapshot изменился по содержанию.
-  createEffect(() => {
-    const next = buildViewport();
-    const cur = viewport();
-    if (
-      JSON.stringify(cur.center) === JSON.stringify(next.center) &&
-      cur.zoom === next.zoom &&
-      cur.pitch === next.pitch &&
-      cur.bearing === next.bearing
-    ) {
-      return;
+    // --- ResizeObserver-gated init ---
+    // Защищает от `jumpTo({center})` NaN crash: maplibre 4+ вызывает jumpTo
+    // в конструкторе при передаче center. Если container 0×0 — projection
+    // matrix ещё не готова → NaN.
+    // DO NOT pass center/maxBounds to constructor. Set after 'load' event.
+
+    const init = (w: number, h: number) => {
+      if (initialized) return;
+      if (w === 0 || h === 0) return;
+      initialized = true;
+      observer.disconnect();
+
+      const m = new maplibregl.Map({
+        container: containerRef,
+        style: resolveStyle(),
+        // maplibre-gl 4: attributionControl accepts `false | AttributionControlOptions`.
+        // `true` is not in the type — map boolean prop to `{}` (default options) or `false`.
+        attributionControl: props.attributionControl ? {} : false,
+        ...(props.minZoom !== undefined ? { minZoom: props.minZoom } : {}),
+        ...(props.maxZoom !== undefined ? { maxZoom: props.maxZoom } : {}),
+        // center/zoom/pitch/bearing — НЕ в конструктор (NaN guard).
+        // Они выставляются после 'load' через setters.
+      });
+
+      m.once('load', () => {
+        // Set initial camera after load (safe: container has valid dimensions by now)
+        if (props.center !== undefined) m.setCenter(props.center);
+        if (props.zoom !== undefined) m.setZoom(props.zoom);
+        if (props.bearing !== undefined) m.setBearing(props.bearing);
+        if (props.pitch !== undefined) m.setPitch(props.pitch);
+        if (props.maxBounds !== undefined) m.setMaxBounds(props.maxBounds);
+
+        instance = m;
+        setMap(m);
+        props.onLoad?.(m);
+      });
+
+      // Emit viewport changes on user interaction
+      const onMoveEnd = () => {
+        if (!props.onViewportChange) return;
+        const c = m.getCenter();
+        props.onViewportChange({
+          center: [c.lng, c.lat],
+          zoom: m.getZoom(),
+          bearing: m.getBearing(),
+          pitch: m.getPitch(),
+        });
+      };
+      m.on('moveend', onMoveEnd);
+    };
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          init(width, height);
+          break;
+        }
+      }
+    });
+    observer.observe(containerRef);
+
+    // Attempt immediate init if container already has size at mount time
+    init(containerRef.clientWidth, containerRef.clientHeight);
+
+    // --- Theme switching ---
+    // matchMedia listener — снимается в onCleanup, НЕТ утечки.
+    const onColorSchemeChange = () => {
+      const m = instance;
+      if (!m) return;
+      m.setStyle(resolveStyle());
+    };
+
+    const mq =
+      typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    mq?.addEventListener('change', onColorSchemeChange);
+
+    // MutationObserver on body.classList for `.dark` class toggling
+    let mutationObserver: MutationObserver | null = null;
+    if (typeof document !== 'undefined') {
+      mutationObserver = new MutationObserver(() => {
+        const m = instance;
+        if (!m) return;
+        m.setStyle(resolveStyle());
+      });
+      mutationObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
     }
-    setViewport(next);
+
+    onCleanup(() => {
+      observer.disconnect();
+      mq?.removeEventListener('change', onColorSchemeChange);
+      mutationObserver?.disconnect();
+      instance?.remove();
+      instance = undefined;
+      setMap(undefined);
+    });
   });
 
-  // solid-map-gl types target mapbox-gl; maplibre namespace import is compatible at runtime.
-  const MapGLAny = MapGL as any;
+  // --- Reactive prop sync (after map is initialized) ---
+
+  // style — тяжёлая операция, стирает user-added layers/sources
+  createEffect(() => {
+    const s = props.style; // track
+    const m = map();
+    if (!m) return;
+    m.setStyle(s ?? DEFAULT_STYLE);
+  });
+
+  // center — jump without animation; for flyTo use useMap() imperatively
+  createEffect(() => {
+    const c = props.center;
+    const m = map();
+    if (!m || c === undefined) return;
+    m.setCenter(c);
+  });
+
+  createEffect(() => {
+    const z = props.zoom;
+    const m = map();
+    if (!m || z === undefined) return;
+    m.setZoom(z);
+  });
+
+  createEffect(() => {
+    const b = props.bearing;
+    const m = map();
+    if (!m || b === undefined) return;
+    m.setBearing(b);
+  });
+
+  createEffect(() => {
+    const p = props.pitch;
+    const m = map();
+    if (!m || p === undefined) return;
+    m.setPitch(p);
+  });
 
   return (
     <MapContext.Provider value={{ map }}>
-      <MapGLAny
-        mapLib={maplibre}
-        darkStyle={(props.darkStyle ?? DEFAULT_DARK_STYLE) as any}
-        options={(() => {
-          const o: any = {
-            style: props.style ?? DEFAULT_STYLE,
-            // По умолчанию — без attribution-блока; user может вернуть `attributionControl={true}`.
-            attributionControl: props.attributionControl ?? false,
-          };
-          if (props.minZoom !== undefined) o.minZoom = props.minZoom;
-          if (props.maxZoom !== undefined) o.maxZoom = props.maxZoom;
-          if (props.maxBounds !== undefined) o.maxBounds = props.maxBounds;
-          return o;
-        })()}
-        viewport={viewport()}
-        onViewportChange={(v: Viewport) => {
-          setViewport(v);
-          props.onViewportChange?.(v);
-        }}
+      <div
+        ref={containerRef}
         class={props.class}
         classList={props.classList}
         style={
           props.style_container ??
-          (props.class || props.classList
-            ? undefined
-            : { width: '100%', height: '100%' })
+          (props.class || props.classList ? undefined : { width: '100%', height: '100%' })
         }
-        onMapLoaded={((m: any) => {
-          setMap(m);
-          props.onLoad?.(m);
-        }) as any}
-      >
-        {props.children}
-      </MapGLAny>
+      />
+      {props.children}
     </MapContext.Provider>
   );
 };
