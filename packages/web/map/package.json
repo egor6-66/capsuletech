@@ -36,7 +36,6 @@
     "packageManager": "pnpm"
   },
   "dependencies": {
-    "maplibre-gl": "^4",
-    "solid-map-gl": "^1.13.0"
+    "maplibre-gl": "^4"
   }
 }
