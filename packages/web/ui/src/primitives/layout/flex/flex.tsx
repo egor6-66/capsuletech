@@ -199,39 +199,72 @@ export const Flex = <T extends ValidComponent = 'div'>(props: IFlexProps<T>) => 
   // Items-mode: `items` prop provided
   // ---------------------------------------------------------------------------
 
-  const itemsMode = () => own.items !== undefined;
-
-  const hasResizable = () => {
-    const items: IFlexItem[] = own.items ?? [];
-    return items.some((it) => it.resizable === true);
-  };
-
   const orientation = (): FlexOrientation => own.orientation ?? 'horizontal';
 
-  if (itemsMode()) {
-    // Rendered as items-mode — ignore as/polyProps (no polymorphic in this mode)
-    return (
-      <Show
-        when={hasResizable()}
-        fallback={
-          <StaticItemsFlex
+  if (own.items !== undefined) {
+    // Snapshot to a typed local so TS can resolve element type without
+    // fighting the generic `IFlexProps<T>["items"]` opaque union.
+    const arr: IFlexItem[] = own.items as IFlexItem[];
+    const hasElements = arr.length > 0;
+
+    /**
+     * True when the array is non-empty AND at least one item carries the
+     * expected IFlexItem shape (`children` or `resizable`).
+     * An all-plain-objects array (no `children`, no `resizable`) is treated
+     * as an accidental prop-name collision and falls back to children-mode.
+     */
+    const isValidItems =
+      hasElements &&
+      arr.some((it) => 'children' in (it as object) || (it as IFlexItem).resizable === true);
+
+    /**
+     * True only when items-mode is active AND at least one item explicitly
+     * opts into resize (`resizable: true`).  Plain items without the flag
+     * render as CSS flex, not corvu.
+     */
+    const hasResizable = isValidItems && arr.some((it) => it.resizable === true);
+
+    if (hasElements && !isValidItems) {
+      // Guard: consumer accidentally passed a domain data array under `items`.
+      // The array is non-empty but none of the objects have `.children` or
+      // `.resizable` — this is not a valid IFlexItem array.  Warn, then fall
+      // through to children-mode below.
+      // Use (import.meta as any).env?.DEV to stay compatible with library
+      // tsconfigs that do not include `vite/client` types.
+      if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV !== false) {
+        console.warn(
+          '[Flex] `items` prop received but no item has `.children` or `.resizable`. ' +
+            'This looks like a domain data array accidentally bound to the `items` prop. ' +
+            'Falling back to `children`. ' +
+            'If you intended items-mode, ensure each IFlexItem has a `children` field.',
+        );
+      }
+      // Fall through to children-mode below.
+    } else if (isValidItems) {
+      // Rendered as items-mode — ignore as/polyProps (no polymorphic in this mode)
+      return (
+        <Show
+          when={hasResizable}
+          fallback={
+            <StaticItemsFlex
+              items={own.items!}
+              orientation={orientation()}
+              class={own.class}
+              style={own.style as JSX.CSSProperties | undefined}
+            />
+          }
+        >
+          <ResizableFlex
             items={own.items!}
             orientation={orientation()}
+            withHandle={own.withHandle}
+            handleDisabled={own.handleDisabled}
             class={own.class}
-            style={own.style as JSX.CSSProperties | undefined}
+            onSizesChange={own.onSizesChange}
           />
-        }
-      >
-        <ResizableFlex
-          items={own.items!}
-          orientation={orientation()}
-          withHandle={own.withHandle}
-          handleDisabled={own.handleDisabled}
-          class={own.class}
-          onSizesChange={own.onSizesChange}
-        />
-      </Show>
-    );
+        </Show>
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------

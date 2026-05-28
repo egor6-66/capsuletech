@@ -43,9 +43,21 @@ export interface IFlexItem {
  * (списки фиксированные → purge видит), а `gap` идёт inline-стилем, потому что
  * значение может быть произвольным числом или CSS-строкой.
  *
- * **Resizable-режим** (opt-in): передай `items` вместо `children`.
- * Если хотя бы один item имеет `resizable: true` — Flex рендерится через corvu.
- * Иначе — обычный CSS `display:flex`.
+ * **Три режима:**
+ *
+ * 1. **CSS-flex mode** (default) — передай `children` как обычно. Никаких `items`.
+ *
+ * 2. **Static items mode** — передай `items`, все без `resizable: true`.
+ *    Каждый item рендерится в `<div>` обёртку. Corvu не подключается.
+ *
+ * 3. **Resizable mode** — передай `items`, хотя бы один с `resizable: true`.
+ *    Рендерится через corvu (ResizableRoot + Panel + Handle).
+ *    Corvu-mode включается **только** по явному `resizable: true`; факт наличия
+ *    массива `items` сам по себе corvu не активирует.
+ *
+ * **Edge case:** если `items` передан, но ни один объект не содержит поля
+ * `children` или `resizable` — считается случайным prop-collision с доменными
+ * данными. Flex выдаёт `console.warn` (dev) и падает обратно в children-mode.
  */
 export interface IFlexOwnProps {
   /**
@@ -72,11 +84,18 @@ export interface IFlexOwnProps {
   class?: string;
   style?: JSX.CSSProperties | string;
   /**
-   * **Resizable-режим.** Массив item'ов вместо свободных `children`.
-   * Если хотя бы один item имеет `resizable: true` — рендерится через corvu
-   * (Resizable Root + Panel + Handle). Иначе — обычный CSS flex с div-обёртками.
+   * **Items-режим.** Массив `IFlexItem` вместо свободных `children`.
    *
-   * Взаимоисключает с `children` (если оба заданы — `items` имеет приоритет).
+   * - Без `resizable: true` на любом item → статический CSS flex (div-обёртки).
+   * - С хотя бы одним `resizable: true` → corvu ResizableRoot + Panel + Handle.
+   *
+   * Corvu-режим активируется **только** по явному флагу `resizable: true`, а не
+   * по факту наличия массива.
+   *
+   * Если массив передан, но ни один объект не имеет `children` или `resizable`,
+   * Flex выдаёт предупреждение (dev) и рендерит `children` prop как fallback.
+   *
+   * Взаимоисключает с `children` (если оба заданы и `items` валиден — `items` имеет приоритет).
    */
   items?: IFlexItem[];
   /**
