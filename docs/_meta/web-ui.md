@@ -94,6 +94,18 @@ Storybook guide: `docs/09-packages/ui/storybook.md`.
 
 ## Changelog (notable breaks)
 
+### 0.7.1 — Polish + bug fixes (2026-05-28)
+
+**Button**: `default` size `py` changed `py-button-sm` (8px) → `py-1.5` (6px). Buttons less "thick" in dense layouts. `sm` size stays `py-cell-tight` (8px), `lg` unchanged. Precedent: ewc nav-buttons feedback. File: `packages/web/ui/src/primitives/button/variants.ts`.
+
+**Group separator**: orientation names now match visual line shape (were inverted). `orientation='vertical'` ⇒ `'w-px h-auto self-stretch'` (1×∞ vertical line for horizontal Group); `orientation='horizontal'` ⇒ `'h-px w-auto'` (∞×1 for vertical Group). `aria-orientation` in `GroupSeparator` no longer inverted (was compensation for CVA bug). Regression story `HorizontalAttachedWithVisibleSeparators` added. Precedent: ewc segmented `<Group variant='attached'>` feedback. Files: `group/variants.ts`, `group/group.tsx`, `group/group.stories.tsx`.
+
+**Dropdown.Trigger**: `as?: ValidComponent` now explicitly typed in `IDropdownTriggerProps`. Runtime forwarding already worked via Kobalte + `{...others}`; this is **types-only** addition for `<Dropdown.Trigger as={Button} variant="outline">` autocomplete + type-check. Precedent: ewc Menu uses `as={Button}`. File: `dropdown/interfaces.ts`.
+
+**Dropdown.Content**: `outline-none focus:outline-none focus-visible:outline-none` added to `dropdownContentCva`. Kobalte focuses Content panel on open for keyboard-nav; on first open, browser `:focus-visible` heuristic drew white ring. Cut at CVA level — no ring ever (Content still accessible via items focus + aria-activedescendant). Precedent: ewc Menu first-open ring complaint. File: `dropdown/variants.ts`.
+
+**Matrix `layoutMode` prop semantics**: prop now optional with **fallback to global `useLayoutMode()`** from `@capsuletech/web-style`. If consumer passes explicit `layoutMode="view"|"edit"` — overrides global (lock instance to regime). Use case: shell-layouts staying in view even when user globally switched edit elsewhere. Old fallback was dead local signal never changing — consumer had to manually pull `useLayoutMode()` and pass through prop. Precedent: ewc dashboard simplified from manual `layoutMode={layoutMode()}` to just no prop; workspace shell locked `layoutMode='view'`. File: `layout/matrix/matrix.tsx`.
+
 ### 0.7.0 — Matrix v2: rows-engine + presets + DnD (2026-05-23)
 
 **Breaking: `Layout.Matrix` API overhaul** (see ADR 016).

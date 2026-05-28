@@ -172,6 +172,27 @@ ThemeSwitcher:
 
 4. Оптимально: используй `editor/` для визуального редактирования вместо ручного ввода oklch-значений.
 
+## Motion tokens
+
+All motion durations live in `packages/web/style/src/index.css :root`:
+
+| Token | Value | Usage |
+|---|---|---|
+| `--motion-instant` | 0ms | No delay (usually unused) |
+| `--motion-fast` | 200ms | List items hover, Toggle, Input border, Table rows |
+| `--motion-normal` | 320ms | Default transition duration (main knob) |
+| `--motion-slow` | 500ms | Dialogs, panels, major layout shifts |
+| `--motion-slower` | 800ms | Splash screens, page transitions |
+
+**Critical:** `--motion-normal` feeds into **global rule** at line ~395 in `index.css`:
+```css
+button, input, a {
+  transition: var(--transition-ui) !important;
+}
+```
+
+This `!important` overrides any component-level `transition-colors duration-fast` in CVA. To tune button/input/a smoothness — adjust `--motion-normal`. See [[anti-patterns|transition-ui !important gotcha]] for full context.
+
 ## Что отвечает за .dark-класс
 
 Отдельная ось от `data-theme`. Темы могут иметь dark-вариант (в скобках `[data-theme].dark`).

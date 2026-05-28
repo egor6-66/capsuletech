@@ -91,6 +91,16 @@ apps/<app>/bootstrap.tsx
 
 10. **`AnyRoute` ре-экспортнут именно из `@capsuletech/web-router`** — `web-core/BaseProviders` использует его как default-bound. НЕ импортируй `@tanstack/router-core` напрямую из web-core — это горизонтальный обход слоя.
 
+## Pattern: derived signals from location
+
+`useLocation()` **without** `select` returns `() => router.stores.location.get()` — accessor but **without createMemo**. Solid sometimes inlines such as pure value → derived signals don't track.
+
+`useRouterState({ select: s => s.location.pathname })` returns `Solid.createMemo(...)` — guaranteed tracking.
+
+**Rule:** for derived/computed pathname use `useRouterState({ select })`.
+
+Precedent: page-transition attempt in ewc 2026-05-28; `<Animate keyed={location().pathname}>` didn't work (likely mix of factors), `useRouterState({select})` fixed reactivity at least on that level.
+
 ## Что менять когда
 
 | Хочу… | Куда лезть |

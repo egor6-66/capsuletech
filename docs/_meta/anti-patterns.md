@@ -335,6 +335,84 @@ Web-core unified pattern: `createLazy(() => import('@capsuletech/web-ui/X'), 'Co
 
 ---
 
+## 🚫 Компонентный `transition-colors duration-fast` НЕ работает на `<button>/<input>/<a>`
+
+**Симптом:** Поменял `--motion-fast` token (или явно `transition-colors duration-fast` в CVA), а кнопки/инпуты/ссылки переключают bg/color всё с прежней скоростью. Computed style показывает `transition: all 250ms ease-out` — никак не отражает наш token.
+
+**Корень:** `packages/web/style/src/index.css` строки ~390–395 содержат **global `!important` rule**:
+```css
+button, input, a { transition: var(--transition-ui) !important; }
+```
+`--transition-ui` = `var(--transition-all)` = `all var(--motion-normal) var(--ease-out)`. Этот rule перебивает всё компонентное.
+
+**Proper:** Для тюнинга «плавности» интерактивных элементов крутить **`--motion-normal`**, не `--motion-fast`. Компонентные `duration-fast` действуют только на не-интерактивные элементы (Table rows, Typography spans, List items). Прецедент: сессия 2026-05-28 — bump `--motion-normal` 250→320ms сделал nav-buttons заметно плавнее.
+
+---
+
+## 🚫 `useLocation()` без `select` — не memo'd, ненадёжен для derived-signals
+
+**Симптом:** `<Animate keyed={location().pathname}>` или похожий derived signal не реагирует на смену URL — keyed value не triggers re-mount/recompute.
+
+**Корень:** В TanStack solid-router (`useLocation.js`):
+```ts
+function useLocation(opts) {
+  if (!opts?.select) return (() => router.stores.location.get());
+  ...
+  return Solid.createMemo(...);
+}
+```
+Без `select` возвращается голый `() => store.get()` — accessor, но **БЕЗ createMemo**. Solid JSX compiler в некоторых местах инлайнит такие в pure value, и subscriber видит фиксированную initial-проекцию.
+
+**Proper:** Для derived pathname/route-state ВСЕГДА брать `useRouterState({ select: s => s.location.pathname })` — оно возвращает `createMemo(...)`, гарантированно tracking. Прецедент: page-transition попытка в сессии 2026-05-28.
+
+---
+
+## 🚫 `<Animate keyed={...}>` не пере-mount'ит Motion в nested reactive scopes
+
+**Симптом:** Поменял `keyed` value (verified reactive), но Motion DOM-нод тот же, opacity не дрожит, exit/enter не отыгрывается.
+
+**Корень не выяснен:** проверено в сессии 2026-05-28 на workspace shell. `props.keyed` реактивно меняется (через `useRouterState({select})`), но `<Show when={props.keyed} keyed>` внутри Animate не re-mount'ит callback. Подозрения: lazy-wrapping `Ui.Animate` (через `createLazy()`) + Solid Suspense, или Presence `resolveFirst` от solid-motionone не находит swap через nested reactive scope. Direct import `Animate` from `@capsuletech/web-ui` тоже не помогло.
+
+**Quick-fix (плохо):** Кастомный fade-signal обход (`<For each={[pathname()]}>` + local FadeIn компонент с opacity-signal). Работает визуально, **но не использует проектную либу анимации** (solid-motionone через Ui.Animate). Не подходит для долгосрочного решения.
+
+**Proper:** Когда задача вернётся — копать solid-motionone Presence + Show keyed flow с **прямым `<Motion>`** (без Animate-обёртки), посмотреть тест что keyed reactivity триггерит. Возможно framework-fix нужен в `@capsuletech/web-ui` Animate (изменить структуру так чтобы Presence resolveFirst видел swap). Прецедент: PR #ewc сессия 2026-05-28, deferred task #12.
+
+---
+
+## 🚫 `maplibre-gl` Map.remove() утечка — ~5MB на mount/unmount цикл
+
+**Симптом:** Каждое появление/исчезновение `<Ui.MapView />` (route-driven mount/unmount) добавляет ~5MB в JS heap. После 5 циклов +24MB. WebGL canvas из DOM уходит, но heap растёт.
+
+**Корень:** Upstream issue в `maplibre-gl` — после `Map.remove()` остаются неосвобождёнными tile worker pool, glyph atlases, sprite caches. `solid-map-gl` (наш wrapper над maplibre) уже зовёт `c?.remove()` в своём `onCleanup`. Defensive дубль `onCleanup(() => map().remove())` в `MapView.tsx` ничего не меняет — проверено в сессии 2026-05-28.
+
+**Mitigation (apps-level):** Если Map mount/unmount часто (route-driven) — держать MapView постоянно смонтированным выше уровня routing, тогглить видимость через CSS (`display: none` или `visibility: hidden`). См. документирующий комментарий в `packages/web/map/src/MapView.tsx`.
+
+---
+
+## 🚫 Apps консумят packages из `dist/`, не из `src/` — HMR не подцепит без rebuild
+
+**Симптом:** Поправил `--motion-fast` token в `packages/web/style/src/index.css`. Reload apps/ewc — token старый. computed style показывает старое значение. HMR не сработал.
+
+**Корень:** В `package.json` packages поля `main`/`exports` указывают на `./dist/index.mjs` и `./dist/index.css`. Apps резолвят `@capsuletech/web-style` → dist. Vite watch'ит файлы внутри своего dep-graph; CSS из dist приходит как обычный import. После правки src, dist не пересобран → app видит старое.
+
+**Proper:** После framework-правок (CSS tokens, JS код) — `pnpm --filter @capsuletech/<pkg> build`. Или поднять `pnpm dev` watcher на пакет в отдельном терминале (`vite build --watch` — это и есть `dev` script у web-style). Прецедент: сессия 2026-05-28 — потерял 10 минут разбираясь почему `--motion-fast: 200ms` в src не отражается в browser, пока не сделал rebuild dist.
+
+---
+
+## 🚫 Имена ориентаций в Tailwind CVA для линий-разделителей легко инвертировать
+
+**Симптом:** Передаёшь `<Group.Separator orientation="vertical">` в горизонтальный `Group` — separator не виден / нулевой ширины. Visual подсказывает что naming инвертирован.
+
+**Корень (исторический баг fixed 2026-05-28):** В `groupSeparatorVariants` имена `horizontal`/`vertical` описывали ОРИЕНТАЦИЮ родительского flex, не визуальной линии. Получалось `orientation='horizontal'` → CSS `h-auto w-px self-stretch` (вертикальная 1×∞ линия). Семантически инвертировано — пользователь думает «вертикальная линия = orientation='vertical'».
+
+**Proper convention для CVA-variant с линиями:** `orientation` параметр должен совпадать с визуальной формой линии:
+- `vertical` → `'w-px h-auto self-stretch'` (1×∞, вертикальная)
+- `horizontal` → `'h-px w-auto'` (∞×1, горизонтальная)
+
+В `Group` parent's `sepOrientation()` мапит родительскую ось → нужную ориентацию линии (horizontal parent → vertical separator). После fix этот мап остался, но семантика стала прямой. См. regression story `HorizontalAttachedWithVisibleSeparators` в `group.stories.tsx`.
+
+---
+
 ## Принципы
 
 1. **Корневой fix дешевле двух quick-fix'ов.** Quick-fix'ы накапливаются и формируют долг технический.

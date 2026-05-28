@@ -48,7 +48,7 @@ status: documented
 
 | Size | Геометрия | Use case |
 |---|---|---|
-| `default` | `h-auto px-layout py-component` | По умолчанию, на основе spacing-токенов темы. |
+| `default` | `h-auto px-layout py-1.5` (6px) | По умолчанию, на основе spacing-токенов темы. **Changed 2026-05-28** — было `py-button-sm` (8px); `sm`/`lg`/`icon` unchanged. |
 | `sm` | `h-8 px-3 text-xs` | Компактные toolbars, мобильные плашки. |
 | `lg` | `h-10 px-8` | Hero-кнопка, главное действие на лендинге. |
 | `icon` | `h-9 w-9 p-0` | Icon-only: `<Button size="icon"><Search /></Button>`. |

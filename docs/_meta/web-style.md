@@ -128,6 +128,15 @@ DENSITY_PRESETS;     // { compact: 0.75, comfortable: 1.25 }
 
 ## Changelog
 
+### 0.2.1 — Motion tokens tuned (2026-05-28)
+
+**`--motion-fast`** 150ms → **200ms**, **`--motion-normal`** 250ms → **320ms**. Reasoning:
+- `--motion-fast` feeds Tailwind `duration-fast` utility (List items hover, Toggle, Input border, Table rows hover, Typography hover).
+- `--motion-normal` feeds `--transition-all` → `--transition-ui` → **global rule `button, input, a { transition: var(--transition-ui) !important; }` in `index.css`** (line ~395). Main knob for smoothness of all interactive elements.
+- Component `transition-colors duration-fast` in CVA **does not work** on button/input/a (`!important` overrides). Tune `--motion-normal` to affect them.
+
+Precedent: ewc nav hover feedback ("transitions too snappy"). File: `packages/web/style/src/index.css`.
+
 ### 0.2.0 — Switcher state vs UI split (2026-05-27)
 
 **Breaking: Visual components moved to web-ui.**
