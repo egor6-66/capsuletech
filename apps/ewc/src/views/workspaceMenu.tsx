@@ -15,9 +15,7 @@
  */
 const WorkspaceMenu = View((Ui) => (
   <Ui.Dropdown modal={false}>
-    <Ui.Dropdown.Trigger class="rounded-md border border-border bg-card px-3 py-1.5 text-sm hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring">
-      Menu
-    </Ui.Dropdown.Trigger>
+    <Ui.Dropdown.Trigger>Menu</Ui.Dropdown.Trigger>
     <Ui.Dropdown.Content>
       <Ui.Dropdown.Group>
         <Ui.Dropdown.Label>Account</Ui.Dropdown.Label>

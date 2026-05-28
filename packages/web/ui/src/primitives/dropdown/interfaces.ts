@@ -11,7 +11,7 @@ import type {
   DropdownMenuSubTriggerProps,
   DropdownMenuTriggerProps,
 } from '@kobalte/core/dropdown-menu';
-import type { JSX } from 'solid-js';
+import type { JSX, ValidComponent } from 'solid-js';
 
 /**
  * Root dropdown container. Controls open/close state and positioning behaviour.
@@ -24,9 +24,21 @@ export interface IDropdownProps extends DropdownMenuRootProps {
 
 /**
  * The element that opens / closes the dropdown when interacted with.
- * Rendered as a `<button>` by default; polymorphic via Kobalte `as`.
+ * Rendered as a `<button>` by default; polymorphic via `as` prop.
+ *
+ * @example
+ * ```tsx
+ * <Dropdown.Trigger as={Button} variant="outline">Open</Dropdown.Trigger>
+ * <Dropdown.Trigger as="a" href="#open">Open</Dropdown.Trigger>
+ * ```
  */
 export interface IDropdownTriggerProps extends DropdownMenuTriggerProps {
+  /**
+   * Polymorphic render element. Default `'button'`. Pass a component (e.g. `Button`)
+   * to render the trigger as that component while keeping all dropdown behaviour
+   * (ARIA attributes, keyboard navigation, open/close state).
+   */
+  as?: ValidComponent;
   /** Extra CSS classes forwarded to the trigger element. */
   class?: string;
   /** Trigger label or child element. */

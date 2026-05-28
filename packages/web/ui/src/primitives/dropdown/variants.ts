@@ -5,7 +5,7 @@ import { cva } from '@capsuletech/web-style';
  * Uses `bg-popover` + `text-popover-foreground` so it adapts to any theme.
  */
 export const dropdownContentCva = cva(
-  'z-50 min-w-32 overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md',
+  'z-50 min-w-32 overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none focus:outline-none focus-visible:outline-none',
   {
     variants: {},
     defaultVariants: {},
