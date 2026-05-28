@@ -45,12 +45,10 @@ Vite-конфиг и 9 плагинов для dev-сервера HCA-apps. Дё
 |---|---|---|
 | `AutoImport` | `capsuleConfig.ts` (inline) | Инжектит WRAPPER_NAMES + DEFINE_FACTORIES как глобальные имена |
 | `HMRWrappingPlugin` | `plugins/HMRWrapping.ts` | babel-AST: `const X = Page(...)` → `(props) => Page(...)(props)` + `export default` |
-| `AppConfigPlugin` | `plugins/appConfig.ts` | jiti-load `capsule.app.ts` → `.capsule/@types/app-tags.d.ts` + `app-config.gen.ts` |
 | `tsconfigPaths` | `capsuleConfig.ts` (inline) | Резолв `@capsuletech/*` из `tsconfig.base.json` |
-| `EnsureScaffoldPlugin` | `plugins/scaffold/index.ts` | Копирует 5 entry-файлов в `.capsule/` при первом запуске |
-| `ExportGeneratorPlugin` | `plugins/exportGenerator.ts` | Scan + watcher: `wrappers.ts` + `slots.d.ts` в `.capsule/registry/` |
-| `EndpointsRegistryPlugin` | `plugins/endpointsRegistry.ts` | Scan + watcher: `endpoints.ts` + `api.d.ts` в `.capsule/registry/` |
-| `tailwindcss()` | `capsuleConfig.ts:134` | Tailwind v4 через `@tailwindcss/vite` |
+| `EnsureScaffoldPlugin` | `plugins/scaffold/index.ts` | Копирует статические entry-файлы в `.capsule/` при первом запуске |
+| `CapsuleRegistryPlugin` | `plugins/capsuleRegistry.ts` | Unified codegen: scan src/** → wrappers.ts + slots.d.ts + endpoints.ts + api.d.ts + app-config.gen.ts + bootstrap.tsx |
+| `tailwindcss()` | `capsuleConfig.ts` (inline) | Tailwind v4 через `@tailwindcss/vite` |
 | `AliasesPlugin` | `plugins/aliases.ts` | Мержит paths → `.capsule/tsconfig.paths.json` + Vite `resolve.alias` |
 | `CompliancePlugin` | `plugins/compliance.ts` | pre-transform: `check()` на каждый файл, режим `warn` |
 | `RouterPlugin` | `plugins/router/index.ts` | ensureRootRoutePlugin + page-mirror generator + TanStackRouterVite |
@@ -76,12 +74,6 @@ Vite-конфиг и 9 плагинов для dev-сервера HCA-apps. Дё
 
 - **HMRWrappingPlugin матчит wrapper по identifier-name.** `import { Page as MyPage }` — HMR молча сломается. AutoImport инжектит чистые имена — edge case, но важен при нестандартных импортах.
 
-- **Двойной initial-scan в dev.** ExportGeneratorPlugin и EndpointsRegistryPlugin делают `walkFiles` и в `buildStart`, и в `configureServer`. Это перформанс-косяк на холодном старте, не баг — не чини без roadmap-задачи.
-
-- **`AppConfigPlugin.transform` — regex replace.** `defineAppConfig` в комментариях тоже заменяется identity-wrap `((__x__)=>__x__)`. Безобидно, но мусорит. Миграция на AST-rewrite в Roadmap. ADR 013.
-
-- **`AppConfigPlugin.BROWSER_FACTORY_NAMES` содержит `defineCapsuleConfig`.** Ветка для `capsule.config.ts`, но плагин transform'ит только `capsule.app.ts` (configPath). Эта ветка не отрабатывает — либо убрать, либо задокументировать.
-
 - **`bundleDependencies` в `vite.config.mts` — проверяй при правках.** Список должен включать `/^@capsuletech\/compliance/` и `/^@capsuletech\/lib-builder/`. Исторически бывали stale-имена от переименований пакетов.
 
 - **`dist/` rebuild обязателен после правок `src/`.** Apps читают `dist/index.mjs`, не `src/`. После изменений: `pnpm --filter @capsuletech/vite-builder build` + рестарт dev-сервера. Smoke: `console.log('[plugin] loaded')` на верхнем уровне плагина.
@@ -96,25 +88,22 @@ Vite-конфиг и 9 плагинов для dev-сервера HCA-apps. Дё
 
 ## План рефакторинга / оптимизаций
 
-- [ ] **Удалить мёртвый код** — `html.ts`, `generateFromTemplates.ts`, стрельнувший `import { builtinModules }` в `appConfig.ts`. (priority: low)
-- [ ] **AppConfigPlugin transform → AST-rewrite** вместо regex. ADR 013 — закрыт через explicit-import, legacy-bridge остаётся. (priority: medium)
-- [ ] **Убрать `BROWSER_FACTORY_NAMES: defineCapsuleConfig`** или добавить обработку `capsule.config.ts`. (priority: low)
-- [ ] **Reduce double initial-scan** в ExportGenerator / EndpointsRegistry — `walkFiles` дублируется при холодном старте. (priority: medium)
-- [ ] **Добавить тесты vite-builder** — AutoImport генерация, HMRWrapping AST-transform, AppConfigPlugin transform/jiti, plugins ordering smoke. (priority: high)
+- [ ] **Удалить мёртвый код** — `html.ts`, `generateFromTemplates.ts`. (priority: low)
+- [ ] **Добавить тесты vite-builder** — AutoImport генерация, plugins ordering smoke. (priority: high)
 - [ ] **Bump CompliancePlugin mode `warn` → `error`** после стабилизации allowlist. ADR 004. (priority: medium)
 
 ### Закрытые задачи
 
-- [x] **Layer init ordering (TDZ fix) — 2026-05-28.** ESM hoisting: endpoints → features → widgets → pages → routeTree evaluate до `Object.assign(globalThis, _registry)` в bootstrap body → `Entities.X` = undefined / ReferenceError. Fix: `ExportGeneratorPlugin.renderRuntime` добавляет `Object.assign(globalThis, { Widgets, Views, ... })` как последнюю строку генерируемого `wrappers.ts`. `bootstrap.tsx` (template + pre-existing apps) переведён на bare side-effect `import './registry/wrappers'` — explicit `Object.assign` убран как redundant. 4 новых теста в `exportGenerator.test.ts` (22 total, все green).
+- [x] **Layer init ordering (TDZ fix) — 2026-05-28.** ESM hoisting: endpoints → features → widgets → pages → routeTree evaluate до `Object.assign(globalThis, _registry)` в bootstrap body → `Entities.X` = undefined / ReferenceError. Fix: `CapsuleRegistryPlugin.generateWrappersRuntime` добавляет `Object.assign(globalThis, { Widgets, Views, ... })` как последнюю строку генерируемого `wrappers.ts`. `bootstrap.tsx` генерируется `CapsuleRegistryPlugin` по `LAYER_INIT_ORDER`.
+- [x] **CapsuleRegistryPlugin refactor — 2026-05-28.** Удалены `ExportGeneratorPlugin`, `EndpointsRegistryPlugin`, `AppConfigPlugin` (deprecated re-exports и тесты). Все функции объединены в `CapsuleRegistryPlugin`. 39 тестов deadwood удалены.
 
 ## Test coverage
 
 | Тип | Где | Что покрывает |
 |---|---|---|
-| Unit | `src/plugins/__tests__/appConfig.test.ts` | AppConfigPlugin transform (id matching, Windows paths, HMR suffixes) |
-| Unit | `src/plugins/__tests__/exportGenerator.test.ts` | ExportGeneratorPlugin — entities scan: flat, nested namespace, empty folder; eager vs lazy regression; renderRuntime + renderTypes; Object.assign(globalThis) side-effect ordering |
+| Unit | `src/plugins/__tests__/capsuleRegistry.test.ts` | CapsuleRegistryPlugin — generateWrappersRuntime/Types, generateEndpointsRuntime/Types, generateAppConfigRuntime, generateBootstrap, LAYER_INIT_ORDER контракт, transform hooks |
+| Unit | `src/plugins/__tests__/hmrWrapping.test.ts` | HMRWrappingPlugin — babel-AST transforms для всех wrapper-типов, export default injection, Entity skip |
 
-Текущее покрытие: AppConfigPlugin + ExportGeneratorPlugin (entities layer).
 Перед изменением любого плагина: `pnpm --filter @capsuletech/vite-builder test`.
 Перед release: `pnpm test:e2e:cli` обязателен.
 

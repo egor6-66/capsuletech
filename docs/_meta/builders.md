@@ -54,9 +54,6 @@ biome-config → ничего (zero-deps, чисто config-файл)
 | `packages/builders/vite/src/plugins/router/template/__root.tsx.template` | шаблон корневого route |
 | `packages/builders/vite/src/plugins/scaffold/index.ts` | EnsureScaffoldPlugin: копирует `index.html / index.ts / paths.config.json / styles.css` в `.capsule/` если их нет. `bootstrap.tsx` **НЕ** в списке — генерируется `CapsuleRegistryPlugin`. |
 | `packages/builders/vite/src/plugins/scaffold/template/*.template` | 4 статических шаблона. `bootstrap.tsx.template` остаётся как историческая ссылка, больше не используется автоматически. |
-| `packages/builders/vite/src/plugins/appConfig.ts` | **@deprecated.** Заменён `CapsuleRegistryPlugin`. Оставлен для backward compat внешних consumer'ов. |
-| `packages/builders/vite/src/plugins/exportGenerator.ts` | **@deprecated.** Заменён `CapsuleRegistryPlugin`. Оставлен для backward compat. |
-| `packages/builders/vite/src/plugins/endpointsRegistry.ts` | **@deprecated.** Заменён `CapsuleRegistryPlugin`. Оставлен для backward compat. |
 | `packages/builders/vite/src/plugins/compliance.ts` | тонкая обёртка над `check()` — режимы warn/error |
 | `packages/builders/vite/src/plugins/aliases.ts` | AliasesPlugin: мержит base + local paths → `.capsule/tsconfig.paths.json`; emit'ит Vite `resolve.alias` |
 | `packages/builders/vite/src/plugins/staticCopy.ts` | `closeBundle`-копировальщик файлов; используется в собственном vite.config.mts |
@@ -132,7 +129,7 @@ biome-config → ничего (zero-deps, чисто config-файл)
 
 8. **Двойной initial-scan ЗАКРЫТ** — `CapsuleRegistryPlugin` использует единый флаг `scanned` и один `walkFiles` на `buildStart`. Больше не дублируется.
 
-9. **Мёртвый код** — `vite/src/utils/generateFromTemplates.ts`, `vite/src/plugins/html.ts` (HtmlPlugin), `vite/src/defines/appConfig.ts:1` (`import { builtinModules }`). Можно удалять без последствий. Файлы `exportGenerator.ts`, `endpointsRegistry.ts`, `appConfig.ts` помечены `@deprecated` в barrel — тоже кандидаты на удаление в следующем major.
+9. **Мёртвый код** — `vite/src/utils/generateFromTemplates.ts`, `vite/src/plugins/html.ts` (HtmlPlugin). Можно удалять без последствий.
 
 10. **CHANGELOG.md в compliance/vite** — 60+ записей "version bump only". Побочка release-group `cli` (fixed). Не actionable.
 

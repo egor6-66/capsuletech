@@ -19,19 +19,3 @@ export {
   generateAppConfigRuntime,
   generateBootstrap,
 } from './capsuleRegistry';
-
-/**
- * @deprecated Use CapsuleRegistryPlugin instead.
- * Retained for any external consumers; will be removed in the next major.
- */
-export { AppConfigPlugin } from './appConfig';
-/**
- * @deprecated Use CapsuleRegistryPlugin instead.
- * Retained for any external consumers; will be removed in the next major.
- */
-export { ExportGeneratorPlugin } from './exportGenerator';
-/**
- * @deprecated Use CapsuleRegistryPlugin instead.
- * Retained for any external consumers; will be removed in the next major.
- */
-export { EndpointsRegistryPlugin } from './endpointsRegistry';
