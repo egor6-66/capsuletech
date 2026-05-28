@@ -2,11 +2,10 @@
  * Incidents endpoints namespace.
  *
  * `services.api.incidents.list()` — генерируется EndpointsRegistryPlugin'ом.
- * Mock через `preRequest` — `resolve(data)` короткозамыкает pipeline без сетевого
- * запроса. Latency 400ms симулирует round-trip — видно loading-state в UI.
- *
- * Phase 1: возвращает 200 моковых карточек из mocks/incidents. Когда подключим
- * реальный backend — `preRequest` уберём, поле `path` будет hit'ить реальный API.
+ * Response schema — `Entities.Incident.schema` (global, доступен после systemic
+ * layer init ordering fix в ExportGeneratorPlugin). Mock через `preRequest` —
+ * `resolve(data)` короткозамыкает pipeline без сетевого запроса. Latency 400ms
+ * симулирует round-trip — видно loading-state в UI.
  */
 import { INCIDENTS_MOCK } from '../mocks/incidents';
 

@@ -1,4 +1,4 @@
-import { useRouter } from '@capsuletech/web-router';
+// import { useRouter } from '@capsuletech/web-router';
 
 /**
  * Cards layout (`/workspace/cards`) — sandbox-каталог для генерации форм.
@@ -11,18 +11,19 @@ import { useRouter } from '@capsuletech/web-router';
  * пересчитывает форму из id-seed (детерминированно, URL копипастится).
  */
 const Cards = Page((Ui) => {
-  const router = useRouter();
-  const onGenerate = () => router.goTo(`/workspace/cards/${Date.now()}`);
+  // const router = useRouter();
+  // const onGenerate = () => router.goTo(`/workspace/cards/${Date.now()}`);
 
   return (
     <Ui.Layout.Flex direction="col" gap={3} class="p-4 h-full">
-      <Ui.Layout.Flex align="center" gap={3}>
-        <Ui.Button onClick={onGenerate}>Generate new</Ui.Button>
-        <div class="text-xs opacity-60">click → /workspace/cards/&lt;timestamp&gt;</div>
-      </Ui.Layout.Flex>
-      <div class="flex-1 overflow-auto">
-        <Ui.Outlet />
-      </div>
+      Cards
+      {/*<Ui.Layout.Flex align="center" gap={3}>*/}
+      {/*  /!*<Ui.Button onClick={onGenerate}>Generate new</Ui.Button>*!/*/}
+      {/*  <div class="text-xs opacity-60">click → /workspace/cards/&lt;timestamp&gt;</div>*/}
+      {/*</Ui.Layout.Flex>*/}
+      {/*<div class="flex-1 overflow-auto">*/}
+      {/*  <Ui.Outlet />*/}
+      {/*</div>*/}
     </Ui.Layout.Flex>
   );
 });

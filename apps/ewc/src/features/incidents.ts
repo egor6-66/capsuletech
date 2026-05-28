@@ -20,7 +20,8 @@
  * </Features.Incidents>
  * ```
  *
- * Context shape:
+ * Context shape (user fields живут в `context.data`, доступ через
+ * `useCtx().store.ctx.data.X` или handler param `context.data.X`):
  * ```ts
  * {
  *   items: IIncident[];          // загруженный список
@@ -29,11 +30,24 @@
  *   error: string | null;        // последнее сообщение об ошибке
  * }
  * ```
+ *
+ * Mutations: только через `store.update({ field: value })` — direct
+ * `context.X = Y` запрещено Solid Store (выкинет "Cannot mutate a Store
+ * directly"). Read через `context.data.X` (handler context = весь
+ * IMachineContext, user-state лежит в `.data`).
  */
 
 import type { z } from 'zod';
 
-type IIncident = z.infer<typeof Entities.Incident.schema>;
+export type IIncident = z.infer<typeof Entities.Incident.schema>;
+
+/** Shape of Features.Incidents user-state — read via `store.ctx.data` / `context.data`. */
+export interface IIncidentsContext {
+  items: IIncident[];
+  visibleIds: Set<string>;
+  selectedId: string | null;
+  error: string | null;
+}
 
 const Incidents = Feature(({ api }) => ({
   initial: 'idle' as const,
@@ -62,11 +76,11 @@ const Incidents = Feature(({ api }) => ({
      * На success → `loaded`, на error → `error`.
      */
     loading: {
-      onInit: async ({ store, state, context }) => {
+      onInit: async ({ store, state }) => {
         if (!api) {
           // eslint-disable-next-line no-console
           console.error('[incidents] api client not initialized — check capsule.app.ts > api');
-          context.error = 'API client not initialized';
+          store.update({ error: 'API client not initialized' });
           state.set('error');
           return;
         }
@@ -75,16 +89,18 @@ const Incidents = Feature(({ api }) => ({
           const result = await api.incidents.list({});
           const items = Entities.Incident.schema.array().parse(result) as IIncident[];
 
-          context.items = items;
-          context.visibleIds = new Set(items.map((i: IIncident) => i.id));
-          context.error = null;
+          store.update({
+            items,
+            visibleIds: new Set(items.map((i: IIncident) => i.id)),
+            error: null,
+          });
 
           state.set('loaded');
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           // eslint-disable-next-line no-console
           console.error('[incidents] load failed:', message);
-          context.error = message;
+          store.update({ error: message });
           state.set('error');
         }
       },
@@ -99,46 +115,48 @@ const Incidents = Feature(({ api }) => ({
        * selectOne — устанавливает выбранный incident.
        * Idempotent: повторный вызов с тем же id ничего не меняет.
        */
-      selectOne: ({ target, context }) => {
+      selectOne: ({ target, context, store }) => {
         const id = (target as { payload?: { id?: string } }).payload?.id;
         if (!id) return;
-        if (context.selectedId === id) return;
-        context.selectedId = id;
+        if (context.data.selectedId === id) return;
+        store.update({ selectedId: id });
       },
 
       /**
        * clearSelection — сбрасывает выбор (sidebar переходит в пустое состояние).
        */
-      clearSelection: ({ context }) => {
-        context.selectedId = null;
+      clearSelection: ({ store }) => {
+        store.update({ selectedId: null });
       },
 
       /**
        * toggleVisible — переключает видимость одного маркера на карте.
        * Иммутабельное обновление через new Set.
        */
-      toggleVisible: ({ target, context }) => {
+      toggleVisible: ({ target, context, store }) => {
         const id = (target as { payload?: { id?: string } }).payload?.id;
         if (!id) return;
-        const next = new Set(context.visibleIds);
+        const next = new Set(context.data.visibleIds);
         if (next.has(id)) {
           next.delete(id);
         } else {
           next.add(id);
         }
-        context.visibleIds = next;
+        store.update({ visibleIds: next });
       },
 
       /**
        * setAllVisible — массовое управление видимостью.
        * visible=true → показать все; visible=false → скрыть все.
        */
-      setAllVisible: ({ target, context }) => {
+      setAllVisible: ({ target, context, store }) => {
         const visible = (target as { payload?: { visible?: boolean } }).payload?.visible;
         if (visible === true) {
-          context.visibleIds = new Set(context.items.map((i: IIncident) => i.id));
+          store.update({
+            visibleIds: new Set(context.data.items.map((i: IIncident) => i.id)),
+          });
         } else {
-          context.visibleIds = new Set();
+          store.update({ visibleIds: new Set() });
         }
       },
 
@@ -146,10 +164,12 @@ const Incidents = Feature(({ api }) => ({
        * retry — форсированный refresh: сбрасывает данные и уходит в loading.
        * Доступен из loaded (ручное обновление), а также пробрасывается из error.
        */
-      retry: ({ context, state }) => {
-        context.items = [];
-        context.visibleIds = new Set();
-        context.error = null;
+      retry: ({ store, state }) => {
+        store.update({
+          items: [],
+          visibleIds: new Set(),
+          error: null,
+        });
         state.set('loading');
       },
     },
@@ -162,8 +182,8 @@ const Incidents = Feature(({ api }) => ({
       /**
        * retry — сброс в loading для повторной попытки загрузки.
        */
-      retry: ({ context, state }) => {
-        context.error = null;
+      retry: ({ store, state }) => {
+        store.update({ error: null });
         state.set('loading');
       },
     },
