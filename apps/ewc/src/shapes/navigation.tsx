@@ -32,11 +32,11 @@ const Navigation = Shape((z, ui) => ({
   itemProps: (item: { label: string; to: string }) => ({
     as: ui.Link,
     to: item.to,
-    variant: 'ghost',
+    variant: 'outline',
     children: item.label,
   }),
   orientation: 'horizontal',
-  gap: 1,
+  variant: 'attached',
 }));
 
 export default Navigation;

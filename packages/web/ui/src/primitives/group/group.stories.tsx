@@ -142,6 +142,35 @@ export const AttachedBatch: Story = {
 };
 
 // ---------------------------------------------------------------------------
+// Attached batch — horizontal separators must be VISIBLE (regression guard)
+// Each 1px vertical divider between buttons must be rendered as w-px h-auto self-stretch.
+// Before fix: CVA orientation names were swapped → separator had w-auto h-px → invisible.
+// ---------------------------------------------------------------------------
+
+export const HorizontalAttachedWithVisibleSeparators: Story = {
+  render: () => (
+    <div class="flex flex-col gap-4 items-start">
+      {/* Batch path: separators are auto-inserted by Group internals */}
+      <Group
+        variant="attached"
+        orientation="horizontal"
+        data={ALL_ITEMS}
+        itemAs={Button}
+        itemProps={itemProps}
+      />
+      {/* Wrapper path: explicit Group.Separator orientation="vertical" */}
+      <Group variant="attached" orientation="horizontal">
+        <Button variant="outline">Left</Button>
+        <Group.Separator orientation="vertical" />
+        <Button variant="outline">Center</Button>
+        <Group.Separator orientation="vertical" />
+        <Button variant="outline">Right</Button>
+      </Group>
+    </div>
+  ),
+};
+
+// ---------------------------------------------------------------------------
 // With built-in Separator
 // ---------------------------------------------------------------------------
 

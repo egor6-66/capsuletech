@@ -2,14 +2,15 @@ import { cva } from '@capsuletech/web-style';
 
 /**
  * Separator внутри Group — визуальный разделитель.
- * Ориентация совпадает с ориентацией родительского Group.
+ * orientation='vertical'   → вертикальная линия (1px × stretch) — для горизонтального Group.
+ * orientation='horizontal' → горизонтальная линия (∞ × 1px)    — для вертикального Group.
  */
 export const groupSeparatorVariants = cva('shrink-0 bg-border', {
   variants: {
     orientation: {
-      horizontal: 'h-auto w-px self-stretch',
-      vertical: 'h-px w-auto',
+      horizontal: 'h-px w-auto',            // горизонтальная линия (∞×1px)
+      vertical: 'h-auto w-px self-stretch', // вертикальная линия  (1px×∞)
     },
   },
-  defaultVariants: { orientation: 'horizontal' },
+  defaultVariants: { orientation: 'vertical' },
 });
