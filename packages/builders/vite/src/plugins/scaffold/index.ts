@@ -6,12 +6,20 @@ import type { Plugin } from 'vite';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const FILES = ['index.html', 'index.ts', 'bootstrap.tsx', 'paths.config.json', 'styles.css'] as const;
+// NOTE: bootstrap.tsx is intentionally NOT in this list.
+// It is generated (and regenerated) deterministically by CapsuleRegistryPlugin,
+// which owns all .capsule/ codegen. Copying a static template once would make
+// import ordering fragile — the plugin generates it from LAYER_INIT_ORDER.
+const FILES = ['index.html', 'index.ts', 'paths.config.json', 'styles.css'] as const;
 
 /**
- * Гарантирует наличие entry-файлов (`index.html`, `index.ts`, `bootstrap.tsx`)
- * в `.capsule/`. Если их нет — копирует из встроенных шаблонов. Нужно для
- * клонированных/свежесозданных приложений, где CLI init ещё не запускался.
+ * Гарантирует наличие статических entry-файлов (`index.html`, `index.ts`,
+ * `paths.config.json`, `styles.css`) в `.capsule/`. Если их нет — копирует
+ * из встроенных шаблонов. Нужно для клонированных/свежесозданных приложений,
+ * где CLI init ещё не запускался.
+ *
+ * `bootstrap.tsx` НЕ входит в этот список — он полностью генерируется
+ * `CapsuleRegistryPlugin` по `LAYER_INIT_ORDER` и всегда актуален.
  *
  * Файлы пишутся реально на диск (а не отдаются через middleware), чтобы их
  * мог увидеть TanStackRouterVite и любой другой плагин, работающий с FS.

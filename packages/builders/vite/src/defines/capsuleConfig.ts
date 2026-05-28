@@ -5,11 +5,9 @@ import AutoImport from 'unplugin-auto-import/vite';
 import type { IDesktopConfig } from '@capsuletech/desktop';
 import {
   AliasesPlugin,
-  AppConfigPlugin,
+  CapsuleRegistryPlugin,
   CompliancePlugin,
-  EndpointsRegistryPlugin,
   EnsureScaffoldPlugin,
-  ExportGeneratorPlugin,
   HMRWrappingPlugin,
   RouterPlugin,
   solidPlugin,
@@ -57,10 +55,10 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
     root: capsuleRoot,
     define: {
       __CAPSULE_CONFIG__: JSON.stringify(config),
-      // NB: identity-unwrap для `defineAppConfig` / `defineCapsuleConfig` живёт
-      // в `AppConfigPlugin.transform` (см. plugins/appConfig.ts). Через esbuild
-      // `define:` это сделать нельзя — он валидирует value как identifier|literal
-      // и отбивает arrow-expression со стороны `[vite:define]`.
+      // NB: identity-unwrap для `defineAppConfig` живёт в
+      // `CapsuleRegistryPlugin.transform` (см. plugins/capsuleRegistry.ts).
+      // Через esbuild `define:` это сделать нельзя — он валидирует value как
+      // identifier|literal и отбивает arrow-expression со стороны `[vite:define]`.
     },
     build: {
       // watch: {} только в dev — production-сборка должна быть one-shot
@@ -121,9 +119,9 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
         // 'defineEndpoint' before initialization`.
         //
         // Runtime registry-объекты (`Widgets`/`Views`/…) НЕ нужны как
-        // auto-import: bootstrap.tsx сам делает `Object.assign(globalThis,
-        // _registry)`, а TS-типизация приходит из slots.d.ts
-        // (ExportGeneratorPlugin). `endpoints` глобал не нужен вовсе —
+        // auto-import: wrappers.ts (сгенерированный CapsuleRegistryPlugin) сам делает
+        // `Object.assign(globalThis, _registry)`, а TS-типизация приходит из slots.d.ts.
+        // `endpoints` глобал не нужен вовсе —
         // в Feature идёт `services.api.X.Y(...)`, не `endpoints.X.Y`.
         imports: [
           { '@capsuletech/web-core': [...WRAPPER_NAMES] },
@@ -137,27 +135,17 @@ export const capsuleConfig = ({ config, root, workspaceRoot, isDev }: IProps) =>
         dts: './@types/capsule-imports.d.ts',
       }),
       HMRWrappingPlugin(),
-      AppConfigPlugin({
-        configPath: join(root, 'capsule.app.ts'),
-        typesOut: join(capsuleRoot, '@types', 'app-tags.d.ts'),
-        runtimeOut: join(capsuleRoot, 'app-config.gen.ts'),
-        onLoad: (cfg) => {
-          appConfigState.aliasKeys = new Set(Object.keys(cfg.aliases ?? {}));
-        },
-      }),
       tsconfigPaths({
         projects: [join(root, 'tsconfig.json'), join(workspaceRoot, 'tsconfig.base.json')],
       }),
       EnsureScaffoldPlugin(capsuleRoot),
-      ExportGeneratorPlugin({
-        out: join(capsuleRoot, 'registry', 'wrappers.ts'),
-        typesOut: join(capsuleRoot, '@types', 'slots.d.ts'),
+      CapsuleRegistryPlugin({
+        capsuleRoot,
         watchDir,
-      }),
-      EndpointsRegistryPlugin({
-        out: join(capsuleRoot, 'registry', 'endpoints.ts'),
-        typesOut: join(capsuleRoot, '@types', 'api.d.ts'),
-        watchDir,
+        appConfigPath: join(root, 'capsule.app.ts'),
+        onAppConfigLoad: (cfg) => {
+          appConfigState.aliasKeys = new Set(Object.keys(cfg.aliases ?? {}));
+        },
       }),
       tailwindcss(),
       AliasesPlugin({ appRoot: root, workspaceRoot }),
