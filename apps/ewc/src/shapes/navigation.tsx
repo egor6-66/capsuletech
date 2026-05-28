@@ -37,7 +37,8 @@ const Navigation = Shape((z, ui) => ({
     // Активный link получает aria-current='page' от TanStack Router — на этом
     // селекторе подсвечиваем кнопку аксентом, чтобы было видно где находишься.
     // `font-semibold` усиливает читаемость; `pointer-events-none` блокирует
-    // повторный клик/hover-flicker на текущей странице.
+    // повторный клик/hover-flicker на текущей странице. Сам hover/active
+    // transition наследуется от Button base (`duration-fast` = 200ms).
     class:
       'aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground aria-[current=page]:font-semibold aria-[current=page]:pointer-events-none',
     children: item.label,

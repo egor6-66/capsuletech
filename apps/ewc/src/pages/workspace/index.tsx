@@ -21,6 +21,7 @@ const Workspace = Page((Ui) => (
   <Ui.Layout.Matrix
     layoutMode="view"
     preset="app-shell"
+    animated="fade"
     slots={{
       header: {
         children: <Widgets.Headers.Main />,

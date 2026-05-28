@@ -237,10 +237,18 @@
   --radius-3xl: calc(var(--radius) + 16px);
   --radius-full: 9999px;
 
-  /* --- Motion --- */
+  /* --- Motion ---
+     Tuned 2026-05-28 for smoother hover/active feel across the kit.
+     - `fast` (was 150ms → 200ms): for components that reference it via
+       `duration-fast` directly — List, Toggle, Input, Table rows, Typography.
+     - `normal` (was 250ms → 320ms): feeds --transition-all + --transition-ui,
+       and through the global `button, input, a { transition: var(--transition-ui) !important }`
+       rule below — this is what actually drives hover/bg-change/active-state
+       smoothness on every interactive element. The bump is the main effect
+       the user feels. Adjust further here if it ever feels too slow / too fast. */
   --motion-instant: 75ms;
-  --motion-fast: 150ms;
-  --motion-normal: 250ms;
+  --motion-fast: 200ms;
+  --motion-normal: 320ms;
   --motion-slow: 400ms;
   --motion-slower: 600ms;
 
