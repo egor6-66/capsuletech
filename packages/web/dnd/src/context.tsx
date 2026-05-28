@@ -1,10 +1,11 @@
 import {
   type Accessor,
   type Component,
-  Show,
   createContext,
   createMemo,
   createSignal,
+  onCleanup,
+  Show,
   useContext,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
@@ -14,8 +15,8 @@ import type {
   DraggableId,
   DroppableId,
   IDnDProviderProps,
-  IDragSnapshot,
   IDraggableEntry,
+  IDragSnapshot,
   IDropInfo,
   IDroppableEntry,
   IPoint,
@@ -54,7 +55,9 @@ const DefaultDragOverlay = (innerProps: {
   return (
     <Show when={innerProps.activeData() && innerProps.pointer()}>
       <Show
-        when={(innerProps.mode === 'clone' || innerProps.mode === 'thumbnail') && innerProps.snapshot()}
+        when={
+          (innerProps.mode === 'clone' || innerProps.mode === 'thumbnail') && innerProps.snapshot()
+        }
         fallback={
           /* mini — legacy 48×48 box */
           <Portal>
@@ -245,6 +248,11 @@ export const DnDProvider: Component<IDnDProviderProps> = (props) => {
     // Сам Portal-div удалит дочерний элемент через onCleanup при Show=false.
     setDragSnapshot(null);
   };
+
+  // Defensive: if DnDProvider unmounts during an active drag (e.g. route change
+  // mid-drag), the 4 window-level listeners must be removed. Without this,
+  // each interrupted drag leaks +4 orphan listeners holding signal closures.
+  onCleanup(cleanup);
 
   const startDrag = (id: DraggableId, e: PointerEvent) => {
     const entry = draggables.get(id);
