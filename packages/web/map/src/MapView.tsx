@@ -73,8 +73,8 @@ export interface IMapViewProps {
 const DEFAULT_STYLE = POSITRON;
 const DEFAULT_DARK_STYLE = DARK_MATTER;
 
-/** Определяет активную тему: проверяет класс `.dark` на body И media query. */
-function isDarkMode(): boolean {
+/** Читает текущее состояние тёмной темы БЕЗ подписки (для init). */
+function readDarkMode(): boolean {
   if (typeof document !== 'undefined' && document.body.classList.contains('dark')) return true;
   if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
     return true;
@@ -92,19 +92,23 @@ function isDarkMode(): boolean {
  *   - `center`/`maxBounds` передаются ТОЛЬКО через `setCenter`/`setMaxBounds`
  *     после `'load'`, НИКОГДА в конструктор — иначе `_calcMatrices` NaN при
  *     transient-0-size контейнере.
- *   - Тёмная тема: `prefers-color-scheme` слушается через `matchMedia` с
- *     явным `removeEventListener` в `onCleanup` — без утечки.
+ *   - Тёмная тема: единый `isDark` signal обновляется из matchMedia + MutationObserver.
+ *     Один `createEffect` tracks `isDark()` + `props.style` + `props.darkStyle` → setStyle.
+ *     Нет race conditions, нет conflict с конструкторным стилем.
  *   - `MapContext.Provider` — дочерним компонентам доступен instance через `useMap()`.
  */
 export const MapView = (props: IMapViewProps) => {
   let containerRef!: HTMLDivElement;
   const [map, setMap] = createSignal<MaplibreMap | undefined>(undefined);
 
-  // --- Theme resolution helpers ---
+  // --- Единый reactive dark-mode signal ---
+  // Инициализируется синхронно с текущим состоянием темы (readDarkMode()),
+  // поэтому конструктор и init-style уже получают правильный стиль.
+  const [isDark, setIsDark] = createSignal(readDarkMode());
 
   const lightStyle = () => props.style ?? DEFAULT_STYLE;
   const darkStyle = () => props.darkStyle ?? DEFAULT_DARK_STYLE;
-  const resolveStyle = () => (isDarkMode() ? darkStyle() : lightStyle());
+  const resolveStyle = () => (isDark() ? darkStyle() : lightStyle());
 
   onMount(() => {
     let instance: MaplibreMap | undefined;
@@ -124,6 +128,8 @@ export const MapView = (props: IMapViewProps) => {
 
       const m = new maplibregl.Map({
         container: containerRef,
+        // resolveStyle() читает isDark() — уже правильное значение на момент mount,
+        // т.к. isDark signal инициализирован синхронно через readDarkMode().
         style: resolveStyle(),
         // maplibre-gl 4: attributionControl accepts `false | AttributionControlOptions`.
         // `true` is not in the type — map boolean prop to `{}` (default options) or `false`.
@@ -175,12 +181,15 @@ export const MapView = (props: IMapViewProps) => {
     // Attempt immediate init if container already has size at mount time
     init(containerRef.clientWidth, containerRef.clientHeight);
 
-    // --- Theme switching ---
-    // matchMedia listener — снимается в onCleanup, НЕТ утечки.
+    // --- Theme switching: обновляем СИГНАЛ, не дёргаем setStyle напрямую ---
+    // Один createEffect ниже (вне onMount) наблюдает за isDark() + props.style/darkStyle
+    // и вызывает setStyle ровно один раз при изменении любого из них.
+
     const onColorSchemeChange = () => {
-      const m = instance;
-      if (!m) return;
-      m.setStyle(resolveStyle());
+      setIsDark(
+        document.body.classList.contains('dark') ||
+          window.matchMedia('(prefers-color-scheme: dark)').matches,
+      );
     };
 
     const mq =
@@ -191,9 +200,11 @@ export const MapView = (props: IMapViewProps) => {
     let mutationObserver: MutationObserver | null = null;
     if (typeof document !== 'undefined') {
       mutationObserver = new MutationObserver(() => {
-        const m = instance;
-        if (!m) return;
-        m.setStyle(resolveStyle());
+        setIsDark(
+          document.body.classList.contains('dark') ||
+            (typeof window !== 'undefined' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches),
+        );
       });
       mutationObserver.observe(document.body, {
         attributes: true,
@@ -213,12 +224,16 @@ export const MapView = (props: IMapViewProps) => {
 
   // --- Reactive prop sync (after map is initialized) ---
 
-  // style — тяжёлая операция, стирает user-added layers/sources
+  // ЕДИНЫЙ effect для style + тёмной темы.
+  // Tracks: isDark(), props.style, props.darkStyle → вычисляет finalStyle → setStyle.
+  // Заменяет и конфликтующий отдельный effect на props.style (был lines 217-222),
+  // и прямые вызовы setStyle из listeners (были race conditions при async setStyle).
   createEffect(() => {
-    const s = props.style; // track
     const m = map();
     if (!m) return;
-    m.setStyle(s ?? DEFAULT_STYLE);
+    // Все три tracked: isDark(), lightStyle() (→props.style), darkStyle() (→props.darkStyle)
+    const finalStyle = resolveStyle();
+    m.setStyle(finalStyle);
   });
 
   // center — jump without animation; for flyTo use useMap() imperatively
