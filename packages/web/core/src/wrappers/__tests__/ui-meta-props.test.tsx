@@ -464,6 +464,143 @@ describe('WidgetUi — Layout remains full (Grid + Flex + Matrix)', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Compile-time: MapView compound — Source/Layer/Terrain/Sky/Marker/TerrainPreset/BuildingsPreset
+// are sub-components of MapView (they live inside <Ui.MapView> via MapContext).
+// Reorg from flat exports to Object.assign compound (PR #184, 2026-05-28).
+// Mirrors Dropdown / Card pattern. All 7 children accessible as Ui.MapView.X.
+// ---------------------------------------------------------------------------
+
+describe('ViewUi — MapView compound: sub-components preserved with meta', () => {
+  it('Ui.MapView.Source is a function', () => {
+    expectTypeOf<ViewUi['MapView']['Source']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Source accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['MapView']['Source']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.Layer is a function', () => {
+    expectTypeOf<ViewUi['MapView']['Layer']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Layer accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['MapView']['Layer']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.Terrain is a function', () => {
+    expectTypeOf<ViewUi['MapView']['Terrain']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Terrain accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['MapView']['Terrain']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.Sky is a function', () => {
+    expectTypeOf<ViewUi['MapView']['Sky']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Sky accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['MapView']['Sky']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.Marker is a function', () => {
+    expectTypeOf<ViewUi['MapView']['Marker']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Marker accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['MapView']['Marker']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.TerrainPreset is a function', () => {
+    expectTypeOf<ViewUi['MapView']['TerrainPreset']>().toBeFunction();
+  });
+
+  it('Ui.MapView.TerrainPreset accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['MapView']['TerrainPreset']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.BuildingsPreset is a function', () => {
+    expectTypeOf<ViewUi['MapView']['BuildingsPreset']>().toBeFunction();
+  });
+
+  it('Ui.MapView.BuildingsPreset accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<ViewUi['MapView']['BuildingsPreset']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+describe('WidgetUi — MapView compound: sub-components preserved with meta', () => {
+  it('Ui.MapView.Source is a function', () => {
+    expectTypeOf<WidgetUi['MapView']['Source']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Source accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['MapView']['Source']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.Layer is a function', () => {
+    expectTypeOf<WidgetUi['MapView']['Layer']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Layer accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['MapView']['Layer']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.Terrain is a function', () => {
+    expectTypeOf<WidgetUi['MapView']['Terrain']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Terrain accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['MapView']['Terrain']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.Sky is a function', () => {
+    expectTypeOf<WidgetUi['MapView']['Sky']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Sky accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['MapView']['Sky']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.Marker is a function', () => {
+    expectTypeOf<WidgetUi['MapView']['Marker']>().toBeFunction();
+  });
+
+  it('Ui.MapView.Marker accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['MapView']['Marker']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.TerrainPreset is a function', () => {
+    expectTypeOf<WidgetUi['MapView']['TerrainPreset']>().toBeFunction();
+  });
+
+  it('Ui.MapView.TerrainPreset accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['MapView']['TerrainPreset']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+
+  it('Ui.MapView.BuildingsPreset is a function', () => {
+    expectTypeOf<WidgetUi['MapView']['BuildingsPreset']>().toBeFunction();
+  });
+
+  it('Ui.MapView.BuildingsPreset accepts IUiMetaProps (meta prop)', () => {
+    type Props = Parameters<WidgetUi['MapView']['BuildingsPreset']>[0];
+    expectTypeOf<Props>().toMatchTypeOf<IUiMetaProps>();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Runtime: ViewWrapper + UiProxy does not crash when meta is passed
 // (the actual prop stripping is in UiProxy; here we verify no runtime error)
 // ---------------------------------------------------------------------------
