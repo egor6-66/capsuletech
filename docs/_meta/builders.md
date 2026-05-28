@@ -48,7 +48,7 @@ biome-config → ничего (zero-deps, чисто config-файл)
 | `packages/builders/vite/src/actions.ts` | `createDevCapsuleServer / buildCapsuleApp` — обёртки над Vite, дёргаются из CLI |
 | `packages/builders/vite/src/plugins/constants.ts` | **SSOT** для `WRAPPER_NAMES`, `DEFINE_FACTORIES`, `LAYER_TO_NAMESPACE` |
 | `packages/builders/vite/src/plugins/HMRWrapping.ts` | babel-AST pre-transform: `const X = Page(...)` → `(props) => Page(...)(props)` + `export default` |
-| `packages/builders/vite/src/plugins/exportGenerator.ts` | watcher: scan `apps/*/src/{widgets,views,controllers,features,shapes,entities}` → `.capsule/registry/wrappers.ts` + `.capsule/@types/slots.d.ts`. Entities используют eager import (не lazy). |
+| `packages/builders/vite/src/plugins/exportGenerator.ts` | watcher: scan `apps/*/src/{widgets,views,controllers,features,shapes,entities}` → `.capsule/registry/wrappers.ts` + `.capsule/@types/slots.d.ts`. Entities используют eager import (не lazy). Финальная строка файла — `Object.assign(globalThis, { Widgets, Views, ... })` (top-level side effect, TDZ fix). |
 | `packages/builders/vite/src/plugins/endpointsRegistry.ts` | watcher: scan `apps/*/src/endpoints/**` → `.capsule/registry/endpoints.ts` + `.capsule/@types/api.d.ts`. **enforce:'pre' transform**: инжектирует фабрики из `DEFINE_FACTORIES` в начало файлов `src/endpoints/**` (canonical pattern без явного import). |
 | `packages/builders/vite/src/plugins/router/index.ts` | RouterPlugin: ensureRoot + page-mirror generator + TanStackRouterVite |
 | `packages/builders/vite/src/plugins/router/template/__root.tsx.template` | шаблон корневого route |
@@ -131,6 +131,8 @@ biome-config → ничего (zero-deps, чисто config-файл)
 12. **[[shared-vite-dist]] цикл** — после правок в `packages/builders/vite/src/` обязательно `pnpm --filter @capsuletech/vite-builder build` + рестарт dev-сервера. Без ребилда твоё изменение не видно — apps читают dist/, не src/. Smoke-test: `console.log('[plugin] loaded')` на верхнем уровне (вне transform).
 
 13. **Scaffold templates не попадают в dist автоматически** — `EnsureScaffoldPlugin` при runtime'е читает `.template`-файлы из `dist/plugins/scaffold/template/` (через `__dirname`). Но `libConfig` / rollup не копируют non-JS ресурсы — нужна явная запись в `staticCopyPlugin` в `vite/vite.config.mts`. Если добавить новый `.template`-файл в `src/` без добавления в `staticCopyPlugin` → `copyFile` бросит ENOENT при запуске dev-сервера, scaffold тихо ломается. Фикс уже применён (2026-05-20): `scaffold/template` копируется в `dist/plugins/scaffold/template/`.
+
+14. **[CLOSED 2026-05-28] Layer init ordering — ESM hoisting TDZ.** ESM: все `import` declarations evaluate до тела модуля. `bootstrap.tsx` строил цепочку `import routeTree → pages → widgets → features → endpoints`, а `Object.assign(globalThis, _registry)` шёл в теле — слишком поздно. `Entities.X` в endpoints → `undefined` / ReferenceError. Fix: `ExportGeneratorPlugin.renderRuntime` добавляет `Object.assign(globalThis, { Widgets, Views, ... })` как последнюю строку `wrappers.ts`. `bootstrap.tsx` (template + ewc) переведён на `import './registry/wrappers'` (bare side-effect), explicit assign убран.
 
 ## Что менять когда
 

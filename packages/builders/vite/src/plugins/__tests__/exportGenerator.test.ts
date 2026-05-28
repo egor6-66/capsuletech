@@ -118,8 +118,10 @@ const renderRuntime = (leaves: Leaf[]): string => {
     byLayer[leaf.layer].push(leaf);
   }
 
+  const namespaces: string[] = [];
   for (const layer of Object.keys(LAYER_TO_NAMESPACE)) {
     const namespace = LAYER_TO_NAMESPACE[layer];
+    namespaces.push(namespace);
     const layerLeaves = byLayer[layer] ?? [];
     const isEager = EAGER_IMPORT_LAYERS.has(layer);
 
@@ -145,6 +147,10 @@ const renderRuntime = (leaves: Leaf[]): string => {
     body.push(`export const ${namespace} = {\n${entries}\n};`);
     body.push('');
   }
+
+  const namespaceList = namespaces.join(', ');
+  body.push(`Object.assign(globalThis, { ${namespaceList} });`);
+  body.push('');
 
   const parts = [...header];
   if (eagerImports.length > 0) parts.push(...eagerImports, '');
@@ -330,5 +336,48 @@ describe('renderTypes — entities interface', () => {
     expect(out).toContain('declare global {');
     expect(out).toContain('}');
     expect(out).toContain('export {};');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Object.assign(globalThis, ...) side-effect — layer init ordering fix
+//
+// Root cause: ESM import declarations evaluate before the module body runs.
+// When bootstrap.tsx does `import { routeTree } from './routes/routeTree.gen'`
+// the transitive chain (routeTree → pages → widgets → features → endpoints)
+// evaluates BEFORE `Object.assign(globalThis, _registry)` in bootstrap body.
+// Fix: wrappers.ts itself runs Object.assign as a top-level side-effect on
+// module eval. bootstrap.tsx imports it as a bare side-effect import so the
+// assignment fires before routeTree is pulled in.
+// ---------------------------------------------------------------------------
+
+describe('renderRuntime — Object.assign(globalThis) side-effect (layer init ordering fix)', () => {
+  it('output contains Object.assign(globalThis, ...) at module top level', () => {
+    const leaf = fileToLeaf('entities/users.tsx', ALL_LAYERS)!;
+    const out = renderRuntime([leaf]);
+    expect(out).toContain('Object.assign(globalThis,');
+  });
+
+  it('Object.assign includes all layer namespaces', () => {
+    const out = renderRuntime([]);
+    const allNamespaces = Object.values(LAYER_TO_NAMESPACE);
+    for (const ns of allNamespaces) {
+      expect(out).toContain(ns);
+    }
+    // Ensure the assign statement contains all of them in one call
+    expect(out).toContain(`Object.assign(globalThis, { ${allNamespaces.join(', ')} });`);
+  });
+
+  it('Object.assign appears AFTER all export const declarations', () => {
+    const leaf = fileToLeaf('entities/users.tsx', ALL_LAYERS)!;
+    const out = renderRuntime([leaf]);
+    const assignIdx = out.indexOf('Object.assign(globalThis,');
+    const lastExportIdx = out.lastIndexOf('export const ');
+    expect(assignIdx).toBeGreaterThan(lastExportIdx);
+  });
+
+  it('Object.assign is present even with no leaves (empty app)', () => {
+    const out = renderRuntime([]);
+    expect(out).toContain('Object.assign(globalThis,');
   });
 });

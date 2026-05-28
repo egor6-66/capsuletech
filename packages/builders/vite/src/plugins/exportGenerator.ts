@@ -129,9 +129,11 @@ const renderRuntime = (leaves: Leaf[]): string => {
   // `Widget((Ui, Features, Controllers, Views, Shapes) => …)` упадёт с
   // `Shapes is not defined`, когда у app'а нет ни одного shape-файла.
   const layerOrder = Object.keys(LAYER_TO_NAMESPACE);
+  const namespaces: string[] = [];
   for (const layer of layerOrder) {
     const namespace =
       LAYER_TO_NAMESPACE[layer as keyof typeof LAYER_TO_NAMESPACE] ?? names(layer).className;
+    namespaces.push(namespace);
     const layerLeaves = byLayer[layer] ?? [];
     const isEager = EAGER_IMPORT_LAYERS.has(layer);
 
@@ -161,6 +163,15 @@ const renderRuntime = (leaves: Leaf[]): string => {
     body.push(`export const ${namespace} = {\n${entries}\n};`);
     body.push('');
   }
+
+  // Top-level side-effect: populate globalThis synchronously on module eval.
+  // This ensures Entities/Widgets/etc are available before any transitive
+  // import (endpoints → features → widgets → pages → routeTree) accesses them.
+  // bootstrap.tsx imports this module as a bare side-effect import and relies
+  // on this assignment having fired before routeTree evaluation.
+  const namespaceList = namespaces.join(', ');
+  body.push(`Object.assign(globalThis, { ${namespaceList} });`);
+  body.push('');
 
   const parts = [...header];
   if (eagerImports.length > 0) {

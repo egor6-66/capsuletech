@@ -103,12 +103,16 @@ Vite-конфиг и 9 плагинов для dev-сервера HCA-apps. Дё
 - [ ] **Добавить тесты vite-builder** — AutoImport генерация, HMRWrapping AST-transform, AppConfigPlugin transform/jiti, plugins ordering smoke. (priority: high)
 - [ ] **Bump CompliancePlugin mode `warn` → `error`** после стабилизации allowlist. ADR 004. (priority: medium)
 
+### Закрытые задачи
+
+- [x] **Layer init ordering (TDZ fix) — 2026-05-28.** ESM hoisting: endpoints → features → widgets → pages → routeTree evaluate до `Object.assign(globalThis, _registry)` в bootstrap body → `Entities.X` = undefined / ReferenceError. Fix: `ExportGeneratorPlugin.renderRuntime` добавляет `Object.assign(globalThis, { Widgets, Views, ... })` как последнюю строку генерируемого `wrappers.ts`. `bootstrap.tsx` (template + pre-existing apps) переведён на bare side-effect `import './registry/wrappers'` — explicit `Object.assign` убран как redundant. 4 новых теста в `exportGenerator.test.ts` (22 total, все green).
+
 ## Test coverage
 
 | Тип | Где | Что покрывает |
 |---|---|---|
 | Unit | `src/plugins/__tests__/appConfig.test.ts` | AppConfigPlugin transform (id matching, Windows paths, HMR suffixes) |
-| Unit | `src/plugins/__tests__/exportGenerator.test.ts` | ExportGeneratorPlugin — entities scan: flat, nested namespace, empty folder; eager vs lazy regression; renderRuntime + renderTypes |
+| Unit | `src/plugins/__tests__/exportGenerator.test.ts` | ExportGeneratorPlugin — entities scan: flat, nested namespace, empty folder; eager vs lazy regression; renderRuntime + renderTypes; Object.assign(globalThis) side-effect ordering |
 
 Текущее покрытие: AppConfigPlugin + ExportGeneratorPlugin (entities layer).
 Перед изменением любого плагина: `pnpm --filter @capsuletech/vite-builder test`.

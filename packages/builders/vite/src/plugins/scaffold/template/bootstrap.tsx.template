@@ -1,14 +1,11 @@
 import './styles.css';
 import { BaseProviders } from '@capsuletech/web-core/providers';
 import './app-config.gen';
-import * as _registry from './registry/wrappers';
+// Side-effect import: wrappers.ts выполняет Object.assign(globalThis, { Widgets, Views, ... })
+// синхронно при eval модуля. Это гарантирует что Entities/Widgets/etc доступны
+// до того как routeTree (→ pages → widgets → features → endpoints) начнёт evaluate.
+import './registry/wrappers';
 import { routeTree } from './routes/routeTree.gen';
-
-// Кладём registry-объекты (Widgets, Views, Controllers, Features, Shapes, Entities)
-// на globalThis. Wrapper'ы в @capsuletech/web-core (Page/Widget/View) читают
-// их оттуда — это работает после публикации пакета в npm, когда AutoImport
-// уже не может транспилировать собранный dist.
-Object.assign(globalThis, _registry);
 
 export const Bootstrap = () => {
   return <BaseProviders routeTree={routeTree} />;
