@@ -288,31 +288,25 @@ describe('MapView — memory cleanup', () => {
     expect(ro.disconnect).toHaveBeenCalled();
   });
 
-  it('removes matchMedia listener on unmount — no orphaned listeners', () => {
+  it('does NOT register matchMedia listener — body.dark is the single source of truth', () => {
+    // matchMedia was removed from MapView theme logic by design.
+    // OS prefers-color-scheme must not override the app-level theme.
     dispose = render(() => <MapView />, container);
     lastRO().trigger(800, 600);
     lastMap()._triggerLoad();
 
-    // One listener registered during onMount
-    expect(mockMQ.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
-    expect(mqListeners).toHaveLength(1);
-
-    dispose();
-    dispose = () => {};
-
-    // removeEventListener must have been called, leaving no registered listeners
-    expect(mockMQ.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+    expect(mockMQ.addEventListener).not.toHaveBeenCalled();
     expect(mqListeners).toHaveLength(0);
   });
 
-  it('multiple mount/unmount cycles do not accumulate matchMedia listeners', () => {
+  it('multiple mount/unmount cycles do not leak map instances', () => {
     for (let i = 0; i < 3; i++) {
       const d = render(() => <MapView />, container);
       lastRO().trigger(800, 600);
       lastMap()._triggerLoad();
       d(); // unmount
     }
-    // After each unmount the listener was removed; 0 remain
+    // matchMedia never touched
     expect(mqListeners).toHaveLength(0);
     // Three separate Map instances, each removed exactly once
     expect(mapInstances).toHaveLength(3);

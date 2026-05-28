@@ -5,7 +5,7 @@
  * Verifies:
  * - TerrainPreset adds a raster-dem source + setTerrain (correct defaults + overrides)
  * - TerrainPreset cleanup removes source and resets terrain
- * - BuildingsPreset adds fill-extrusion layer with correct source/source-layer (carto defaults)
+ * - BuildingsPreset adds fill-extrusion layer with correct source/source-layer (openmaptiles defaults)
  * - BuildingsPreset with custom props passes them through
  * - BuildingsPreset cleanup removes layer
  */
@@ -181,11 +181,15 @@ afterEach(() => {
 // TerrainPreset tests
 // ---------------------------------------------------------------------------
 
+// url is now a required prop — no default external URL (air-gapped safety)
+const AWS_TERRARIUM_URL = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
+const MAPTILER_URL = 'https://api.maptiler.com/tiles/terrain-rgb/{z}/{x}/{y}.png?key=DEMO';
+
 describe('TerrainPreset — composition', () => {
-  it('adds a raster-dem source with default Terrarium URL', () => {
+  it('adds a raster-dem source with the provided url', () => {
     const m = mountAndLoad(() => (
       <MapView>
-        <TerrainPreset />
+        <TerrainPreset url={AWS_TERRARIUM_URL} />
       </MapView>
     ));
     expect(m.addSource).toHaveBeenCalledWith(
@@ -200,13 +204,13 @@ describe('TerrainPreset — composition', () => {
     );
     expect(sourceCall).toBeDefined();
     const spec = sourceCall![1] as { tiles: string[] };
-    expect(spec.tiles[0]).toContain('elevation-tiles-prod');
+    expect(spec.tiles[0]).toBe(AWS_TERRARIUM_URL);
   });
 
   it('calls setTerrain with default exaggeration=1', () => {
     const m = mountAndLoad(() => (
       <MapView>
-        <TerrainPreset />
+        <TerrainPreset url={AWS_TERRARIUM_URL} />
       </MapView>
     ));
     expect(m.setTerrain).toHaveBeenCalledWith({
@@ -218,7 +222,7 @@ describe('TerrainPreset — composition', () => {
   it('passes custom exaggeration to setTerrain', () => {
     const m = mountAndLoad(() => (
       <MapView>
-        <TerrainPreset exaggeration={2.5} />
+        <TerrainPreset url={AWS_TERRARIUM_URL} exaggeration={2.5} />
       </MapView>
     ));
     expect(m.setTerrain).toHaveBeenCalledWith({
@@ -227,11 +231,10 @@ describe('TerrainPreset — composition', () => {
     });
   });
 
-  it('uses custom url when provided', () => {
-    const customUrl = 'https://api.maptiler.com/tiles/terrain-rgb/{z}/{x}/{y}.png?key=DEMO';
+  it('uses provided url and tileSize (e.g. MapTiler)', () => {
     const m = mountAndLoad(() => (
       <MapView>
-        <TerrainPreset url={customUrl} tileSize={512} />
+        <TerrainPreset url={MAPTILER_URL} tileSize={512} />
       </MapView>
     ));
     const sourceCall = m.addSource.mock.calls.find(
@@ -239,14 +242,14 @@ describe('TerrainPreset — composition', () => {
     );
     expect(sourceCall).toBeDefined();
     const spec = sourceCall![1] as { tiles: string[]; tileSize: number };
-    expect(spec.tiles[0]).toBe(customUrl);
+    expect(spec.tiles[0]).toBe(MAPTILER_URL);
     expect(spec.tileSize).toBe(512);
   });
 
   it('cleanup: removeSource + setTerrain(null) on unmount', () => {
     const m = mountAndLoad(() => (
       <MapView>
-        <TerrainPreset />
+        <TerrainPreset url={AWS_TERRARIUM_URL} />
       </MapView>
     ));
     dispose();
@@ -261,7 +264,7 @@ describe('TerrainPreset — composition', () => {
 // ---------------------------------------------------------------------------
 
 describe('BuildingsPreset — composition', () => {
-  it('adds a fill-extrusion layer with default carto source', () => {
+  it('adds a fill-extrusion layer with default openmaptiles source', () => {
     const m = mountAndLoad(() => (
       <MapView>
         <BuildingsPreset />
@@ -271,7 +274,7 @@ describe('BuildingsPreset — composition', () => {
       expect.objectContaining({
         id: '__buildings-preset-3d__',
         type: 'fill-extrusion',
-        source: 'carto',
+        source: 'openmaptiles',
         'source-layer': 'building',
       }),
       undefined,
@@ -311,13 +314,13 @@ describe('BuildingsPreset — composition', () => {
   it('accepts custom sourceId and sourceLayer', () => {
     const m = mountAndLoad(() => (
       <MapView>
-        <BuildingsPreset sourceId="openmaptiles" sourceLayer="building" />
+        <BuildingsPreset sourceId="my-custom-source" sourceLayer="custom-building" />
       </MapView>
     ));
     expect(m.addLayer).toHaveBeenCalledWith(
       expect.objectContaining({
-        source: 'openmaptiles',
-        'source-layer': 'building',
+        source: 'my-custom-source',
+        'source-layer': 'custom-building',
       }),
       undefined,
     );

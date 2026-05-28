@@ -23,12 +23,18 @@ export interface IViewport {
 }
 
 export interface IMapViewProps {
-  /** URL стиля или inline StyleSpecification. По умолчанию — POSITRON (CARTO). */
+  /**
+   * URL стиля или inline StyleSpecification. По умолчанию — POSITRON (CARTO Positron,
+   * встроен как JSON-объект — работает без сети). Для 3D-зданий через `<BuildingsPreset>`
+   * нужен OpenMapTiles-based стиль с `render_height` (дефолтный CARTO не включает его).
+   */
   style?: string | StyleSpecification;
   /**
-   * Стиль для тёмной темы. Если задан, переключается автоматически:
-   *   - при `prefers-color-scheme: dark`,
-   *   - при наличии класса `.dark` на `<body>` (capsule DarkModeToggle дублирует туда).
+   * Стиль для тёмной темы. Если задан, переключается автоматически при наличии
+   * класса `.dark` на `<body>` (capsule ThemeSwitcher управляет этим классом).
+   * `prefers-color-scheme` системы намеренно игнорируется — capsule app theme
+   * является единственным источником истины; OS preference не переопределяет
+   * выбор пользователя в интерфейсе.
    * При отсутствии — `style` используется в обоих режимах.
    */
   darkStyle?: string | StyleSpecification;
@@ -76,8 +82,7 @@ const DEFAULT_DARK_STYLE = DARK_MATTER;
 /** Читает текущее состояние тёмной темы БЕЗ подписки (для init). */
 function readDarkMode(): boolean {
   if (typeof document !== 'undefined' && document.body.classList.contains('dark')) return true;
-  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    return true;
+
   return false;
 }
 
@@ -92,9 +97,12 @@ function readDarkMode(): boolean {
  *   - `center`/`maxBounds` передаются ТОЛЬКО через `setCenter`/`setMaxBounds`
  *     после `'load'`, НИКОГДА в конструктор — иначе `_calcMatrices` NaN при
  *     transient-0-size контейнере.
- *   - Тёмная тема: единый `isDark` signal обновляется из matchMedia + MutationObserver.
+ *   - Тёмная тема: единый `isDark` signal обновляется MutationObserver'ом по `body.dark` классу.
+ *     `prefers-color-scheme` (matchMedia) игнорируется by design — capsule app theme управляет
+ *     классом `.dark` на `<body>` через ThemeSwitcher и является единственным источником истины.
  *     Один `createEffect` tracks `isDark()` + `props.style` + `props.darkStyle` → setStyle.
  *     Нет race conditions, нет conflict с конструкторным стилем.
+ *   - Требует `maplibre-gl ^5`. `setSky` и `setProjection` доступны только в v5+.
  *   - `MapContext.Provider` — дочерним компонентам доступен instance через `useMap()`.
  */
 export const MapView = (props: IMapViewProps) => {
@@ -131,7 +139,7 @@ export const MapView = (props: IMapViewProps) => {
         // resolveStyle() читает isDark() — уже правильное значение на момент mount,
         // т.к. isDark signal инициализирован синхронно через readDarkMode().
         style: resolveStyle(),
-        // maplibre-gl 4: attributionControl accepts `false | AttributionControlOptions`.
+        // maplibre-gl 5: attributionControl accepts `false | AttributionControlOptions`.
         // `true` is not in the type — map boolean prop to `{}` (default options) or `false`.
         attributionControl: props.attributionControl ? {} : false,
         ...(props.minZoom !== undefined ? { minZoom: props.minZoom } : {}),
@@ -184,27 +192,16 @@ export const MapView = (props: IMapViewProps) => {
     // --- Theme switching: обновляем СИГНАЛ, не дёргаем setStyle напрямую ---
     // Один createEffect ниже (вне onMount) наблюдает за isDark() + props.style/darkStyle
     // и вызывает setStyle ровно один раз при изменении любого из них.
-
-    const onColorSchemeChange = () => {
-      setIsDark(
-        document.body.classList.contains('dark') ||
-          window.matchMedia('(prefers-color-scheme: dark)').matches,
-      );
-    };
-
-    const mq =
-      typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
-    mq?.addEventListener('change', onColorSchemeChange);
+    //
+    // matchMedia ('prefers-color-scheme') намеренно НЕ используется:
+    // capsule app управляет body.dark классом через ThemeSwitcher — это единственная
+    // точка истины. OS preference не должна перебивать явный выбор пользователя.
 
     // MutationObserver on body.classList for `.dark` class toggling
     let mutationObserver: MutationObserver | null = null;
     if (typeof document !== 'undefined') {
       mutationObserver = new MutationObserver(() => {
-        setIsDark(
-          document.body.classList.contains('dark') ||
-            (typeof window !== 'undefined' &&
-              window.matchMedia('(prefers-color-scheme: dark)').matches),
-        );
+        setIsDark(document.body.classList.contains('dark'));
       });
       mutationObserver.observe(document.body, {
         attributes: true,
@@ -214,7 +211,6 @@ export const MapView = (props: IMapViewProps) => {
 
     onCleanup(() => {
       observer.disconnect();
-      mq?.removeEventListener('change', onColorSchemeChange);
       mutationObserver?.disconnect();
       instance?.remove();
       instance = undefined;

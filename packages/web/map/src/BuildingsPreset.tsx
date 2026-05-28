@@ -4,34 +4,40 @@ import type { JSX } from 'solid-js';
 import { Layer } from './Layer';
 
 /**
- * 3D-здания из CARTO vector tiles (source `"carto"`, source-layer `"building"`).
+ * 3D-здания из vector tiles (source-layer `"building"` с атрибутом `render_height`).
  *
- * CARTO Positron и Dark Matter — дефолтные стили `@capsuletech/web-map` — оба включают
- * source `"carto"` с данными зданий, включая высоту (`render_height`).
- * `BuildingsPreset` работает с ними **без дополнительных Source**.
+ * **Требования к стилю (opt-in):**
+ * `BuildingsPreset` требует style с vector source, содержащим source-layer `"building"`
+ * и атрибут `render_height`. Дефолтные стили `POSITRON` и `DARK_MATTER` (CARTO) **НЕ**
+ * содержат `render_height` — здания будут отображаться плоскими (height = 0).
  *
- * Если твой кастомный стиль использует другой source id или source-layer name —
- * используй `<Layer>` напрямую с нужными параметрами.
+ * Для получения настоящих 3D-зданий необходимо использовать OpenMapTiles-based стиль:
+ * - **OpenFreeMap** (публичный, без ключа): `'https://tiles.openfreemap.org/styles/positron'`
+ * - **MapTiler** (требует API-ключ): `'https://api.maptiler.com/maps/streets/style.json?key=KEY'`
+ * - **Selfhosted OpenMapTiles** (air-gapped): укажи свой URL в `style` prop `<MapView>`.
  *
- * Высота:
- * - `render_height` из CARTO tiles содержит высоту здания в метрах (реальная).
- * - Preset добавляет interpolate expression для плавного появления при zoom ≥ 14.
+ * Для air-gapped environments: подключи selfhosted OpenMapTiles tile server и передай
+ * его style URL через `<MapView style="https://your-server/style.json">`.
+ *
+ * Default `sourceId: 'openmaptiles'` — это standard OpenMapTiles convention. Если твой
+ * style использует другое имя source — передай его явно через `sourceId` prop.
  *
  * ```tsx
- * <MapView pitch={45}>
+ * // Требует OpenMapTiles-based style (не дефолтный CARTO POSITRON):
+ * <MapView style="https://tiles.openfreemap.org/styles/positron" pitch={45}>
  *   <BuildingsPreset />
  * </MapView>
  * ```
  *
- * Кастомный цвет:
  * ```tsx
+ * // Кастомный цвет:
  * <BuildingsPreset color="#c9a96e" opacity={0.9} />
  * ```
  */
 export interface IBuildingsPresetProps {
   /**
    * Id vector source, содержащего данные зданий.
-   * @default "carto"  (присутствует в POSITRON и DARK_MATTER стилях)
+   * @default "openmaptiles"  (стандартный convention для OpenMapTiles-based стилей)
    */
   sourceId?: string;
   /**
@@ -61,7 +67,7 @@ export interface IBuildingsPresetProps {
 }
 
 export const BuildingsPreset = (props: IBuildingsPresetProps) => {
-  const sourceId = () => props.sourceId ?? 'carto';
+  const sourceId = () => props.sourceId ?? 'openmaptiles';
   const sourceLayer = () => props.sourceLayer ?? 'building';
   const color = () => props.color ?? '#aaaaaa';
   const opacity = () => props.opacity ?? 0.8;
@@ -75,7 +81,7 @@ export const BuildingsPreset = (props: IBuildingsPresetProps) => {
     'source-layer': sourceLayer(),
     minzoom: minZoom(),
     paint: {
-      // Высота здания из атрибута render_height (CARTO tiles) или fallback 0
+      // Высота здания из атрибута render_height (OpenMapTiles tiles) или fallback 0
       'fill-extrusion-height': [
         'interpolate',
         ['linear'],

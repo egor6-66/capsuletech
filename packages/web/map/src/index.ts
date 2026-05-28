@@ -6,6 +6,9 @@ export type { ILayerProps } from './Layer';
 export { Layer } from './Layer';
 export type { IMapViewProps, IViewport } from './MapView';
 export { MapView } from './MapView';
+// --- Markers (Iter 2) ---
+export type { IMarkerProps } from './Marker';
+export { Marker } from './Marker';
 export type { ISkyProps } from './Sky';
 export { Sky } from './Sky';
 // --- Child components (Iter 1 / 3D features) ---

@@ -4,12 +4,13 @@
  *
  * Verifies:
  * 1. MapView inits with the correct style when body already has `.dark` on mount.
- * 2. MapView inits with the correct style when matchMedia already returns dark.
+ * 2. body.dark class toggle triggers correct setStyle calls (MutationObserver path).
  * 3. Multiple dark↔light theme switches all trigger setStyle (no stuck state).
  * 4. MutationObserver fires on non-dark class change → does NOT add extra setStyle calls
  *    beyond what is expected (idempotent: same theme → same style).
- * 5. matchMedia 'change' event → triggers correct setStyle via signal.
- * 6. No orphan listeners after multiple mount/unmount cycles.
+ * 5. matchMedia is NOT consulted — body.dark is the single source of truth.
+ *    (Regression: system prefers-dark + app toggle to light must produce light map.)
+ * 6. No orphan MutationObserver instances after multiple mount/unmount cycles.
  */
 
 import { render } from 'solid-js/web';
@@ -241,11 +242,12 @@ describe('MapView — theme init', () => {
     expect((lastMap()._ctorOptions as any).style).toBe(DARK_MATTER);
   });
 
-  it('starts with DARK_MATTER when matchMedia already returns dark before mount', () => {
+  it('starts with POSITRON even when matchMedia returns dark (body has no .dark class)', () => {
+    // Regression: system prefers-dark must NOT override app theme when body has no .dark
     mqMatches = true;
     dispose = render(() => <MapView />, container);
     lastRO().trigger(800, 600);
-    expect((lastMap()._ctorOptions as any).style).toBe(DARK_MATTER);
+    expect((lastMap()._ctorOptions as any).style).toBe(POSITRON);
   });
 
   it('uses custom darkStyle when body.dark is present', () => {
@@ -313,46 +315,75 @@ describe('MapView — theme switching via body.classList (MutationObserver)', ()
   });
 });
 
-describe('MapView — theme switching via matchMedia', () => {
-  it('calls setStyle with DARK_MATTER on matchMedia change to dark', () => {
+describe('MapView — matchMedia ignored (body.dark is single source of truth)', () => {
+  /**
+   * These are REGRESSION tests for the bug where system prefers-dark caused
+   * `isDark` to stay `true` even after the app explicitly switched to light theme.
+   *
+   * Design: capsule app controls `body.dark` via ThemeSwitcher. OS preference
+   * must NOT override the user's explicit app-level choice.
+   *
+   * matchMedia 'change' events are NOT wired up — the listener was removed.
+   */
+
+  it('matchMedia.matches=true, body has no .dark → isDark=false, map is light', () => {
+    mqMatches = true;
     dispose = render(() => <MapView />, container);
     lastRO().trigger(800, 600);
     lastMap()._triggerLoad();
     const m = lastMap();
     m.setStyle.mockClear();
 
-    fireMediaChange(true);
+    // matchMedia says dark, but body has no .dark class → map must stay light
+    expect(m.setStyle).not.toHaveBeenCalledWith(DARK_MATTER);
+  });
+
+  it('matchMedia.matches=true, body gets .dark → isDark=true, map is dark', () => {
+    mqMatches = true;
+    dispose = render(() => <MapView />, container);
+    lastRO().trigger(800, 600);
+    lastMap()._triggerLoad();
+    const m = lastMap();
+    m.setStyle.mockClear();
+
+    // App adds .dark to body → map must switch to dark
+    toggleBodyDark(true);
     expect(m.setStyle).toHaveBeenCalledWith(DARK_MATTER);
   });
 
-  it('calls setStyle with POSITRON on matchMedia change back to light', () => {
-    fireMediaChange(true);
+  it('matchMedia.matches=true, body.dark added then removed → map switches to light (THE BUG)', () => {
+    // This is the exact regression scenario:
+    //   1. System prefers-dark (mqMatches=true)
+    //   2. App is in dark mode (body.dark present)
+    //   3. User clicks "switch to light" → ThemeSwitcher removes body.dark
+    //   Expected: map switches to light
+    //   Bug was: false || true = true → stuck dark forever
+    mqMatches = true;
+    toggleBodyDark(true);
     dispose = render(() => <MapView />, container);
     lastRO().trigger(800, 600);
     lastMap()._triggerLoad();
     const m = lastMap();
     m.setStyle.mockClear();
 
-    fireMediaChange(false);
+    toggleBodyDark(false); // app switches to light
     expect(m.setStyle).toHaveBeenCalledWith(POSITRON);
+    expect(m.setStyle).not.toHaveBeenCalledWith(DARK_MATTER);
   });
 
-  it('handles 5 consecutive matchMedia dark↔light cycles without getting stuck', () => {
+  it('matchMedia change event does NOT trigger setStyle (listener was removed)', () => {
     dispose = render(() => <MapView />, container);
     lastRO().trigger(800, 600);
     lastMap()._triggerLoad();
     const m = lastMap();
     m.setStyle.mockClear();
 
-    for (let i = 0; i < 5; i++) {
-      fireMediaChange(true);
-      expect(m.setStyle).toHaveBeenLastCalledWith(DARK_MATTER);
-      m.setStyle.mockClear();
+    // Fire matchMedia change — should have zero effect because listener was removed
+    fireMediaChange(true);
+    expect(m.setStyle).not.toHaveBeenCalled();
 
-      fireMediaChange(false);
-      expect(m.setStyle).toHaveBeenLastCalledWith(POSITRON);
-      m.setStyle.mockClear();
-    }
+    fireMediaChange(false);
+    expect(m.setStyle).not.toHaveBeenCalled();
   });
 });
 
@@ -383,17 +414,7 @@ describe('MapView — style prop reactive with theme', () => {
 });
 
 describe('MapView — theme listener cleanup', () => {
-  it('no orphan matchMedia listeners after multiple mount/unmount cycles', () => {
-    for (let i = 0; i < 3; i++) {
-      const d = render(() => <MapView />, container);
-      lastRO().trigger(800, 600);
-      lastMap()._triggerLoad();
-      d();
-    }
-    expect(mqListeners).toHaveLength(0);
-  });
-
-  it('MutationObserver callback does not call setStyle after unmount (map is undefined)', () => {
+  it('MutationObserver is disconnected after unmount — no setStyle calls on removed map', () => {
     dispose = render(() => <MapView />, container);
     lastRO().trigger(800, 600);
     lastMap()._triggerLoad();
@@ -408,5 +429,16 @@ describe('MapView — theme listener cleanup', () => {
     fireMutationObserver();
     expect(m.setStyle).not.toHaveBeenCalled();
     document.body.classList.remove('dark');
+  });
+
+  it('MutationObserver instances are disconnected after multiple mount/unmount cycles', () => {
+    for (let i = 0; i < 3; i++) {
+      const d = render(() => <MapView />, container);
+      lastRO().trigger(800, 600);
+      lastMap()._triggerLoad();
+      d();
+    }
+    // All 3 MutationObserver instances should have been disconnected on unmount
+    expect(moInstances.every((mo) => mo.disconnect.mock.calls.length > 0)).toBe(true);
   });
 });
