@@ -456,6 +456,21 @@ importers:
       '@capsuletech/vite-builder':
         specifier: workspace:*
         version: link:../../builders/vite
+      '@testing-library/jest-dom':
+        specifier: ^6.9.1
+        version: 6.9.1
+      jsdom:
+        specifier: ~29.1.1
+        version: 29.1.1
+      vite:
+        specifier: ^8.0.13
+        version: 8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0)
+      vite-plugin-solid:
+        specifier: ^2.11.12
+        version: 2.11.12(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
+      vitest:
+        specifier: ~4.1.0
+        version: 4.1.6(@types/node@25.9.0)(@vitest/ui@4.1.6)(jsdom@29.1.1)(vite@8.0.13(@types/node@25.9.0)(esbuild@0.27.7)(jiti@2.4.2)(yaml@2.9.0))
 
   packages/web/map:
     dependencies:
