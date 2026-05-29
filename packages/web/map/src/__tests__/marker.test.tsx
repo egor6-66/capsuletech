@@ -361,12 +361,11 @@ describe('Marker — reactive anchor (recreate)', () => {
 // ---------------------------------------------------------------------------
 
 describe('Marker — click handler', () => {
-  it('onClick receives data and MouseEvent on click', () => {
+  it('onClick receives the native Event on click', () => {
     const onClick = vi.fn();
-    const data = { id: 42, type: 'emergency' };
     mountAndLoad(() => (
       <MapView>
-        <Marker lng={0} lat={0} data={data} onClick={onClick} />
+        <Marker lng={0} lat={0} onClick={onClick} />
       </MapView>
     ));
     const el = lastMarker()._element;
@@ -374,32 +373,7 @@ describe('Marker — click handler', () => {
     el.dispatchEvent(event);
 
     expect(onClick).toHaveBeenCalledTimes(1);
-    expect(onClick).toHaveBeenCalledWith(data, event);
-  });
-
-  it('onClick receives latest data after data prop change (reactive data)', () => {
-    const [data, setData] = createSignal({ version: 1 });
-    const onClick = vi.fn();
-    mountAndLoad(() => (
-      <MapView>
-        <Marker lng={0} lat={0} data={data()} onClick={onClick} />
-      </MapView>
-    ));
-    const el = lastMarker()._element;
-
-    // First click — version 1
-    el.dispatchEvent(new MouseEvent('click'));
-    expect(onClick.mock.calls[0][0]).toEqual({ version: 1 });
-
-    // Update data
-    setData({ version: 2 });
-
-    // Second click — should get latest data
-    el.dispatchEvent(new MouseEvent('click'));
-    expect(onClick.mock.calls[1][0]).toEqual({ version: 2 });
-
-    // No marker recreate — same DOM element
-    expect(markerInstances).toHaveLength(1);
+    expect(onClick).toHaveBeenCalledWith(event);
   });
 
   it('onClick is not called if undefined', () => {
@@ -426,6 +400,25 @@ describe('Marker — click handler', () => {
     dispose = () => {};
 
     expect(removeListenerSpy).toHaveBeenCalledWith('click', expect.any(Function));
+  });
+
+  it('accepts meta and payload props without throwing (HCA pass-through)', () => {
+    const onClick = vi.fn();
+    mountAndLoad(() => (
+      <MapView>
+        <Marker
+          lng={0}
+          lat={0}
+          meta={{ tags: ['incident'] }}
+          payload={{ id: '42' }}
+          onClick={onClick}
+        />
+      </MapView>
+    ));
+    const el = lastMarker()._element;
+    const event = new MouseEvent('click');
+    el.dispatchEvent(event);
+    expect(onClick).toHaveBeenCalledWith(event);
   });
 });
 

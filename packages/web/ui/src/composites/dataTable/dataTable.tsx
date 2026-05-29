@@ -12,10 +12,11 @@ import {
   type Table as TanstackTable,
 } from '@tanstack/solid-table';
 import { createVirtualizer } from '@tanstack/solid-virtual';
-import { For, Show, createEffect, createSignal, mergeProps, splitProps } from 'solid-js';
+import { For, Show, createEffect, createSignal, mergeProps, splitProps, useContext } from 'solid-js';
 
 import { Button } from '../../primitives/button';
 import { Table } from '../../primitives/table';
+import { CompositeProxyContext } from '../compositeProxy';
 import type { IDataTableInfiniteOptions, IDataTableProps } from './interfaces';
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -99,28 +100,75 @@ function TableHeaders<TData>(props: {
   );
 }
 
+/**
+ * Props for wrapped data-row components inside the table bodies.
+ * `meta` and `payload` are the per-row HCA target descriptors produced by
+ * `itemMeta` / `itemPayload` factories on IDataTableProps. When
+ * CompositeProxyContext.wrap is provided (injected by web-core), these are
+ * read by the events-wrapper to build the HCA target for the emitted event.
+ * When wrap is absent they are forwarded as plain HTML attributes (no-op).
+ */
+interface IDataRowProps<TData> {
+  row: Row<TData>;
+  selection: boolean;
+  itemHeight?: number;
+  meta?: { tags: string[]; [k: string]: unknown };
+  payload?: Record<string, unknown>;
+  hasMeta: boolean;
+}
+
+/**
+ * Inner data-row component. Defined as a named component so the wrap factory
+ * can attach a stable display name and web-core can register it correctly.
+ * `meta` and `payload` are intentionally spread onto the <Table.Row> —
+ * UiProxy in web-core reads them from the JSX props.
+ * Non-standard props that DOM would reject are handled by UiProxy before
+ * they reach the DOM (it strips them during event-binding).
+ */
+function DataRow<TData>(props: IDataRowProps<TData>) {
+  const [local, rowProps] = splitProps(props, ['row', 'selection', 'itemHeight', 'hasMeta']);
+  return (
+    <Table.Row
+      data-state={local.selection && local.row.getIsSelected() ? 'selected' : undefined}
+      style={local.itemHeight ? { height: `${local.itemHeight}px` } : undefined}
+      classList={{ 'cursor-pointer': local.hasMeta }}
+      {...(rowProps as object)}
+    >
+      <For each={local.row.getVisibleCells()}>
+        {(cell) => (
+          <Table.Cell class={CELL_CLAMP_CLS}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </Table.Cell>
+        )}
+      </For>
+    </Table.Row>
+  );
+}
+
 function StandardTableBody<TData>(props: {
   rows: Row<TData>[];
   selection: boolean;
   itemHeight?: number;
+  itemMeta?: (row: TData) => { tags: string[]; [k: string]: unknown };
+  itemPayload?: (row: TData) => Record<string, unknown>;
+  WrappedDataRow: (props: IDataRowProps<TData>) => import('solid-js').JSX.Element;
 }) {
   return (
     <Table.Body>
       <For each={props.rows}>
-        {(row) => (
-          <Table.Row
-            data-state={props.selection && row.getIsSelected() ? 'selected' : undefined}
-            style={props.itemHeight ? { height: `${props.itemHeight}px` } : undefined}
-          >
-            <For each={row.getVisibleCells()}>
-              {(cell) => (
-                <Table.Cell class={CELL_CLAMP_CLS}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </Table.Cell>
-              )}
-            </For>
-          </Table.Row>
-        )}
+        {(row) => {
+          const meta = props.itemMeta ? props.itemMeta(row.original) : undefined;
+          const payload = props.itemPayload ? props.itemPayload(row.original) : undefined;
+          return (
+            <props.WrappedDataRow
+              row={row}
+              selection={props.selection}
+              hasMeta={!!meta}
+              meta={meta}
+              payload={payload}
+            />
+          );
+        }}
       </For>
     </Table.Body>
   );
@@ -148,6 +196,9 @@ function InfiniteTable<TData>(props: {
   selection: boolean;
   infinite: boolean | IDataTableInfiniteOptions;
   onLoadMore?: () => void;
+  itemMeta?: (row: TData) => { tags: string[]; [k: string]: unknown };
+  itemPayload?: (row: TData) => Record<string, unknown>;
+  WrappedDataRow: (props: IDataRowProps<TData>) => import('solid-js').JSX.Element;
 }) {
   let scrollEl: HTMLDivElement | undefined;
 
@@ -200,20 +251,18 @@ function InfiniteTable<TData>(props: {
           <For each={virtualItems()}>
             {(vRow) => {
               const row = () => rows()[vRow.index];
+              const meta = () => props.itemMeta ? props.itemMeta(row().original) : undefined;
+              const payload = () => props.itemPayload ? props.itemPayload(row().original) : undefined;
               return (
-                <Table.Row
+                <props.WrappedDataRow
+                  row={row()}
+                  selection={props.selection}
+                  itemHeight={vRow.size}
+                  hasMeta={!!props.itemMeta}
+                  meta={meta()}
+                  payload={payload()}
                   data-index={vRow.index}
-                  data-state={props.selection && row().getIsSelected() ? 'selected' : undefined}
-                  style={{ height: `${vRow.size}px` }}
-                >
-                  <For each={row().getVisibleCells()}>
-                    {(cell) => (
-                      <Table.Cell class={CELL_CLAMP_CLS}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </Table.Cell>
-                    )}
-                  </For>
-                </Table.Row>
+                />
               );
             }}
           </For>
@@ -228,6 +277,14 @@ function InfiniteTable<TData>(props: {
 }
 
 export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
+  const { wrap } = useContext(CompositeProxyContext);
+
+  // Wrap the inner DataRow component once at construction time (not per render).
+  // When wrap is undefined (Storybook / standalone) → identity, DataRow used as-is.
+  const WrappedDataRow: (props: IDataRowProps<TData>) => import('solid-js').JSX.Element = wrap
+    ? wrap(DataRow<TData>, 'DataTableRow')
+    : DataRow<TData>;
+
   const props = mergeProps(
     { sorting: false, pagination: false, selection: false, filtering: false } as const,
     rawProps,
@@ -239,6 +296,8 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
     'pagination',
     'infinite',
     'onLoadMore',
+    'itemMeta',
+    'itemPayload',
     'selection',
     'filtering',
     'emptyMessage',
@@ -332,7 +391,13 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
               // --- Standard (non-virtual) render ---
               <Table>
                 <TableHeaders table={table} sorting={!!local.sorting} />
-                <StandardTableBody rows={table.getRowModel().rows} selection={!!local.selection} />
+                <StandardTableBody
+                  rows={table.getRowModel().rows}
+                  selection={!!local.selection}
+                  itemMeta={local.itemMeta}
+                  itemPayload={local.itemPayload}
+                  WrappedDataRow={WrappedDataRow}
+                />
               </Table>
             }
           >
@@ -342,6 +407,9 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
               selection={!!local.selection}
               infinite={local.infinite!}
               onLoadMore={local.onLoadMore}
+              itemMeta={local.itemMeta}
+              itemPayload={local.itemPayload}
+              WrappedDataRow={WrappedDataRow}
             />
           </Show>
         </Show>

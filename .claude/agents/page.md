@@ -41,7 +41,7 @@ const <PascalName> = Page((Ui) => (
 ## ЖЁСТКИЕ правила
 
 1. **Никаких `import`**, кроме одного — `export default <Name>;` в конце файла обязателен (см. конвенцию ниже).
-2. **Сигнатура — `Page((Ui, props?) => JSX)`**. `Ui` — `{ Layout, Outlet, Animate, ... }` — обращение через точку (`Ui.Layout.Matrix`, `Ui.Outlet`). `Widgets` — **глобал** через `Object.assign(globalThis, _registry)` в bootstrap, доступен прямо из factory body (вложенность по папкам: `Widgets.Forms.Auth`, `Widgets.Headers.Main`). `props` — опциональный.
+2. **Сигнатура — `Page((Ui, store, props?) => JSX)`**. `Ui` — `{ Layout, Outlet, Animate, ... }` — обращение через точку (`Ui.Layout.Matrix`, `Ui.Outlet`). `store` — `IBridge | undefined` ближайшего родительского Controller/Feature; для Page обычно `undefined` (Page — корень дерева), но доступен если страницу оборачивает логический родитель. `props?` — опциональный. `Widgets` — **глобал** через `Object.assign(globalThis, _registry)` в bootstrap, доступен прямо из factory body (вложенность по папкам: `Widgets.Forms.Auth`, `Widgets.Headers.Main`).
 3. **Никаких View / Shape / Controller / Feature** напрямую. Только Widget'ы.
 4. **Никакой логики**. Никаких `if`, `?:`, состояний.
 5. **Один Widget в `main`** — обычно достаточно. Если страница сложная (header/footer/sidebar) — используй именованные слоты.

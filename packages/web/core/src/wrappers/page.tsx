@@ -1,10 +1,13 @@
 import { Outlet } from '@tanstack/solid-router';
+import { useCtx } from '../engine/ctx';
 import { Ui } from '../ui-kit';
 import type { IPageWrapper } from './interfaces';
 import { ShapeUiContext } from './shape';
 
 export const PageWrapper: IPageWrapper = (Component) => {
   return function Page(wrapperProps) {
+    const ctx = useCtx();
+    const store = ctx?.store;
     const pageUi = {
       ...(Ui as any),
       Layout: (Ui as any).Layout,
@@ -13,7 +16,7 @@ export const PageWrapper: IPageWrapper = (Component) => {
     } as any;
     return (
       <ShapeUiContext.Provider value={pageUi}>
-        {Component(pageUi, wrapperProps)}
+        {Component(pageUi, store, wrapperProps)}
       </ShapeUiContext.Provider>
     );
   };

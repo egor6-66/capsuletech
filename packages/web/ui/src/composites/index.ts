@@ -1,3 +1,4 @@
+export * from './compositeProxy';
 export * from './darkModeToggle';
 export * from './dataTable';
 export * from './dropdownMenu';

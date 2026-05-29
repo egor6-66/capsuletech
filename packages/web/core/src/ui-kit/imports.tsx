@@ -54,6 +54,14 @@ export const Field = Object.assign(FieldBase, {
 // 7. DataTable — smart table (sorting/pagination/selection/filtering), no sub-components
 export const DataTable = createLazy(() => import('@capsuletech/web-ui/dataTable'), 'DataTable');
 
+// 7b. PreviewCard — single-item field renderer (atomic, без outer Card chrome).
+// Принимает `data` + `fields: IPreviewCardField[]`. Mirror DataTable API
+// (accessorKey/accessorFn/cell). Используется для Shape с single-object schema.
+export const PreviewCard = createLazy(
+  () => import('@capsuletech/web-ui/previewCard'),
+  'PreviewCard',
+);
+
 // 7a. DropdownMenu — declarative composite над Dropdown primitive. Принимает
 // `trigger` + `data: IDropdownMenuItem[]` (рекурсивная структура: item/sub/
 // separator/group) и сам строит дерево. Симметрия с DataTable: для Shape pattern.

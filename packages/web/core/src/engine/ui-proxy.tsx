@@ -1,4 +1,5 @@
 import { createEffect, createUniqueId, mergeProps, onCleanup, splitProps } from 'solid-js';
+import type { JSX } from 'solid-js';
 import type { ICtx } from './ctx';
 import {
   type AnyEvent,
@@ -82,6 +83,88 @@ const safeCall = (fn: any, ...args: any[]) => {
 };
 
 /**
+ * Внутренний хелпер: строит объект с 6 event-handlers с дедупликацией bubbling
+ * и диспатчингом в ctx.controller. Используется как `wrapComponent` (full path),
+ * так и `bindEvents` (events-only path для composite-строк).
+ *
+ * @param ctx           — текущий ControllerContext (controller + store)
+ * @param getEffMeta    — геттер effective meta (может содержать kind-tag inject)
+ * @param getProps      — геттер текущих merged props (для value/payload/name/userHandlers)
+ * @param onUpdateStore — опциональный callback для `updateStore=true` событий;
+ *                        `wrapComponent` передаёт closure с id; `bindEvents` — undefined.
+ */
+const buildEventBindings = (
+  ctx: ICtx<any>,
+  getEffMeta: () => any,
+  getProps: () => any,
+  onUpdateStore?: (data: ReturnType<typeof getTargetData>) => void,
+): Record<string, (e: AnyEvent) => void> => {
+  const bindings: Record<string, (e: AnyEvent) => void> = {};
+  for (const { name, updateStore, marker } of EVENT_ENTRIES) {
+    bindings[name] = (e: AnyEvent) => {
+      // Дедупликация на bubbling: первый сработавший handler помечает event,
+      // верхние обёртки в DOM-цепочке пропускают повторные вызовы.
+      if ((e as any)[marker]) return;
+      (e as any)[marker] = true;
+
+      const props = getProps();
+      const effectiveMeta = getEffMeta();
+      const data = getTargetData(e, { ...props, meta: effectiveMeta }, deriveName(effectiveMeta));
+      if (updateStore && data.name && onUpdateStore) {
+        onUpdateStore(data);
+      }
+      safeCall(ctx.controller[name], data, ctx.store.ctx);
+      safeCall(props[name], e);
+    };
+  }
+  return bindings;
+};
+
+/**
+ * Events-only binder для composite-внутренних строк (DataTable.Row, List.Item и т.д.).
+ *
+ * Возвращает обёртку над `Comp`, которая:
+ *  - читает `props.meta` / `props.payload` и строит target через `getTargetData`;
+ *  - навешивает те же 6 событий с тем же `eventMarker`-дедупом что и `wrapComponent`,
+ *    т.е. innermost-handler отрабатывает первым и маркирует event, outer-wrapper
+ *    (если есть) пропустит;
+ *  - диспатчит `safeCall(ctx.controller[eventName], target, ctx.store.ctx)` и
+ *    форвардит `props[eventName]` (user-handler) — идентичная семантика;
+ *  - НЕ передаёт `meta` / `payload` в `Comp` (потребляет их — иначе они осядут
+ *    как `[object Object]` на DOM-узле);
+ *  - НЕ регистрирует в store, НЕ создаёт id, НЕ читает store.styles/loading;
+ *    composite-строки не нужно регистрировать индивидуально.
+ *
+ * Предназначен для заполнения `ICompositeProxyContext.wrap` в `logic-wrapper.tsx`.
+ * Вызывается ОДИН РАЗ на construction-time (вне render-loop), как того требует
+ * контракт `ICompositeProxyContext.wrap` (idempotent per call-site).
+ */
+export const bindEvents = <P,>(
+  ctx: ICtx<any>,
+  Comp: (props: P) => JSX.Element,
+  _name?: string,
+): ((props: P) => JSX.Element) => {
+  return (props: P) => {
+    // Потребляем meta и payload — они нужны только для target-построения,
+    // не должны попасть в DOM (иначе React-подобные предупреждения + [object Object]).
+    // Локальный cast: web-core владеет HCA-семантикой meta/payload; контракт P не ограничен.
+    const hca = props as P & { meta?: any; payload?: unknown };
+    const { meta, payload, ...rest } = hca as any;
+
+    const getEffMeta = () => meta;
+    const getProps = () => ({ ...rest, meta, payload });
+
+    const eventBindings = buildEventBindings(ctx, getEffMeta, getProps);
+
+    // mergeProps: rest (без meta/payload) < eventBindings. Solid корректно
+    // мержит обработчики — user-handler вызывается через safeCall внутри binding'а.
+    const finalProps = mergeProps(rest, eventBindings) as P;
+    const C = Comp as any;
+    return <C {...finalProps} />;
+  };
+};
+
+/**
  * Оборачивает один компонент (или namespace вроде `Field` с подкомпонентами):
  *  - при отсутствии собственного `meta` — рендерит через; рекурсивно wrap'ит
  *    sub-component'ы;
@@ -156,27 +239,18 @@ export const wrapComponent = (
       ctx.store.unregisterComponent(id);
     });
 
-    const eventBindings: Record<string, (e: AnyEvent) => void> = {};
-    for (const { name, updateStore, marker } of EVENT_ENTRIES) {
-      eventBindings[name] = (e: AnyEvent) => {
-        // Дедупликация на bubbling: первый сработавший handler помечает event,
-        // верхние обёртки в DOM-цепочке пропускают повторные вызовы.
-        if ((e as any)[marker]) return;
-        (e as any)[marker] = true;
-
-        const effectiveMeta = getEffectiveMeta();
-        const data = getTargetData(e, { ...props, meta: effectiveMeta }, deriveName(effectiveMeta));
-        if (updateStore && data.name) {
-          // Patch только runtime-меняющиеся поля. meta/name уже в components[id] через
-          // registerComponent (mount-time, единоразово). Раньше тут был ctx.store.update
-          // (SET_DATA), который шумил весь target в user namespace `context.data` —
-          // см. историю про разделение register/update в docs/09-packages/state.md.
-          ctx.store.updateComponent({ [id]: { value: data.value, type: data.type } });
-        }
-        safeCall(ctx.controller[name], data, ctx.store.ctx);
-        safeCall(props[name], e);
-      };
-    }
+    const eventBindings = buildEventBindings(
+      ctx,
+      getEffectiveMeta,
+      () => props,
+      (data) => {
+        // Patch только runtime-меняющиеся поля. meta/name уже в components[id] через
+        // registerComponent (mount-time, единоразово). Раньше тут был ctx.store.update
+        // (SET_DATA), который шумил весь target в user namespace `context.data` —
+        // см. историю про разделение register/update в docs/09-packages/state.md.
+        ctx.store.updateComponent({ [id]: { value: data.value, type: data.type } });
+      },
+    );
 
     const dynamicProps = {
       get class() {

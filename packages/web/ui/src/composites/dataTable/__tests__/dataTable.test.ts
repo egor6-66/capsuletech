@@ -168,6 +168,8 @@ describe('IDataTableProps structural contracts', () => {
     expect(props.filtering).toBeUndefined();
     expect(props.emptyMessage).toBeUndefined();
     expect(props.toolbar).toBeUndefined();
+    expect(props.itemMeta).toBeUndefined();
+    expect(props.itemPayload).toBeUndefined();
   });
 
   // --- infinite scroll API ---
@@ -218,6 +220,96 @@ describe('IDataTableProps structural contracts', () => {
     };
     expect(props.infinite).toBe(true);
     expect(props.pagination).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// itemMeta / itemPayload contract
+// ---------------------------------------------------------------------------
+
+describe('IDataTableProps itemMeta / itemPayload', () => {
+  it('itemMeta is optional — absent by default', () => {
+    const props: IDataTableProps<{ id: number }> = {
+      data: [{ id: 1 }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+    };
+    expect(props.itemMeta).toBeUndefined();
+  });
+
+  it('itemPayload is optional — absent by default', () => {
+    const props: IDataTableProps<{ id: number }> = {
+      data: [{ id: 1 }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+    };
+    expect(props.itemPayload).toBeUndefined();
+  });
+
+  it('itemMeta returns tags array plus arbitrary keys', () => {
+    type IUser = { id: number; name: string };
+    const props: IDataTableProps<IUser> = {
+      data: [{ id: 1, name: 'Alice' }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+      itemMeta: (row) => ({ tags: ['user', 'row'], id: row.id }),
+    };
+    const result = props.itemMeta!({ id: 1, name: 'Alice' });
+    expect(result.tags).toEqual(['user', 'row']);
+    expect(result.id).toBe(1);
+  });
+
+  it('itemPayload returns a plain record', () => {
+    type IUser = { id: number; name: string; role: string };
+    const props: IDataTableProps<IUser> = {
+      data: [{ id: 42, name: 'Bob', role: 'Admin' }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+      itemPayload: (row) => ({ userId: row.id, userName: row.name, userRole: row.role }),
+    };
+    const result = props.itemPayload!({ id: 42, name: 'Bob', role: 'Admin' });
+    expect(result).toEqual({ userId: 42, userName: 'Bob', userRole: 'Admin' });
+  });
+
+  it('itemMeta and itemPayload can coexist with other optional props', () => {
+    const props: IDataTableProps<{ id: number }> = {
+      data: [{ id: 1 }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+      sorting: true,
+      selection: true,
+      filtering: true,
+      infinite: true,
+      onLoadMore: () => {},
+      itemMeta: (row) => ({ tags: ['item'], id: row.id }),
+      itemPayload: (row) => ({ id: row.id }),
+    };
+    expect(props.sorting).toBe(true);
+    expect(props.selection).toBe(true);
+    expect(props.infinite).toBe(true);
+    expect(props.itemMeta!({ id: 1 }).tags).toEqual(['item']);
+    expect(props.itemPayload!({ id: 1 })).toEqual({ id: 1 });
+  });
+
+  it('cursor-pointer UX hint — derives from itemMeta presence', () => {
+    // Documents the runtime behaviour: cursor-pointer applied when itemMeta is set.
+    const withMeta: IDataTableProps<{ id: number }> = {
+      data: [],
+      columns: [],
+      itemMeta: () => ({ tags: ['row'] }),
+    };
+    const withoutMeta: IDataTableProps<{ id: number }> = {
+      data: [],
+      columns: [],
+    };
+    expect(!!withMeta.itemMeta).toBe(true);
+    expect(!!withoutMeta.itemMeta).toBe(false);
+  });
+
+  it('all opt-in flags default to absent (no onRowClick in props)', () => {
+    // Verify onRowClick is gone — accessing it must be a type error. At runtime
+    // the key should not exist on IDataTableProps.
+    const props: IDataTableProps<{ id: number }> = {
+      data: [],
+      columns: [],
+    };
+    // @ts-expect-error — onRowClick was removed; TS should flag this access
+    expect(props.onRowClick).toBeUndefined();
   });
 });
 

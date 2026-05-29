@@ -291,3 +291,36 @@ export const WithInfiniteLoading: Story = {
     );
   },
 };
+
+// ---------------------------------------------------------------------------
+// WithItemMeta — itemMeta/itemPayload for HCA event-binding (cursor-pointer affordance)
+// ---------------------------------------------------------------------------
+
+export const WithItemMeta: Story = {
+  name: 'with itemMeta · HCA event-binding affordance',
+  render: () => (
+    <DataTable
+      data={USERS}
+      columns={columns}
+      itemMeta={(row) => ({ tags: ['user', 'row'], id: row.id })}
+      itemPayload={(row) => ({ userId: row.id, userName: row.name, userRole: row.role })}
+    />
+  ),
+};
+
+// ---------------------------------------------------------------------------
+// WithItemMetaInfinite — same pattern but with virtual scroll
+// ---------------------------------------------------------------------------
+
+export const WithItemMetaInfinite: Story = {
+  name: 'with itemMeta · infinite scroll',
+  render: () => (
+    <DataTable
+      data={LARGE_DATASET}
+      columns={columns}
+      infinite
+      itemMeta={(row) => ({ tags: ['user', 'row'], id: row.id })}
+      itemPayload={(row) => ({ userId: row.id, userName: row.name })}
+    />
+  ),
+};

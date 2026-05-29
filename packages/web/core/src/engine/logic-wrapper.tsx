@@ -1,6 +1,7 @@
 import { getApiClient } from '@capsuletech/web-query';
 import { useRouter } from '@capsuletech/web-router';
 import { createBridge, createState } from '@capsuletech/web-state';
+import { CompositeProxyContext } from '@capsuletech/web-ui/compositeProxy';
 import { useMachine } from '@xstate/solid';
 import { createEffect, onCleanup, Suspense } from 'solid-js';
 import type {
@@ -13,6 +14,7 @@ import type {
 } from '../wrappers/interfaces';
 import { ControllerProxy } from './controller-proxy';
 import { Context, useCtx } from './ctx';
+import { bindEvents } from './ui-proxy';
 
 type Kind = 'controller' | 'feature';
 
@@ -109,10 +111,19 @@ export const createLogicWrapper =
         }
       });
 
+      // Захватываем ctx в замыкании для CompositeProxyContext.wrap.
+      // ctx — это объект с controller/store/state того же LogicWrapper'а,
+      // который UiProxy уже использует для event-dispatch.
+      const ctx = { controller, state, store, parent };
+
       return (
         <Suspense fallback={props.fallback}>
-          <Context.Provider value={{ controller, state, store, parent }}>
-            {props.children}
+          <Context.Provider value={ctx}>
+            <CompositeProxyContext.Provider
+              value={{ wrap: (Comp, name) => bindEvents(ctx, Comp, name) }}
+            >
+              {props.children}
+            </CompositeProxyContext.Provider>
           </Context.Provider>
         </Suspense>
       );

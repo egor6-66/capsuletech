@@ -191,6 +191,16 @@
       "import": "./dist/components/wrappers/*.mjs",
       "default": "./dist/components/wrappers/*.mjs"
     },
+    "./compositeProxy": {
+      "types": "./dist/components/compositeProxy/index.d.ts",
+      "import": "./dist/components/compositeProxy/index.mjs",
+      "default": "./dist/components/compositeProxy/index.mjs"
+    },
+    "./compositeProxy/*": {
+      "types": "./dist/components/compositeProxy/*.d.ts",
+      "import": "./dist/components/compositeProxy/*.mjs",
+      "default": "./dist/components/compositeProxy/*.mjs"
+    },
     "./dataTable": {
       "types": "./dist/components/dataTable/index.d.ts",
       "import": "./dist/components/dataTable/index.mjs",

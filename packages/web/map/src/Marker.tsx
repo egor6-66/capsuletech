@@ -4,7 +4,7 @@ import { createEffect, onCleanup, untrack } from 'solid-js';
 
 import { useMap } from './context';
 
-export interface IMarkerProps<T = unknown> {
+export interface IMarkerProps {
   /** Долгота маркера. */
   lng: number;
   /** Широта маркера. */
@@ -24,25 +24,25 @@ export interface IMarkerProps<T = unknown> {
     | 'bottom-left'
     | 'bottom-right';
   /**
-   * Произвольные данные, прикреплённые к маркеру.
-   * Возвращаются в `onClick` первым аргументом — типизированы через generic `T`.
+   * Standard DOM-style click handler.
    *
-   * Координаты можно хранить прямо в data если нужны в click-handler:
-   * ```tsx
-   * <Marker lng={call.location.lng} lat={call.location.lat} data={call}
-   *   onClick={(call) => openPanel(call)} />
-   * ```
+   * When used inside a HCA Controller/Feature via UiProxy, this prop is injected
+   * automatically — Marker just forwards the native click Event.
+   *
+   * @param event — native click Event
    */
-  data?: T;
+  onClick?: (event: Event) => void;
   /**
-   * Click handler. Получает `data` (с полной типизацией через generic T) и нативный `MouseEvent`.
-   *
-   * Читает **актуальное** значение `data` на момент клика — реактивно без пересоздания маркера.
-   *
-   * @param data — текущее значение `props.data`
-   * @param event — нативный MouseEvent
+   * HCA meta pass-through — consumed by web-core's UiProxy for target registration.
+   * Marker does not act on this prop; it is present so TS accepts
+   * `<Marker meta={{ tags: ['incident'] }} />` without a cast.
    */
-  onClick?: (data: T, event: MouseEvent) => void;
+  meta?: { tags: string[]; [k: string]: unknown };
+  /**
+   * HCA payload pass-through — consumed by web-core's UiProxy to build the
+   * event target. Marker does not act on this prop directly.
+   */
+  payload?: Record<string, unknown>;
 }
 
 /**
@@ -51,14 +51,23 @@ export interface IMarkerProps<T = unknown> {
  *
  * Должен быть дочерним элементом `<MapView>` — использует `useMap()`.
  *
+ * ## HCA / UiProxy integration
+ *
+ * Marker accepts `meta` and `payload` as transparent pass-throughs.
+ * web-core's UiProxy reads them to register the target and build the event object;
+ * the injected `onClick(event)` is forwarded to the native DOM click listener.
+ *
+ * ```tsx
+ * // Inside a View, within a Controller context:
+ * <Ui.MapView.Marker lng={x} lat={y} meta={{ tags: ['incident'] }} payload={{ id }} />
+ * ```
+ *
  * ## Реактивность
  *
  * - `lng` / `lat` — reactive: при изменении вызывает `marker.setLngLat([lng, lat])`
  *   без пересоздания маркера (быстро, DOM-элемент остаётся тем же).
  * - `anchor` — изменение требует пересоздания (`anchor` только в constructor).
  *   Компонент выполняет `remove()` + `new Marker({ anchor })` + `addTo(map)` автоматически.
- * - `data` — реактивно без DOM-изменений: click handler читает актуальное значение
- *   через замыкание на момент вызова.
  *
  * ## Vs styledata
  *
@@ -77,14 +86,13 @@ export interface IMarkerProps<T = unknown> {
  *     <Marker
  *       lng={call.location.lng}
  *       lat={call.location.lat}
- *       data={call}
- *       onClick={(call, e) => openPanel(call)}
+ *       onClick={(e) => openPanel(e)}
  *     />
  *   ))}
  * </MapView>
  * ```
  */
-export const Marker = <T = unknown>(props: IMarkerProps<T>) => {
+export const Marker = (props: IMarkerProps) => {
   const { map } = useMap();
 
   // Mutable ref shared between the two effects below.
@@ -117,9 +125,9 @@ export const Marker = <T = unknown>(props: IMarkerProps<T>) => {
     // Store ref so Effect 2 can call setLngLat on the current marker instance.
     markerRef = marker;
 
-    // Click event — reads props.data in the handler closure at call-time (latest value).
-    const handleClick = (event: MouseEvent) => {
-      props.onClick?.(props.data as T, event);
+    // Click event — forwards the native Event to props.onClick (single-arg, HCA-style).
+    const handleClick = (event: Event) => {
+      props.onClick?.(event);
     };
     const el = marker.getElement();
     el.addEventListener('click', handleClick);

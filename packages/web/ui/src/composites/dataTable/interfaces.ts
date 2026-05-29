@@ -72,6 +72,29 @@ export interface IDataTableProps<TData> {
   onLoadMore?: () => void;
 
   /**
+   * Per-row HCA target meta factory. Called with each row's original data.
+   * The returned object is passed as the `meta` prop on the row component so
+   * the injected events-wrapper (CompositeProxyContext.wrap) can build a
+   * typed HCA target for that row.
+   *
+   * Example:
+   *   itemMeta={(row) => ({ tags: ['user', 'row'], id: row.id })}
+   *
+   * When provided, `cursor-pointer` is added to the row for UX affordance.
+   */
+  itemMeta?: (row: TData) => { tags: string[]; [k: string]: unknown };
+
+  /**
+   * Per-row HCA payload factory. Called with each row's original data.
+   * The returned object is passed as the `payload` prop on the row component
+   * alongside `meta` so the events-wrapper can include it with emitted events.
+   *
+   * Example:
+   *   itemPayload={(row) => ({ userId: row.id, userName: row.name })}
+   */
+  itemPayload?: (row: TData) => Record<string, unknown>;
+
+  /**
    * Enable a leading checkbox column + row selection state.
    * Consumer is responsible for adding a select ColumnDef if they need
    * custom rendering; this flag wires the selection row model.
