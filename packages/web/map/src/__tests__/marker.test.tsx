@@ -6,6 +6,8 @@
  * - Mount creates Marker with correct coords
  * - setLngLat called on reactive lng/lat change (no recreate)
  * - anchor change → marker recreated (remove + new constructor)
+ * - active toggle → NO marker recreation; stable element mutated in-place
+ * - first-ever-active marker reverts correctly (orphaned-subscription regression)
  * - click triggers onClick with correct (data, event) signature
  * - data change is reactive — onClick receives latest data on next click
  * - unmount → marker.remove() + removeEventListener called
@@ -27,7 +29,7 @@ interface MockMarkerInstance {
   remove: ReturnType<typeof vi.fn>;
   getElement: ReturnType<typeof vi.fn>;
   _element: HTMLDivElement;
-  _constructorOptions: { anchor?: string };
+  _constructorOptions: { anchor?: string; element?: HTMLElement };
 }
 
 interface MockMapInstance {
@@ -84,7 +86,10 @@ vi.mock('maplibre-gl', () => {
     mapInstances.push(this as unknown as MockMapInstance);
   });
 
-  const MockMarker = vi.fn(function (this: MockMarkerInstance, options: { anchor?: string } = {}) {
+  const MockMarker = vi.fn(function (
+    this: MockMarkerInstance,
+    options: { anchor?: string; element?: HTMLElement } = {},
+  ) {
     this._constructorOptions = options;
     const el = document.createElement('div');
     this._element = el;
@@ -165,6 +170,15 @@ function lastRO(): MockROInstance {
 }
 function lastMarker(): MockMarkerInstance {
   return markerInstances[markerInstances.length - 1];
+}
+/**
+ * Returns the actual DOM element that was passed to the Marker constructor and
+ * has click/dblclick listeners attached. Since we always supply a custom element
+ * (`createStableElement`), this is `_constructorOptions.element`, NOT `_element`
+ * (the mock's internal fallback div).
+ */
+function lastMarkerEl(): HTMLDivElement {
+  return lastMarker()._constructorOptions.element as HTMLDivElement;
 }
 
 let container: HTMLDivElement;
@@ -256,6 +270,170 @@ describe('Marker — lifecycle', () => {
       ([event]) => event === 'styledata',
     );
     expect(styledataCalls).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Active variant (dot / pin) tests
+// ---------------------------------------------------------------------------
+
+describe('Marker — active variant (dot / pin)', () => {
+  it('inactive (default) → passes a stable custom element to the constructor', () => {
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} />
+      </MapView>
+    ));
+    // Both active and inactive variants always use a custom element (stable DOM node).
+    expect(lastMarker()._constructorOptions.element).toBeInstanceOf(HTMLDivElement);
+  });
+
+  it('active → still passes a stable custom element to the constructor', () => {
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} active />
+      </MapView>
+    ));
+    // active state is expressed via element.innerHTML (SVG), not via the
+    // absence of a custom element — the element is always present.
+    expect(lastMarker()._constructorOptions.element).toBeInstanceOf(HTMLDivElement);
+  });
+
+  it('inactive element has no SVG (dot appearance)', () => {
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} />
+      </MapView>
+    ));
+    const el = lastMarker()._constructorOptions.element as HTMLDivElement;
+    expect(el.querySelector('svg')).toBeNull();
+    expect(el.style.borderRadius).toBe('9999px');
+  });
+
+  it('active element contains an SVG (pin/teardrop appearance)', () => {
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} active />
+      </MapView>
+    ));
+    const el = lastMarker()._constructorOptions.element as HTMLDivElement;
+    expect(el.querySelector('svg')).not.toBeNull();
+    expect(el.style.borderRadius).toBe('');
+  });
+
+  it('toggling active does NOT recreate the marker (stable instance)', () => {
+    const [active, setActive] = createSignal(false);
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} active={active()} />
+      </MapView>
+    ));
+    const instanceBefore = lastMarker();
+    expect(markerInstances).toHaveLength(1);
+    // Confirm dot appearance before toggle
+    const el = instanceBefore._constructorOptions.element as HTMLDivElement;
+    expect(el.querySelector('svg')).toBeNull();
+
+    setActive(true);
+
+    // No new Marker constructor call — same instance
+    expect(markerInstances).toHaveLength(1);
+    expect(lastMarker()).toBe(instanceBefore);
+    // The SAME element now shows pin appearance
+    expect(el.querySelector('svg')).not.toBeNull();
+
+    setActive(false);
+
+    // Still only one instance, reverted to dot
+    expect(markerInstances).toHaveLength(1);
+    expect(el.querySelector('svg')).toBeNull();
+    expect(el.style.borderRadius).toBe('9999px');
+  });
+
+  it('toggling active true→false does NOT call marker.remove()', () => {
+    const [active, setActive] = createSignal(false);
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} active={active()} />
+      </MapView>
+    ));
+    const marker = lastMarker();
+
+    setActive(true);
+    setActive(false);
+
+    expect(marker.remove).not.toHaveBeenCalled();
+  });
+
+  it('first-ever-active marker reverts to dot when deactivated (regression)', () => {
+    // Regression: the first marker that ever becomes active used to stay a pin
+    // permanently because the reactive subscription was orphaned after the first
+    // recreation. With the stable-element design this must not happen.
+    const [activeA, setActiveA] = createSignal(false);
+    const [activeB, setActiveB] = createSignal(false);
+
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} active={activeA()} />
+        <Marker lng={1} lat={1} active={activeB()} />
+      </MapView>
+    ));
+
+    expect(markerInstances).toHaveLength(2);
+    const [markerA, markerB] = markerInstances;
+    const elA = markerA._constructorOptions.element as HTMLDivElement;
+    const elB = markerB._constructorOptions.element as HTMLDivElement;
+
+    // Step 1: activate A (first-ever-active)
+    setActiveA(true);
+    expect(elA.querySelector('svg')).not.toBeNull(); // A is pin
+    expect(elB.querySelector('svg')).toBeNull(); // B is dot
+
+    // Step 2: move active to B — A must revert to dot (this was the bug)
+    setActiveA(false);
+    setActiveB(true);
+    expect(elA.querySelector('svg')).toBeNull(); // A reverted to dot ✓
+    expect(elB.querySelector('svg')).not.toBeNull(); // B is now pin
+
+    // Step 3: move active back to A — must work both ways
+    setActiveB(false);
+    setActiveA(true);
+    expect(elA.querySelector('svg')).not.toBeNull(); // A is pin again
+    expect(elB.querySelector('svg')).toBeNull(); // B reverted to dot
+
+    // Total instances must still be 2 — no recreation happened
+    expect(markerInstances).toHaveLength(2);
+  });
+
+  it('forwards click in the dot (inactive) variant', () => {
+    const onClick = vi.fn();
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} onClick={onClick} />
+      </MapView>
+    ));
+    lastMarkerEl().dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards click after active toggle (listener survives on stable element)', () => {
+    const onClick = vi.fn();
+    const [active, setActive] = createSignal(false);
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} active={active()} onClick={onClick} />
+      </MapView>
+    ));
+    // Capture the stable element before any toggle
+    const el = lastMarkerEl();
+
+    setActive(true);
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+
+    setActive(false);
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(onClick).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -368,7 +546,7 @@ describe('Marker — click handler', () => {
         <Marker lng={0} lat={0} onClick={onClick} />
       </MapView>
     ));
-    const el = lastMarker()._element;
+    const el = lastMarkerEl();
     const event = new MouseEvent('click');
     el.dispatchEvent(event);
 
@@ -382,7 +560,7 @@ describe('Marker — click handler', () => {
         <Marker lng={0} lat={0} />
       </MapView>
     ));
-    const el = lastMarker()._element;
+    const el = lastMarkerEl();
     // Should not throw
     expect(() => el.dispatchEvent(new MouseEvent('click'))).not.toThrow();
   });
@@ -393,7 +571,8 @@ describe('Marker — click handler', () => {
         <Marker lng={0} lat={0} onClick={vi.fn()} />
       </MapView>
     ));
-    const el = lastMarker()._element;
+    // Spy on the actual element that has the listener (our stable custom element)
+    const el = lastMarkerEl();
     const removeListenerSpy = vi.spyOn(el, 'removeEventListener');
 
     dispose();
@@ -415,10 +594,77 @@ describe('Marker — click handler', () => {
         />
       </MapView>
     ));
-    const el = lastMarker()._element;
+    const el = lastMarkerEl();
     const event = new MouseEvent('click');
     el.dispatchEvent(event);
     expect(onClick).toHaveBeenCalledWith(event);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Double-click handler tests
+// ---------------------------------------------------------------------------
+
+describe('Marker — dblclick handler', () => {
+  it('onDblClick receives the native Event on dblclick', () => {
+    const onDblClick = vi.fn();
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} onDblClick={onDblClick} />
+      </MapView>
+    ));
+    const el = lastMarkerEl();
+    const event = new MouseEvent('dblclick');
+    el.dispatchEvent(event);
+
+    expect(onDblClick).toHaveBeenCalledTimes(1);
+    expect(onDblClick).toHaveBeenCalledWith(event);
+  });
+
+  it('onDblClick is not called if undefined', () => {
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} />
+      </MapView>
+    ));
+    const el = lastMarkerEl();
+    // Should not throw
+    expect(() => el.dispatchEvent(new MouseEvent('dblclick'))).not.toThrow();
+  });
+
+  it('dblclick removeEventListener called on unmount', () => {
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} onDblClick={vi.fn()} />
+      </MapView>
+    ));
+    // Spy on the actual element that has the listener (our stable custom element)
+    const el = lastMarkerEl();
+    const removeListenerSpy = vi.spyOn(el, 'removeEventListener');
+
+    dispose();
+    dispose = () => {};
+
+    expect(removeListenerSpy).toHaveBeenCalledWith('dblclick', expect.any(Function));
+  });
+
+  it('onClick and onDblClick fire independently', () => {
+    const onClick = vi.fn();
+    const onDblClick = vi.fn();
+    mountAndLoad(() => (
+      <MapView>
+        <Marker lng={0} lat={0} onClick={onClick} onDblClick={onDblClick} />
+      </MapView>
+    ));
+    const el = lastMarkerEl();
+
+    el.dispatchEvent(new MouseEvent('click'));
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onDblClick).toHaveBeenCalledTimes(0);
+
+    el.dispatchEvent(new MouseEvent('dblclick'));
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onDblClick).toHaveBeenCalledTimes(1);
   });
 });
 
