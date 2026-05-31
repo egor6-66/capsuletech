@@ -1,5 +1,33 @@
+import { unwrap } from 'solid-js/store';
 import type { IMachineContext } from './create';
 import { matchByTags, matchEntryByTags, omitByTags, pickByTags } from './helpers';
+
+/**
+ * Sanitises a user-supplied `update()` payload before it enters the XState actor.
+ *
+ * Problem: `store.ctx.data.items.find(...)` returns a Solid **store proxy node** —
+ * a live reactive handle with `$RAW` internals. If that node is written into a
+ * different key via `store.update({ selected: item })`, XState/Solid's reconcile
+ * will alias `data.selected` and `data.items[k]` to the *same* internal store node.
+ * The next `update({ selected: otherItem })` then physically overwrites `items[k]`.
+ * See: ADR 008 note; regression tests: ./__tests__/bridge.test.ts ("update() aliasing invariant").
+ *
+ * Fix: `unwrap` (solid-js/store) strips proxy wrappers recursively, returning the
+ * raw underlying plain object. `structuredClone` then deep-clones it so no internal
+ * reference escapes into the actor. For non-proxy values `unwrap` is a no-op (fast
+ * path: checks `$RAW` and returns immediately for plain objects).
+ *
+ * `structuredClone` requirement: payload values must be serialisable data (no
+ * Functions, Symbols, WeakMaps). This matches `update()` contract — it is a
+ * data-mutation API, not a behaviour/reference-passing one.
+ *
+ * Invariant: the object that reaches SET_DATA must share NO internal Solid store
+ * node identity with any existing field in `context.data`.
+ */
+const sanitisePayload = (payload: Record<string, any>): Record<string, any> => {
+  const unwrapped = unwrap(payload);
+  return structuredClone(unwrapped);
+};
 
 /**
  * Аргумент `state` у `createBridge`. По форме совпадает с reactive-snapshot,
@@ -71,7 +99,8 @@ export const createBridge = (state: IBridgeStateSnapshot, send: IBridgeSend) => 
     },
 
     // мутации
-    update: (payload: Record<string, any>) => send({ type: 'SET_DATA', payload }),
+    update: (payload: Record<string, any>) =>
+      send({ type: 'SET_DATA', payload: sanitisePayload(payload) }),
     setLoading: (value: boolean) => send({ type: 'SET_LOADING', value }),
     setStyles: (styles: Record<string, string>) => send({ type: 'SET_STYLES', styles }),
     setErrors: (errors: Record<string, string>) => send({ type: 'SET_ERRORS', errors }),
@@ -102,8 +131,7 @@ export const createBridge = (state: IBridgeStateSnapshot, send: IBridgeSend) => 
      *
      * Не путать с `update()`, который шлёт `SET_DATA` → `context.data` (user state из `schema.context`).
      */
-    updateComponent: (payload: Record<string, any>) =>
-      send({ type: 'UPDATE_COMPONENT', payload }),
+    updateComponent: (payload: Record<string, any>) => send({ type: 'UPDATE_COMPONENT', payload }),
 
     // tag-операции (объединяют meta.tags + dynamicMeta.tags, раскрывают алиасы)
     pick: (tags: readonly string[], opts?: BridgeMatchOptions) =>

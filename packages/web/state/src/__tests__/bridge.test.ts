@@ -325,6 +325,105 @@ describe('createBridge — values', () => {
   });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Aliasing-invariant tests for store.update()
+//
+// Background: `store.ctx.data.items.find(...)` returns a Solid store proxy node.
+// Passing that proxy into `store.update({ selected: item })` previously caused
+// XState/Solid reconcile to alias `data.selected` and `data.items[k]` to the
+// same internal store node. The next `update({ selected: other })` then overwrote
+// `items[k]` as a side effect.
+//
+// The fix: `update()` runs `sanitisePayload` — `unwrap(payload)` strips proxy
+// wrappers (using solid-js/store's $RAW mechanism), then `structuredClone` ensures
+// no reference from the payload leaks into the actor.
+//
+// These tests verify the invariant without a real Solid reactive root (node env).
+// We synthesise proxy-like objects using the $RAW symbol that solid-js/store exposes —
+// the same mechanism `unwrap` uses internally.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('createBridge — update() aliasing invariant', () => {
+  // $RAW is the symbol solid-js/store uses to mark proxy nodes.
+  // unwrap checks: `if (result = item != null && item[$RAW]) return result`
+  // We use it to construct a synthetic store-proxy-like object for unit testing.
+  const $RAW = Symbol.for('store-raw'); // matches solid-js/store internal symbol name
+
+  it('update clones plain objects — payload sent to actor is not the same reference', () => {
+    const send = vi.fn();
+    const original = { name: 'Alice', location: { lat: 1, lng: 2 } };
+    createBridge(mkState(), send).update({ selected: original });
+
+    const sentPayload = send.mock.calls[0][0].payload;
+    // Structural equality preserved
+    expect(sentPayload.selected).toEqual({ name: 'Alice', location: { lat: 1, lng: 2 } });
+    // But it must be a deep clone — no shared reference
+    expect(sentPayload.selected).not.toBe(original);
+    expect(sentPayload.selected.location).not.toBe(original.location);
+  });
+
+  it('update strips $RAW proxy wrappers — unwrap extracts the raw value', () => {
+    const send = vi.fn();
+    // Simulate what solid-js/store does: a proxy node where [$RAW] points to the raw data.
+    const rawData = { id: 'a', name: 'Alice', location: { lat: 1, lng: 2 } };
+    const storeProxyLike = { [$RAW]: rawData } as any;
+
+    createBridge(mkState(), send).update({ selected: storeProxyLike });
+
+    const sentPayload = send.mock.calls[0][0].payload;
+    // unwrap extracts rawData from the proxy-like object
+    // structuredClone then deep-clones it
+    expect(sentPayload.selected).toEqual(rawData);
+    // The value sent must NOT be the original proxy object
+    expect(sentPayload.selected).not.toBe(storeProxyLike);
+    // It must NOT be the raw data reference either — structuredClone ensures isolation
+    expect(sentPayload.selected).not.toBe(rawData);
+  });
+
+  it('update payload values share no reference with the input after sanitise', () => {
+    const send = vi.fn();
+    const item = { id: 'b', nested: { deep: true } };
+    createBridge(mkState(), send).update({ item });
+
+    const sent = send.mock.calls[0][0].payload.item;
+    expect(sent).toEqual(item);
+    expect(sent).not.toBe(item);
+    expect(sent.nested).not.toBe(item.nested);
+  });
+
+  it('update preserves data integrity through multiple sends (regression: aliasing corrupts items array)', () => {
+    // Simulates the ewc pattern: items list + selecting items from it.
+    // Without the fix, selecting 'a' then 'b' would overwrite items[0] with 'b'.
+    // This test operates on plain objects (no real Solid store needed).
+    const receivedPayloads: Array<Record<string, any>> = [];
+    const send = vi.fn((event: any) => {
+      if (event.type === 'SET_DATA') receivedPayloads.push(event.payload);
+    });
+
+    const items = [
+      { id: 'a', name: 'Alice' },
+      { id: 'b', name: 'Bob' },
+    ];
+
+    const bridge = createBridge(mkState(), send);
+
+    // First selection
+    bridge.update({ selected: items[0] });
+    // Second selection
+    bridge.update({ selected: items[1] });
+
+    // Both payloads must be independent clones
+    expect(receivedPayloads[0].selected).toEqual({ id: 'a', name: 'Alice' });
+    expect(receivedPayloads[1].selected).toEqual({ id: 'b', name: 'Bob' });
+
+    // Crucially: the second send must NOT have mutated the first payload's reference
+    expect(receivedPayloads[0].selected.id).toBe('a');
+
+    // And neither payload shares a reference with the source items array
+    expect(receivedPayloads[0].selected).not.toBe(items[0]);
+    expect(receivedPayloads[1].selected).not.toBe(items[1]);
+  });
+});
+
 describe('createBridge — alias expansion in tag ops', () => {
   it('pick(["@inputs"]) expands via tag-registry', () => {
     // Register a custom alias to confirm expansion goes through tag-registry.
