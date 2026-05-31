@@ -2,9 +2,9 @@
  * Dashboard (`/workspace/dashboard`) — основной операционный экран EWC.
  *
  * **Shared state hub:** все слоты Matrix обёрнуты в `<Features.Incidents>` —
- * Tables / Maps / Sidebar читают **один и тот же** store (items / visibleIds /
- * selectedId) и диспатчат методы через `next()` к этому Feature. Single source
- * of truth (Phase 2 wiring).
+ * Tables / Maps / Sidebar читают **один и тот же** store (items / selected).
+ * Выбор карточки — стандартный клик → универсальный `onClick`-роутер фичи
+ * (tag `incident` + payload), а не именованные методы. Single source of truth.
  *
  * Matrix preset='app-shell' БЕЗ header-слота (header идёт от родительского
  * workspace layout). Внутренний matrix:

@@ -6,19 +6,19 @@
  * Template: `ui.PreviewCard` (composite — рендерит field-блоки label + value).
  * Fields: parallel to columns в IncidentsTable — те же accessor patterns.
  *
- * Consumer wiring:
+ * Consumer wiring — Widget просто отдаёт `data`; card-chrome и placeholder
+ * рисует сам `PreviewCard` (он self-contained, не atomic):
  * ```tsx
- * <Ui.Card.Content>
- *   <Shapes.IncidentPreview data={selectedIncident()} />
- * </Ui.Card.Content>
+ * <Shapes.IncidentPreview data={selectedIncident()} />
  * ```
  *
- * При `data=null/undefined` PreviewCard рендерит `emptyMessage` automatically.
+ * При `data=null/undefined` PreviewCard рендерит `emptyMessage` внутри card-chrome.
  */
 const IncidentPreview = Shape((_z, ui) => ({
   schema: Entities.Incident.schema,
   as: ui.PreviewCard,
   emptyMessage: 'Выберите карточку на карте или в таблице',
+  flat: true,
   fields: [
     { accessorKey: 'id', header: 'ID' },
     {

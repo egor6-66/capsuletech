@@ -4,14 +4,15 @@
  *
  * State machine:
  *   idle → loading → loaded
- *                 ↘ error → loading (retry)
- *   loaded → loading (retry / refresh)
+ *                 ↘ error
  *
- * Single source of truth: все три виджета читают данные через store,
- * операции (select / toggle visibility) диспатчатся через controller
- * next()-bubbling к этому Feature.
+ * Single source of truth: виджеты читают данные через store. Выбор карточки —
+ * через универсальный `onClick`-роутер (ниже): клик по строке таблицы или
+ * маркеру карты несёт тег `incident` + payload `{ id }`; роутер резолвит
+ * incident из `items` и кладёт **готовый объект** в `store.selected`. Виджеты
+ * НЕ знают про id/поиск — читают `selected` и рисуют.
  *
- * Wiring (Phase 2):
+ * Wiring:
  * ```tsx
  * <Features.Incidents>
  *   <Widgets.Tables.Incidents />
@@ -21,22 +22,21 @@
  * ```
  *
  * Context shape (user fields живут в `context.data`, доступ через
- * `useCtx().store.ctx.data.X` или handler param `context.data.X`):
+ * `store.ctx.data.X` или handler param `context.data.X`):
  * ```ts
  * {
- *   items: IIncident[];          // загруженный список
- *   visibleIds: Set<string>;     // ids видимых на карте маркеров
- *   selectedId: string | null;   // выбранный incident (sidebar)
- *   error: string | null;        // последнее сообщение об ошибке
+ *   items: IIncident[];           // загруженный список
+ *   selected: IIncident | null;   // выбранная карточка (готова к отрисовке)
+ *   error: string | null;         // последнее сообщение об ошибке
  * }
  * ```
  *
  * Mutations: только через `store.update({ field: value })` — direct
  * `context.X = Y` запрещено Solid Store (выкинет "Cannot mutate a Store
- * directly"). Read через `context.data.X` (handler context = весь
- * IMachineContext, user-state лежит в `.data`).
+ * directly"). Read через `context.data.X`.
  */
 
+import { unwrap } from 'solid-js/store';
 import type { z } from 'zod';
 
 export type IIncident = z.infer<typeof Entities.Incident.schema>;
@@ -44,18 +44,16 @@ export type IIncident = z.infer<typeof Entities.Incident.schema>;
 /** Shape of Features.Incidents user-state — read via `store.ctx.data` / `context.data`. */
 export interface IIncidentsContext {
   items: IIncident[];
-  visibleIds: Set<string>;
-  selectedId: string | null;
+  selected: IIncident | null;
   error: string | null;
 }
 
-const Incidents = Feature(({ api }) => ({
+const Incidents = Feature(({ api, router }) => ({
   initial: 'idle' as const,
 
   context: {
     items: [] as IIncident[],
-    visibleIds: new Set<string>(),
-    selectedId: null as string | null,
+    selected: null as IIncident | null,
     error: null as string | null,
   },
 
@@ -63,18 +61,41 @@ const Incidents = Feature(({ api }) => ({
    * onClick — универсальный роутер кликов по `target.meta.tags`.
    *
    * Top-level (вне `states`) → ControllerProxy находит его как fallback после
-   * `states[current]`, значит ловит клик в любом стейте. Компоненты (строки
-   * таблицы, маркеры карты) несут сырые теги (`['incident']`) + payload;
-   * решение «что делать» живёт здесь, а не в компоненте.
-   *   incident → select (idempotent).
+   * `states[current]`, значит ловит клик в любом стейте.
+   *   `incident`  → select: резолвит incident из `items` (по payload `{ id }`)
+   *                 и кладёт готовый объект в `selected` (idempotent), чтобы
+   *                 виджеты читали его без знания про id/поиск.
+   *   `open-card` → navigate: переход на детальную карточку выбранного incident'а.
    */
   onClick: ({ target, store }) => {
     const tags = (target as { meta?: { tags?: string[] } }).meta?.tags ?? [];
 
     if (tags.includes('incident')) {
       const id = (target as { payload?: { id?: string } }).payload?.id;
-      if (!id || store.ctx.data.selectedId === id) return;
-      store.update({ selectedId: id });
+      if (!id || store.ctx.data.selected?.id === id) return;
+      const item = store.ctx.data.items.find((i: IIncident) => i.id === id);
+      // Store a plain deep clone, NOT the live `items[k]` store-proxy node:
+      // putting a store node into another store field aliases them in
+      // @xstate/solid's reconcile, which corrupts items[k] on the next select.
+      store.update({ selected: item ? structuredClone(unwrap(item)) : null });
+    }
+
+    if (tags.includes('open-card')) {
+      const id = store.ctx.data.selected?.id;
+      if (id) router.goTo(`/workspace/cards/${id}`);
+    }
+  },
+
+  /**
+   * onDblClick — даблклик по строке таблицы или маркеру (тег `incident`) →
+   * сразу переход на детальную карточку по payload `{ id }` (минуя выбор).
+   * Single-click фиксирует `selected`, double-click открывает.
+   */
+  onDblClick: ({ target }) => {
+    const tags = (target as { meta?: { tags?: string[] } }).meta?.tags ?? [];
+    if (tags.includes('incident')) {
+      const id = (target as { payload?: { id?: string } }).payload?.id;
+      if (id) router.goTo(`/workspace/cards/${id}`);
     }
   },
 
@@ -91,7 +112,6 @@ const Incidents = Feature(({ api }) => ({
 
     /**
      * loading — единственный стейт, где происходит API-вызов.
-     * onInit вызывается при каждом входе (включая retry/refresh).
      * На success → `loaded`, на error → `error`.
      */
     loading: {
@@ -108,12 +128,7 @@ const Incidents = Feature(({ api }) => ({
           const result = await api.incidents.list({});
           const items = Entities.Incident.schema.array().parse(result) as IIncident[];
 
-          store.update({
-            items,
-            visibleIds: new Set(items.map((i: IIncident) => i.id)),
-            error: null,
-          });
-
+          store.update({ items, error: null });
           state.set('loaded');
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
@@ -125,76 +140,11 @@ const Incidents = Feature(({ api }) => ({
       },
     },
 
-    /**
-     * loaded — основной рабочий стейт. Доступны все методы управления
-     * списком: выбор, visibility-фильтрация, refresh.
-     */
-    loaded: {
-      /**
-       * clearSelection — сбрасывает выбор (sidebar переходит в пустое состояние).
-       */
-      clearSelection: ({ store }) => {
-        store.update({ selectedId: null });
-      },
+    /** loaded — данные загружены. Выбор карточки идёт через top-level `onClick`. */
+    loaded: {},
 
-      /**
-       * toggleVisible — переключает видимость одного маркера на карте.
-       * Иммутабельное обновление через new Set.
-       */
-      toggleVisible: ({ target, store }) => {
-        const id = (target as { payload?: { id?: string } }).payload?.id;
-        if (!id) return;
-        const next = new Set(store.ctx.data.visibleIds);
-        if (next.has(id)) {
-          next.delete(id);
-        } else {
-          next.add(id);
-        }
-        store.update({ visibleIds: next });
-      },
-
-      /**
-       * setAllVisible — массовое управление видимостью.
-       * visible=true → показать все; visible=false → скрыть все.
-       */
-      setAllVisible: ({ target, store }) => {
-        const visible = (target as { payload?: { visible?: boolean } }).payload?.visible;
-        if (visible === true) {
-          store.update({
-            visibleIds: new Set(store.ctx.data.items.map((i: IIncident) => i.id)),
-          });
-        } else {
-          store.update({ visibleIds: new Set() });
-        }
-      },
-
-      /**
-       * retry — форсированный refresh: сбрасывает данные и уходит в loading.
-       * Доступен из loaded (ручное обновление), а также пробрасывается из error.
-       */
-      retry: ({ store, state }) => {
-        store.update({
-          items: [],
-          visibleIds: new Set(),
-          error: null,
-        });
-        state.set('loading');
-      },
-    },
-
-    /**
-     * error — стейт ошибки загрузки. context.error содержит сообщение.
-     * Единственный выход — retry().
-     */
-    error: {
-      /**
-       * retry — сброс в loading для повторной попытки загрузки.
-       */
-      retry: ({ store, state }) => {
-        store.update({ error: null });
-        state.set('loading');
-      },
-    },
+    /** error — загрузка не удалась; `context.error` содержит сообщение. */
+    error: {},
   },
 }));
 

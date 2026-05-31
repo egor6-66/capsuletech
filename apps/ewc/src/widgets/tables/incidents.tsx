@@ -8,6 +8,9 @@
  * События: per-row `itemMeta`/`itemPayload` навешивают tags+payload на строки.
  * Клик по строке → web-core биндит событие, универсальный `Feature.onClick`
  * роутит по `target.meta.tags` (incident → select). Никаких прямых колбэков.
+ *
+ * Подсветка активной строки: `isRowActive` сравнивает row.id с выбранным
+ * incident'ом из store. Реактивность highlight'а — ответственность DataTable.
  */
 import type { IIncident, IIncidentsContext } from '../../features/incidents';
 
@@ -16,6 +19,9 @@ const Incidents = Widget((Ui, store) => (
     data={(store?.ctx.data as IIncidentsContext | undefined)?.items ?? []}
     itemMeta={() => ({ tags: ['incident'] })}
     itemPayload={(row: IIncident) => ({ id: row.id })}
+    isRowActive={(row: IIncident) =>
+      row.id === (store?.ctx.data as IIncidentsContext | undefined)?.selected?.id
+    }
   />
 ));
 

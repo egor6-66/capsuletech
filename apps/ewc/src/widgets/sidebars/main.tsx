@@ -1,28 +1,25 @@
 /**
- * Main sidebar Widget — карточка выбранного происшествия.
+ * Main sidebar Widget — карточка выбранного происшествия + кнопка перехода.
  *
- * Данные из родительского `<Features.Incidents>` store (2-й арг фабрики):
- * `selectedId` + `items` → выбранный incident подаётся в stateless
- * `Shapes.IncidentPreview` через props. Пусто, пока ничего не выбрано.
+ * Виджет не знает, КАК выбрана карточка: читает готовый `selected` из store
+ * (его кладёт `Features.Incidents` onClick-роутер) и отдаёт в stateless
+ * `Shapes.IncidentPreview`. Кнопка «Открыть карточку» (прибита к низу, видна
+ * только при выборе) несёт тег `open-card` — клик уходит в onClick-роутер фичи,
+ * которая делает переход. Виджет навигацию сам не выполняет.
  */
-import type { IIncidentsContext } from '../../features/incidents';
 
 const Main = Widget((Ui, store) => {
-  const selectedIncident = () => {
-    const data = store?.ctx.data as IIncidentsContext | undefined;
-    if (!data?.selectedId) return undefined;
-    return data.items.find((i) => i.id === data.selectedId);
-  };
+  const selected = () => store?.ctx.data?.selected;
 
   return (
-    <Ui.Card class="h-full rounded-none border-l border-t-0 border-b-0 border-r-0">
-      <Ui.Card.Header>
-        <Ui.Card.Title>Карточка происшествия</Ui.Card.Title>
-      </Ui.Card.Header>
-      <Ui.Card.Content class="overflow-y-auto">
-        <Shapes.IncidentPreview data={selectedIncident()} />
-      </Ui.Card.Content>
-    </Ui.Card>
+    <Ui.Layout.Flex orientation={'vertical'} class="h-full justify-between pb-2">
+      <Shapes.IncidentPreview data={selected()} />
+      <Ui.Flow.Show when={selected()}>
+        <Ui.Button variant={'ghost'} meta={{ tags: ['open-card'] }}>
+          Открыть карточку
+        </Ui.Button>
+      </Ui.Flow.Show>
+    </Ui.Layout.Flex>
   );
 });
 

@@ -20,7 +20,10 @@ const World = Widget((Ui, store) => (
     // class="h-full w-full"
   >
     {/*<Ui.MapView.Sky />*/}
-    <Views.MarkersList items={(store?.ctx.data as IIncidentsContext | undefined)?.items ?? []} />
+    <Views.MarkersList
+      items={(store?.ctx.data as IIncidentsContext | undefined)?.items ?? []}
+      activeId={(store?.ctx.data as IIncidentsContext | undefined)?.selected?.id}
+    />
   </Ui.MapView>
 ));
 
