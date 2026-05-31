@@ -211,7 +211,7 @@ describe('DataTable scrollToId — index resolution (unit)', () => {
       rows.findIndex((r) => {
         const id = getRowId
           ? getRowId(r)
-          : (r as Record<string, unknown>).id as string | number | undefined;
+          : (r as unknown as Record<string, unknown>).id as string | number | undefined;
         return id === scrollToId;
       });
 
@@ -230,7 +230,7 @@ describe('DataTable scrollToId — index resolution (unit)', () => {
       rows.findIndex((r) => {
         const id = getRowId
           ? getRowId(r)
-          : (r as Record<string, unknown>).id as string | number | undefined;
+          : (r as unknown as Record<string, unknown>).id as string | number | undefined;
         return id === scrollToId;
       });
 
