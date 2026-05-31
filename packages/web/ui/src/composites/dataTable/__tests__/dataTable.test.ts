@@ -314,6 +314,96 @@ describe('IDataTableProps itemMeta / itemPayload', () => {
 });
 
 // ---------------------------------------------------------------------------
+// isRowActive — active-row highlight predicate
+// ---------------------------------------------------------------------------
+
+describe('IDataTableProps isRowActive', () => {
+  it('isRowActive is optional — absent by default', () => {
+    const props: IDataTableProps<{ id: number }> = {
+      data: [{ id: 1 }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+    };
+    expect(props.isRowActive).toBeUndefined();
+  });
+
+  it('isRowActive accepts a predicate returning boolean', () => {
+    const props: IDataTableProps<{ id: number }> = {
+      data: [{ id: 1 }, { id: 2 }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+      isRowActive: (row) => row.id === 1,
+    };
+    expect(props.isRowActive!({ id: 1 })).toBe(true);
+    expect(props.isRowActive!({ id: 2 })).toBe(false);
+  });
+
+  it('isRowActive predicate is called per row and reflects the current signal value', () => {
+    // Simulate a reactive signal with a mutable cell (the predicate closes over it).
+    let selectedId = 3;
+    const props: IDataTableProps<{ id: number }> = {
+      data: [{ id: 1 }, { id: 2 }, { id: 3 }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+      isRowActive: (row) => row.id === selectedId,
+    };
+
+    // Initial state: row 3 is active
+    expect(props.isRowActive!({ id: 1 })).toBe(false);
+    expect(props.isRowActive!({ id: 2 })).toBe(false);
+    expect(props.isRowActive!({ id: 3 })).toBe(true);
+
+    // Simulate external signal change (new selection)
+    selectedId = 1;
+    expect(props.isRowActive!({ id: 1 })).toBe(true);
+    expect(props.isRowActive!({ id: 2 })).toBe(false);
+    expect(props.isRowActive!({ id: 3 })).toBe(false);
+  });
+
+  it('isRowActive can return false for all rows (no active row)', () => {
+    const props: IDataTableProps<{ id: number }> = {
+      data: [{ id: 1 }, { id: 2 }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+      isRowActive: () => false,
+    };
+    expect(props.isRowActive!({ id: 1 })).toBe(false);
+    expect(props.isRowActive!({ id: 2 })).toBe(false);
+  });
+
+  it('isRowActive coexists with selection, sorting, infinite, itemMeta', () => {
+    let selectedId = 2;
+    const props: IDataTableProps<{ id: number }> = {
+      data: [{ id: 1 }, { id: 2 }],
+      columns: [{ accessorKey: 'id', header: 'ID' }],
+      sorting: true,
+      selection: true,
+      infinite: true,
+      itemMeta: (row) => ({ tags: ['row'], id: row.id }),
+      itemPayload: (row) => ({ id: row.id }),
+      isRowActive: (row) => row.id === selectedId,
+    };
+    expect(props.isRowActive!({ id: 2 })).toBe(true);
+    expect(props.isRowActive!({ id: 1 })).toBe(false);
+
+    selectedId = 1;
+    expect(props.isRowActive!({ id: 1 })).toBe(true);
+    expect(props.isRowActive!({ id: 2 })).toBe(false);
+  });
+
+  it('all opt-in flags still default to absent when only isRowActive is set', () => {
+    const props: IDataTableProps<{ id: number }> = {
+      data: [],
+      columns: [],
+      isRowActive: () => false,
+    };
+    expect(props.sorting).toBeUndefined();
+    expect(props.pagination).toBeUndefined();
+    expect(props.selection).toBeUndefined();
+    expect(props.infinite).toBeUndefined();
+    expect(props.itemMeta).toBeUndefined();
+    expect(props.itemPayload).toBeUndefined();
+    expect(props.isRowActive).toBeDefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // DEFAULT_PAGE_SIZE sentinel documentation
 // ---------------------------------------------------------------------------
 
@@ -322,7 +412,11 @@ describe('DataTable defaults documentation', () => {
     const DEFAULT_PAGE_SIZE = 10;
     const propsA: IDataTableProps<{ id: number }> = { data: [], columns: [], pagination: true };
     const propsB: IDataTableProps<{ id: number }> = { data: [], columns: [], pagination: {} };
-    const propsC: IDataTableProps<{ id: number }> = { data: [], columns: [], pagination: { pageSize: DEFAULT_PAGE_SIZE } };
+    const propsC: IDataTableProps<{ id: number }> = {
+      data: [],
+      columns: [],
+      pagination: { pageSize: DEFAULT_PAGE_SIZE },
+    };
 
     expect(typeof propsA.pagination).toBe('boolean');
     expect(typeof propsB.pagination).toBe('object');

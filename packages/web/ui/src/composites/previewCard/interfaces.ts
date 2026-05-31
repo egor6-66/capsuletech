@@ -63,4 +63,11 @@ export interface IPreviewCardProps<TData> {
    * The wrapper is a flex-col container.
    */
   class?: string;
+
+  /**
+   * When true, drop the card chrome (background, border, shadow) so the content
+   * inherits the parent surface. Padding and the internal field layout are kept.
+   * Default: false (full self-contained card).
+   */
+  flat?: boolean;
 }

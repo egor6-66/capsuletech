@@ -4,7 +4,6 @@ import { createStyle, useLayoutMode } from '@capsuletech/web-style';
 import {
   type Accessor,
   createMemo,
-  createSignal,
   For,
   type JSX,
   Show,
@@ -120,6 +119,7 @@ const renderCell = (
   //
   // The badge and drop overlay are `absolute` siblings to the inner wrapper in
   // both cases; they rely on the outer `relative` container, not the inner.
+  const borders = 'outline outline-1 outline-dashed outline-border outline-offset-[-1px]';
   if (dndState) {
     const innerClass = rowIsAutoHeight
       ? 'relative overflow-auto w-full'
@@ -134,17 +134,13 @@ const renderCell = (
           // Persistent edit-affordance: тонкая dashed-рамка на interactive
           // cells показывает зону, которую можно перетаскивать / ресайзить.
           // Только в layoutMode='edit'. В drag-time доминирует overlay ниже.
-          'outline outline-1 outline-dashed outline-border outline-offset-[-1px]':
-            isInteractive && layoutMode() === 'edit',
+          [borders]: isInteractive && layoutMode() === 'edit',
         }}
       >
         {/* Inner scroll wrapper; pointer-events-none during drag prevents hover leaking
             into cell content (table row hover, map hover, etc.).
             DnD ref lives on the outer wrapper so elementFromPoint() always hits it. */}
-        <div
-          class={innerClass}
-          classList={{ 'pointer-events-none': isDragging() }}
-        >
+        <div class={innerClass} classList={{ 'pointer-events-none': isDragging() }}>
           {content}
         </div>
         {/* Absolute overlay renders above canvas / GPU layers — ring/box-shadow do not. */}
@@ -176,8 +172,7 @@ const renderCell = (
       classList={{
         // Non-DnD path: cell не draggable, но может быть resizable
         // (через cell.resizable или row.resizable). Edit-affordance тут же.
-        'outline outline-1 outline-dashed outline-border outline-offset-[-1px]':
-          isInteractive && layoutMode() === 'edit',
+        [borders]: isInteractive && layoutMode() === 'edit',
       }}
     >
       {content}
@@ -208,8 +203,7 @@ const rowToFlexItems = (
     const dndState = getCellDndState ? getCellDndState(cell) : undefined;
     // Prefer session-persisted size; fall back to declared cell.width.
     const resolvedSize = savedSizes?.[i] ?? (widthIsNumber ? (cell.width as number) : undefined);
-    const isInteractive =
-      !!cell.draggable || !!cell.resizable || !!row.resizable;
+    const isInteractive = !!cell.draggable || !!cell.resizable || !!row.resizable;
     return {
       children: renderCell(
         cell,
@@ -298,8 +292,7 @@ const renderRow = (
         {(cell) => {
           const cellRef = cell.draggable && bindCell ? bindCell(cell, row.id) : NOOP_REF;
           const dndState = getCellDndState ? getCellDndState(cell) : undefined;
-          const isInteractive =
-            !!cell.draggable || !!cell.resizable || !!row.resizable;
+          const isInteractive = !!cell.draggable || !!cell.resizable || !!row.resizable;
           return renderCell(
             cell,
             animated,
@@ -416,9 +409,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
 
   // Swap / insert / badges все gate'ятся по layoutMode. В 'view' — статичный
   // layout без DnD UI; в 'edit' — DnD активен и виден.
-  const swapEnabled = createMemo(
-    () => props.layoutMode() === 'edit' && props.dndMode() === 'swap',
-  );
+  const swapEnabled = createMemo(() => props.layoutMode() === 'edit' && props.dndMode() === 'swap');
   const insertEnabled = createMemo(
     () => props.layoutMode() === 'edit' && props.dndMode() === 'insert',
   );
@@ -463,10 +454,7 @@ const MatrixContent = (props: IMatrixContentProps) => {
   // Badge is shown on each draggable cell only when 2+ draggable cells exist
   // (otherwise there is nothing to swap with).
   const showBadges = createMemo(
-    () =>
-      props.layoutMode() === 'edit' &&
-      swap.draggableCount >= 2 &&
-      props.dndMode() === 'swap',
+    () => props.layoutMode() === 'edit' && swap.draggableCount >= 2 && props.dndMode() === 'swap',
   );
 
   // Effective rows: insert mode mutates layout structure; swap mode does not.

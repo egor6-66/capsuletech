@@ -255,7 +255,10 @@ Single-platform binary на Phase 1 (multi-platform — Phase 2 отдельны
 
 Не «фиксить заодно», только если задача об этом:
 
-_На текущий момент пусто — последняя итерация sweep'ов (2026-05-18..19) закрыла известный долг._
+**DataTable `infinite` (virtual scroll) — интермиттентный пустой body на cold reload.** `@capsuletech/web-ui` DataTable в режиме `infinite` иногда (после холодного релоада, ~раз в несколько раз; чаще под нагрузкой CPU) рендерит только spacer-`<tr>` без строк, хотя данные загружены (`scrollHeight` = `count × itemHeight`, высота вьюпорта реальная). Уход на другую страницу и обратно (тёплый layout) — лечит.
+- **Корень:** timing+memoization race в `@tanstack/virtual-core` 3.14.0. `scrollRect` ставит только ResizeObserver; `maybeNotify` мемоизирован на `[isScrolling, range.start, range.end]` и может пропустить notify, когда scroll-элемент получает реальную высоту на фрейм позже. `measure()` НЕ обновляет `scrollRect` (только item-cache).
+- **Митигация откатана (2026-05-30):** пробовали безусловный монтаж `InfiniteTable` (не за `<Show when={!isEmpty()}>`) + свой `ResizeObserver`→`measure()` — снижало cold-reload (~25%→редко), но УХУДШИЛО navigate-back (юзер: «карточки пропадают после перехода»). Откатано к исходному gated-mount. Сейчас активной митигации нет — баг в исходном виде (редкий cold-reload; navigate-back лечит).
+- **Правильный фикс (на будущее, зона owner-web-ui):** попробовать `useAnimationFrameWithResizeObserver: true`; либо keyed-remount виртуалайзера по приходу данных (свежие memos); либо апгрейд `@tanstack/solid-virtual`/`virtual-core` (проверить fixed-версию). Для ~200-строчных таблиц виртуализация избыточна — альтернатива на стороне app: обычный/paginated рендер.
 
 ### Закрытые в коде
 - ✅ Копипаста между `ControllerWrapper` / `FeatureWrapper` — заменено на `createLogicWrapper(kind)` (ADR 002).

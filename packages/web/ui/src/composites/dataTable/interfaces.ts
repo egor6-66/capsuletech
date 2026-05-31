@@ -85,6 +85,19 @@ export interface IDataTableProps<TData> {
   itemMeta?: (row: TData) => { tags: string[]; [k: string]: unknown };
 
   /**
+   * Predicate marking the externally-active row (e.g. the HCA-selected item).
+   * The matching row receives a highlight background (`bg-primary/20`) and a
+   * `data-active="true"` attribute. Distinct from `selection` (TanStack's
+   * checkbox row model). Called reactively per row — the predicate may close
+   * over a reactive signal (e.g. `store.ctx.data.selected`) so the highlight
+   * moves without re-rendering the full table.
+   *
+   * Example:
+   *   isRowActive={(row) => row.id === selectedId()}
+   */
+  isRowActive?: (row: TData) => boolean;
+
+  /**
    * Per-row HCA payload factory. Called with each row's original data.
    * The returned object is passed as the `payload` prop on the row component
    * alongside `meta` so the events-wrapper can include it with emitted events.

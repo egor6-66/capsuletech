@@ -12,7 +12,15 @@ import {
   type Table as TanstackTable,
 } from '@tanstack/solid-table';
 import { createVirtualizer } from '@tanstack/solid-virtual';
-import { For, Show, createEffect, createSignal, mergeProps, splitProps, useContext } from 'solid-js';
+import {
+  createEffect,
+  createSignal,
+  For,
+  mergeProps,
+  Show,
+  splitProps,
+  useContext,
+} from 'solid-js';
 
 import { Button } from '../../primitives/button';
 import { Table } from '../../primitives/table';
@@ -24,7 +32,9 @@ const DEFAULT_ITEM_HEIGHT = 36;
 const DEFAULT_OVERSCAN = 5;
 const DEFAULT_THRESHOLD = 5;
 
-function resolveInfiniteOptions(infinite: boolean | IDataTableInfiniteOptions): Required<IDataTableInfiniteOptions> {
+function resolveInfiniteOptions(
+  infinite: boolean | IDataTableInfiniteOptions,
+): Required<IDataTableInfiniteOptions> {
   const base = typeof infinite === 'object' ? infinite : {};
   return {
     itemHeight: base.itemHeight ?? DEFAULT_ITEM_HEIGHT,
@@ -107,6 +117,10 @@ function TableHeaders<TData>(props: {
  * CompositeProxyContext.wrap is provided (injected by web-core), these are
  * read by the events-wrapper to build the HCA target for the emitted event.
  * When wrap is absent they are forwarded as plain HTML attributes (no-op).
+ *
+ * `active` is a reactive accessor (not a plain boolean) so that when external
+ * state changes the highlight re-computes inside DataRow's own reactive scope
+ * without forcing the parent `<For>` to re-run for the other rows.
  */
 interface IDataRowProps<TData> {
   row: Row<TData>;
@@ -115,6 +129,8 @@ interface IDataRowProps<TData> {
   meta?: { tags: string[]; [k: string]: unknown };
   payload?: Record<string, unknown>;
   hasMeta: boolean;
+  /** Reactive accessor — true when this row is the externally-active row. */
+  active?: () => boolean;
 }
 
 /**
@@ -126,12 +142,22 @@ interface IDataRowProps<TData> {
  * they reach the DOM (it strips them during event-binding).
  */
 function DataRow<TData>(props: IDataRowProps<TData>) {
-  const [local, rowProps] = splitProps(props, ['row', 'selection', 'itemHeight', 'hasMeta']);
+  const [local, rowProps] = splitProps(props, [
+    'row',
+    'selection',
+    'itemHeight',
+    'hasMeta',
+    'active',
+  ]);
   return (
     <Table.Row
       data-state={local.selection && local.row.getIsSelected() ? 'selected' : undefined}
+      data-active={local.active?.() ? 'true' : undefined}
       style={local.itemHeight ? { height: `${local.itemHeight}px` } : undefined}
-      classList={{ 'cursor-pointer': local.hasMeta }}
+      classList={{
+        'cursor-pointer': local.hasMeta,
+        'bg-primary/20': !!local.active?.(),
+      }}
       {...(rowProps as object)}
     >
       <For each={local.row.getVisibleCells()}>
@@ -151,6 +177,7 @@ function StandardTableBody<TData>(props: {
   itemHeight?: number;
   itemMeta?: (row: TData) => { tags: string[]; [k: string]: unknown };
   itemPayload?: (row: TData) => Record<string, unknown>;
+  isRowActive?: (row: TData) => boolean;
   WrappedDataRow: (props: IDataRowProps<TData>) => import('solid-js').JSX.Element;
 }) {
   return (
@@ -159,6 +186,10 @@ function StandardTableBody<TData>(props: {
         {(row) => {
           const meta = props.itemMeta ? props.itemMeta(row.original) : undefined;
           const payload = props.itemPayload ? props.itemPayload(row.original) : undefined;
+          // Wrap the predicate in a stable getter so DataRow's classList
+          // re-evaluates reactively when the external signal changes,
+          // without causing the <For> loop to re-run for unrelated rows.
+          const active = props.isRowActive ? () => props.isRowActive!(row.original) : undefined;
           return (
             <props.WrappedDataRow
               row={row}
@@ -166,6 +197,7 @@ function StandardTableBody<TData>(props: {
               hasMeta={!!meta}
               meta={meta}
               payload={payload}
+              active={active}
             />
           );
         }}
@@ -198,6 +230,7 @@ function InfiniteTable<TData>(props: {
   onLoadMore?: () => void;
   itemMeta?: (row: TData) => { tags: string[]; [k: string]: unknown };
   itemPayload?: (row: TData) => Record<string, unknown>;
+  isRowActive?: (row: TData) => boolean;
   WrappedDataRow: (props: IDataRowProps<TData>) => import('solid-js').JSX.Element;
 }) {
   let scrollEl: HTMLDivElement | undefined;
@@ -251,8 +284,14 @@ function InfiniteTable<TData>(props: {
           <For each={virtualItems()}>
             {(vRow) => {
               const row = () => rows()[vRow.index];
-              const meta = () => props.itemMeta ? props.itemMeta(row().original) : undefined;
-              const payload = () => props.itemPayload ? props.itemPayload(row().original) : undefined;
+              const meta = () => (props.itemMeta ? props.itemMeta(row().original) : undefined);
+              const payload = () =>
+                props.itemPayload ? props.itemPayload(row().original) : undefined;
+              // Reactive getter so the highlight tracks external signal changes
+              // without re-running the virtualizer's <For> loop for other rows.
+              const active = props.isRowActive
+                ? () => props.isRowActive!(row().original)
+                : undefined;
               return (
                 <props.WrappedDataRow
                   row={row()}
@@ -261,6 +300,7 @@ function InfiniteTable<TData>(props: {
                   hasMeta={!!props.itemMeta}
                   meta={meta()}
                   payload={payload()}
+                  active={active}
                   data-index={vRow.index}
                 />
               );
@@ -298,6 +338,7 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
     'onLoadMore',
     'itemMeta',
     'itemPayload',
+    'isRowActive',
     'selection',
     'filtering',
     'emptyMessage',
@@ -342,10 +383,11 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
     }),
 
     // pagination — skip when infinite scroll is enabled
-    ...(local.pagination && !local.infinite && {
-      onPaginationChange: setPaginationState,
-      getPaginationRowModel: getPaginationRowModel(),
-    }),
+    ...(local.pagination &&
+      !local.infinite && {
+        onPaginationChange: setPaginationState,
+        getPaginationRowModel: getPaginationRowModel(),
+      }),
 
     // selection
     ...(local.selection && {
@@ -396,6 +438,7 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
                   selection={!!local.selection}
                   itemMeta={local.itemMeta}
                   itemPayload={local.itemPayload}
+                  isRowActive={local.isRowActive}
                   WrappedDataRow={WrappedDataRow}
                 />
               </Table>
@@ -409,6 +452,7 @@ export function DataTable<TData>(rawProps: IDataTableProps<TData>) {
               onLoadMore={local.onLoadMore}
               itemMeta={local.itemMeta}
               itemPayload={local.itemPayload}
+              isRowActive={local.isRowActive}
               WrappedDataRow={WrappedDataRow}
             />
           </Show>

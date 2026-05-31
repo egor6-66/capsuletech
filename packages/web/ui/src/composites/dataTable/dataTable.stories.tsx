@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from 'storybook-solidjs-vite';
 import { createSignal } from 'solid-js';
+import type { Meta, StoryObj } from 'storybook-solidjs-vite';
 
 import { Input } from '../../primitives/input';
 import { DataTable } from './dataTable';
@@ -23,7 +23,13 @@ const USERS: IUser[] = [
   { id: 3, name: 'Carol Davis', email: 'carol@example.com', role: 'Designer', status: 'inactive' },
   { id: 4, name: 'Dan Lee', email: 'dan@example.com', role: 'Developer', status: 'active' },
   { id: 5, name: 'Eva Torres', email: 'eva@example.com', role: 'PM', status: 'active' },
-  { id: 6, name: 'Frank Müller', email: 'frank@example.com', role: 'Developer', status: 'inactive' },
+  {
+    id: 6,
+    name: 'Frank Müller',
+    email: 'frank@example.com',
+    role: 'Developer',
+    status: 'inactive',
+  },
   { id: 7, name: 'Grace Kim', email: 'grace@example.com', role: 'Designer', status: 'active' },
   { id: 8, name: 'Hiro Tanaka', email: 'hiro@example.com', role: 'Admin', status: 'active' },
   { id: 9, name: 'Iris Novak', email: 'iris@example.com', role: 'PM', status: 'active' },
@@ -94,11 +100,7 @@ const meta = {
   component: DataTable,
   tags: ['autodocs'],
   decorators: [
-    (Story: () => import('solid-js').JSX.Element) => (
-      <div class="overflow-auto p-4">
-        {Story()}
-      </div>
-    ),
+    (Story: () => import('solid-js').JSX.Element) => <div class="overflow-auto p-4">{Story()}</div>,
   ],
 } satisfies Meta<typeof DataTable>;
 
@@ -160,10 +162,11 @@ export const WithToolbar: Story = {
     const [filter, setFilter] = createSignal('');
     return (
       <DataTable
-        data={USERS.filter((u) =>
-          !filter() ||
-          u.name.toLowerCase().includes(filter().toLowerCase()) ||
-          u.email.toLowerCase().includes(filter().toLowerCase()),
+        data={USERS.filter(
+          (u) =>
+            !filter() ||
+            u.name.toLowerCase().includes(filter().toLowerCase()) ||
+            u.email.toLowerCase().includes(filter().toLowerCase()),
         )}
         columns={columns}
         toolbar={
@@ -219,14 +222,7 @@ export const EmptyStateDefault: Story = {
 
 export const WithInfinite: Story = {
   name: 'infinite scroll · 1000 rows',
-  render: () => (
-    <DataTable
-      data={LARGE_DATASET}
-      columns={columns}
-      sorting
-      infinite
-    />
-  ),
+  render: () => <DataTable data={LARGE_DATASET} columns={columns} sorting infinite />,
 };
 
 // ---------------------------------------------------------------------------
@@ -236,11 +232,7 @@ export const WithInfinite: Story = {
 export const WithInfiniteCustomHeight: Story = {
   name: 'infinite scroll · custom itemHeight 48',
   render: () => (
-    <DataTable
-      data={LARGE_DATASET}
-      columns={columns}
-      infinite={{ itemHeight: 48, overscan: 10 }}
-    />
+    <DataTable data={LARGE_DATASET} columns={columns} infinite={{ itemHeight: 48, overscan: 10 }} />
   ),
 };
 
@@ -287,6 +279,85 @@ export const WithInfiniteLoading: Story = {
           infinite={{ threshold: 10 }}
           onLoadMore={handleLoadMore}
         />
+      </div>
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// WithActiveRow — isRowActive highlight (externally-driven, reactive)
+// ---------------------------------------------------------------------------
+
+export const WithActiveRow: Story = {
+  name: 'with active row · isRowActive highlight',
+  render: () => {
+    const [activeId, setActiveId] = createSignal<number>(USERS[2].id);
+    return (
+      <div class="flex flex-col gap-4">
+        <p class="text-sm text-muted-foreground">
+          Active row id: <strong>{activeId()}</strong>. Click any row to move the highlight.
+        </p>
+        <DataTable
+          data={USERS}
+          columns={columns}
+          isRowActive={(row) => row.id === activeId()}
+          itemMeta={(row) => ({ tags: ['user', 'row'], id: row.id })}
+          itemPayload={(row) => ({ userId: row.id })}
+        />
+        <div class="flex gap-2 flex-wrap">
+          {USERS.map((u) => (
+            <button
+              type="button"
+              class="rounded border px-2 py-1 text-xs"
+              classList={{ 'bg-accent': u.id === activeId() }}
+              onClick={() => setActiveId(u.id)}
+            >
+              {u.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// WithActiveRowInfinite — isRowActive on virtual scroll path
+// ---------------------------------------------------------------------------
+
+export const WithActiveRowInfinite: Story = {
+  name: 'with active row · infinite scroll path',
+  render: () => {
+    const [activeId, setActiveId] = createSignal<number>(LARGE_DATASET[4].id);
+    return (
+      <div class="flex flex-col gap-4">
+        <p class="text-sm text-muted-foreground">
+          Active id: <strong>{activeId()}</strong>
+        </p>
+        <div class="h-64">
+          <DataTable
+            data={LARGE_DATASET}
+            columns={columns}
+            infinite
+            isRowActive={(row) => row.id === activeId()}
+          />
+        </div>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            class="rounded border px-2 py-1 text-xs"
+            onClick={() => setActiveId((id) => Math.max(1, id - 1))}
+          >
+            Prev row
+          </button>
+          <button
+            type="button"
+            class="rounded border px-2 py-1 text-xs"
+            onClick={() => setActiveId((id) => Math.min(LARGE_DATASET.length, id + 1))}
+          >
+            Next row
+          </button>
+        </div>
       </div>
     );
   },
