@@ -1,8 +1,6 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite';
-
-import { Card } from '../../primitives/card';
-import { PreviewCard } from './previewCard';
 import type { IPreviewCardField } from './interfaces';
+import { PreviewCard } from './previewCard';
 
 // ---------------------------------------------------------------------------
 // Shared fixtures
@@ -46,11 +44,7 @@ const meta = {
   component: PreviewCard,
   tags: ['autodocs'],
   decorators: [
-    (Story: () => import('solid-js').JSX.Element) => (
-      <div class="max-w-sm p-4">
-        {Story()}
-      </div>
-    ),
+    (Story: () => import('solid-js').JSX.Element) => <div class="max-w-sm p-4">{Story()}</div>,
   ],
 } satisfies Meta<typeof PreviewCard>;
 
@@ -63,12 +57,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   name: 'default · 3 fields',
-  render: () => (
-    <PreviewCard
-      data={INCIDENT}
-      fields={BASE_FIELDS}
-    />
-  ),
+  render: () => <PreviewCard data={INCIDENT} fields={BASE_FIELDS} />,
 };
 
 // ---------------------------------------------------------------------------
@@ -112,42 +101,36 @@ const FORMATTED_FIELDS: IPreviewCardField<IIncident>[] = [
 
 export const WithFormatter: Story = {
   name: 'with formatter · date + nested accessorFn',
-  render: () => (
-    <PreviewCard
-      data={INCIDENT}
-      fields={FORMATTED_FIELDS}
-    />
-  ),
+  render: () => <PreviewCard data={INCIDENT} fields={FORMATTED_FIELDS} />,
 };
 
 // ---------------------------------------------------------------------------
-// Empty — data=null with emptyMessage
+// Empty — data=null with explicit emptyMessage
 // ---------------------------------------------------------------------------
 
 export const Empty: Story = {
-  name: 'empty state · data=null',
-  render: () => (
-    <PreviewCard
-      data={null}
-      fields={BASE_FIELDS}
-      emptyMessage="Выберите карточку"
-    />
-  ),
+  name: 'empty state · data=null, explicit message',
+  render: () => <PreviewCard data={null} fields={BASE_FIELDS} emptyMessage="Выберите карточку" />,
 };
 
 // ---------------------------------------------------------------------------
-// EmptyUndefined — data=undefined (same visual, documents both nullish paths)
+// EmptyUndefined — data=undefined (documents both nullish paths)
 // ---------------------------------------------------------------------------
 
 export const EmptyUndefined: Story = {
   name: 'empty state · data=undefined',
   render: () => (
-    <PreviewCard
-      data={undefined}
-      fields={BASE_FIELDS}
-      emptyMessage="No item selected"
-    />
+    <PreviewCard data={undefined} fields={BASE_FIELDS} emptyMessage="No item selected" />
   ),
+};
+
+// ---------------------------------------------------------------------------
+// EmptyDefaultMessage — data=null without emptyMessage (fallback default)
+// ---------------------------------------------------------------------------
+
+export const EmptyDefaultMessage: Story = {
+  name: 'empty state · no emptyMessage prop (default fallback)',
+  render: () => <PreviewCard data={null} fields={BASE_FIELDS} />,
 };
 
 // ---------------------------------------------------------------------------
@@ -164,8 +147,7 @@ const LONG_ITEM: ILongItem = {
   id: 9999,
   title:
     'A Very Long Title That Exceeds Normal Sidebar Width And May Wrap Onto Several Lines In A Real Application UI',
-  body:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+  body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
 };
 
 export const LongValues: Story = {
@@ -183,38 +165,26 @@ export const LongValues: Story = {
 };
 
 // ---------------------------------------------------------------------------
-// WithCustomClass — outer class applied
+// WithCustomClass — caller adds width / margin via class prop
+// (chrome is already owned by PreviewCard; class merges onto the chrome element)
 // ---------------------------------------------------------------------------
 
 export const WithCustomClass: Story = {
-  name: 'with custom class · border + padding',
-  render: () => (
-    <PreviewCard
-      data={INCIDENT}
-      fields={BASE_FIELDS}
-      class="rounded-lg border border-border bg-muted/30 p-4"
-    />
-  ),
+  name: 'with custom class · extra width override',
+  render: () => <PreviewCard data={INCIDENT} fields={BASE_FIELDS} class="max-w-xs" />,
 };
 
 // ---------------------------------------------------------------------------
-// InsideCard — typical consumer usage: PreviewCard inside Card.Content
+// Flat — opt-out of card chrome; content blends into the parent surface.
+// The outer container (bg-muted/rounded-lg) acts as the panel background so
+// the "inherited surface" effect is visible in Storybook.
 // ---------------------------------------------------------------------------
 
-export const InsideCard: Story = {
-  name: 'inside card · typical usage',
+export const Flat: Story = {
+  name: 'flat · no card chrome, inherits parent surface',
   render: () => (
-    <Card>
-      <Card.Header>
-        <Card.Title>Incident #{INCIDENT.id}</Card.Title>
-        <Card.Description>{INCIDENT.title}</Card.Description>
-      </Card.Header>
-      <Card.Content>
-        <PreviewCard
-          data={INCIDENT}
-          fields={FORMATTED_FIELDS}
-        />
-      </Card.Content>
-    </Card>
+    <div class="max-w-sm rounded-lg bg-muted p-2">
+      <PreviewCard data={INCIDENT} fields={BASE_FIELDS} flat />
+    </div>
   ),
 };

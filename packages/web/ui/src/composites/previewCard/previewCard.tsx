@@ -1,3 +1,4 @@
+import { cn } from '@capsuletech/web-style';
 import { For, Show, splitProps } from 'solid-js';
 
 import { Typography } from '../../primitives/typography';
@@ -39,39 +40,44 @@ function fieldKey<TData>(field: IPreviewCardField<TData>): string | undefined {
 // ---------------------------------------------------------------------------
 
 /**
- * Stateless composite that renders a single data object as an ordered list of
- * label + value blocks — a "single-item DataTable" for sidebar / detail panels.
+ * Self-contained composite that renders a single data object as an ordered list
+ * of label + value blocks — a "single-item DataTable" for sidebar / detail panels.
  *
- * Atomic: does NOT wrap content in a `<Card>`. Caller is responsible for the
- * outer card chrome, making PreviewCard composable into any container:
+ * PreviewCard owns its own card chrome (rounded border, surface colour, padding,
+ * shadow) and its empty-state placeholder. Consumers drop it directly with no
+ * outer wrapper and no empty-state handling:
  *
  * ```tsx
- * <Card>
- *   <Card.Header><Card.Title>Incident</Card.Title></Card.Header>
- *   <Card.Content>
- *     <PreviewCard data={incident()} fields={fields} emptyMessage="Select an item" />
- *   </Card.Content>
- * </Card>
+ * <PreviewCard data={incident()} fields={fields} emptyMessage="Select an item" />
  * ```
+ *
+ * The `class` prop merges onto the outer chrome element, allowing callers to
+ * override width, margin, etc.
  *
  * **Field resolution order:** `accessorFn` wins over `accessorKey`.
  * **Cell override:** when `cell` is supplied the custom renderer is used instead
  * of the default `<Typography>` value display.
  */
 export function PreviewCard<TData>(rawProps: IPreviewCardProps<TData>) {
-  const [local] = splitProps(rawProps, ['data', 'fields', 'emptyMessage', 'class']);
+  const [local] = splitProps(rawProps, ['data', 'fields', 'emptyMessage', 'class', 'flat']);
+
+  const chromeClass = () =>
+    local.flat
+      ? cn(local.class)
+      : cn('rounded-lg border border-border bg-card text-card-foreground shadow-sm', local.class);
 
   return (
     <Show
       when={local.data != null}
       fallback={
-        <Show when={local.emptyMessage !== undefined}>
-          <Typography variant="muted">{local.emptyMessage}</Typography>
-        </Show>
+        <div class={chromeClass()}>
+          <div class="flex items-center justify-center p-card">
+            <Typography variant="muted">{local.emptyMessage ?? 'No data'}</Typography>
+          </div>
+        </div>
       }
     >
-      {/* data is non-null inside this branch */}
-      <div class={`flex flex-col gap-y-cell ${local.class ?? ''}`}>
+      <div class={`flex flex-col ${chromeClass()}`}>
         <For each={local.fields} fallback={null}>
           {(field) => {
             const key = fieldKey(field);
@@ -79,23 +85,16 @@ export function PreviewCard<TData>(rawProps: IPreviewCardProps<TData>) {
 
             return (
               <div
-                class="flex flex-col gap-y-1"
+                class="flex flex-col gap-y-1 px-cell py-cell border-b border-border last:border-b-0"
                 {...(key !== undefined ? { 'data-field': key } : {})}
               >
-                <Typography
-                  variant="muted"
-                  class="text-xs font-semibold uppercase tracking-wide"
-                >
+                <Typography variant="muted" class="text-[11px] font-medium uppercase tracking-wide">
                   {field.header}
                 </Typography>
 
                 <Show
                   when={field.cell !== undefined}
-                  fallback={
-                    <Typography>
-                      {String(getValue() ?? '')}
-                    </Typography>
-                  }
+                  fallback={<Typography class="text-sm">{String(getValue() ?? '')}</Typography>}
                 >
                   {field.cell!({ getValue, row: local.data as TData })}
                 </Show>

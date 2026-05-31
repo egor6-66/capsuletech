@@ -4,20 +4,20 @@ export const matrixSlots = {
   // ---------------------------------------------------------------------------
   // Legacy slot names (kept for backwards-compat with existing tests/stories)
   // ---------------------------------------------------------------------------
-  header: 'min-h-10 border-b sticky top-0 z-40 w-full backdrop-blur',
+  header: 'min-h-10  sticky top-0 z-40 w-full backdrop-blur',
   main: 'flex-1',
   footer: '',
-  sidebar: 'hidden w-64 border-r md:block',
+  sidebar: 'hidden w-64  md:block',
   contentWrapper: 'flex flex-1 flex-col overflow-hidden',
-  asideRight: 'hidden w-80 border-l lg:block',
-  resizeSidebar: 'h-full w-full overflow-auto border-r scrollbar-hover',
+  asideRight: 'hidden w-80  lg:block',
+  resizeSidebar: 'h-full w-full overflow-auto  scrollbar-hover',
   resizeMain: 'h-full w-full overflow-auto scrollbar-hover',
-  resizeAsideRight: 'h-full w-full overflow-auto border-l scrollbar-hover',
+  resizeAsideRight: 'h-full w-full overflow-auto  scrollbar-hover',
   resizeHeader: 'w-full h-full overflow-auto border-b backdrop-blur scrollbar-hover',
   resizeFooter: 'w-full h-full overflow-auto border-t scrollbar-hover',
   gridContainer: 'grid h-full w-full overflow-hidden',
-  gridLeft: 'w-64 overflow-auto border-r scrollbar-hover',
-  gridRight: 'w-80 overflow-auto border-l scrollbar-hover',
+  gridLeft: 'w-64 overflow-auto scrollbar-hover',
+  gridRight: 'w-80 overflow-auto  scrollbar-hover',
 
   // ---------------------------------------------------------------------------
   // v2 rows-engine slot classes

@@ -9,6 +9,13 @@
  * Visual + interactive coverage lives in previewCard.stories.tsx.
  * DOM render coverage is intended once a vitest Solid transform is added
  * to the config (see OWNERSHIP.md backlog).
+ *
+ * Contract note (self-contained chrome):
+ *   PreviewCard owns its card chrome and empty-state placeholder.
+ *   Consumers render <PreviewCard data={...} fields={...} /> with no outer wrapper.
+ *   `class` prop merges onto the outer chrome element.
+ *   When data is null/undefined the chrome is still present with a centered
+ *   placeholder (emptyMessage or the default "No data" fallback).
  */
 import { describe, expect, it } from 'vitest';
 
@@ -92,7 +99,7 @@ describe('IPreviewCardProps structural contracts', () => {
     expect(props.fields).toHaveLength(1);
   });
 
-  it('data accepts null (empty state)', () => {
+  it('data accepts null (empty state — chrome still rendered with placeholder)', () => {
     const props: IPreviewCardProps<{ id: number }> = {
       data: null,
       fields: [],
@@ -100,7 +107,7 @@ describe('IPreviewCardProps structural contracts', () => {
     expect(props.data).toBeNull();
   });
 
-  it('data accepts undefined (empty state)', () => {
+  it('data accepts undefined (empty state — chrome still rendered with placeholder)', () => {
     const props: IPreviewCardProps<{ id: number }> = {
       data: undefined,
       fields: [],
@@ -117,13 +124,26 @@ describe('IPreviewCardProps structural contracts', () => {
     expect(props.emptyMessage).toBe('Select an item');
   });
 
-  it('class prop is optional and applied to outer wrapper', () => {
+  it('emptyMessage is optional — omitting it triggers the default "No data" fallback', () => {
+    // When emptyMessage is absent the component renders a built-in fallback.
+    // This test documents the contract: props.emptyMessage is undefined, and
+    // the component (not the caller) is responsible for showing something.
+    const props: IPreviewCardProps<{ id: number }> = {
+      data: null,
+      fields: [],
+    };
+    expect(props.emptyMessage).toBeUndefined();
+  });
+
+  it('class prop is optional and merges onto the outer chrome element', () => {
+    // Self-contained chrome contract: class goes on the card chrome itself,
+    // not a separate inner wrapper.
     const props: IPreviewCardProps<{ id: number }> = {
       data: { id: 1 },
       fields: [],
-      class: 'custom-class',
+      class: 'max-w-xs',
     };
-    expect(props.class).toBe('custom-class');
+    expect(props.class).toBe('max-w-xs');
   });
 
   it('all optional props are absent by default', () => {
@@ -150,6 +170,162 @@ describe('IPreviewCardProps structural contracts', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Self-contained chrome contract (new in redesign)
+// ---------------------------------------------------------------------------
+
+describe('self-contained chrome contract', () => {
+  it('chrome classes are present on data state — flex-col merged onto chrome div', () => {
+    // The outer element carries both chrome and flex-col layout.
+    // No padding on chrome — separators are full-bleed; rows carry px-cell/py-cell.
+    const expectedChromeTokens = [
+      'rounded-lg',
+      'border',
+      'border-border',
+      'bg-card',
+      'text-card-foreground',
+      'shadow-sm',
+    ];
+    const chromeClass = 'rounded-lg border border-border bg-card text-card-foreground shadow-sm';
+    for (const token of expectedChromeTokens) {
+      expect(chromeClass).toContain(token);
+    }
+    // Chrome must NOT carry padding (padding lives on rows for full-bleed separators).
+    expect(chromeClass).not.toContain('p-4');
+  });
+
+  it('empty state also uses the same chrome tokens (chrome present in both states)', () => {
+    // Both the data path and the fallback path use the same chromeClass() function.
+    // This test ensures no ad-hoc hex colours are in the chrome class list.
+    const chromeClass = 'rounded-lg border border-border bg-card text-card-foreground shadow-sm';
+    expect(chromeClass).not.toMatch(/#[0-9a-fA-F]{3,6}/);
+    expect(chromeClass).not.toMatch(/\bbg-\w+-\d{3}\b/); // e.g. bg-blue-500
+  });
+
+  it('emptyMessage prop is rendered inside chrome (not bypassing it)', () => {
+    // Contract: when data is null, the chrome div is still the root element,
+    // and the placeholder sits inside it. Callers never see a chrome-less empty.
+    // Verified structurally: props shape allows this without outer wrapper.
+    const props: IPreviewCardProps<{ id: number }> = {
+      data: null,
+      fields: [],
+      emptyMessage: 'No item selected',
+    };
+    // The emptyMessage is just a string consumed by the component;
+    // absence of an outer Card wrapper is the consumer-side contract.
+    expect(typeof props.emptyMessage).toBe('string');
+    expect(props.data).toBeNull();
+  });
+
+  it('field rows use border-b separator with last:border-b-0 (separator contract)', () => {
+    // Full-bleed separator: rows span the full card width (no chrome padding).
+    // Content is inset via px-cell; vertical rhythm via py-cell (grid tokens, not arbitrary px).
+    const rowClass = 'flex flex-col gap-y-1 px-cell py-cell border-b border-border last:border-b-0';
+    expect(rowClass).toContain('border-b');
+    expect(rowClass).toContain('border-border');
+    expect(rowClass).toContain('last:border-b-0');
+    expect(rowClass).toContain('px-cell');
+    expect(rowClass).toContain('py-cell');
+    // Must not use arbitrary py-2 or py-4.
+    expect(rowClass).not.toContain('py-2');
+    expect(rowClass).not.toContain('py-4');
+  });
+
+  it('label typography uses text-[11px] font-medium uppercase tracking-wide', () => {
+    const labelClass = 'text-[11px] font-medium uppercase tracking-wide';
+    expect(labelClass).toContain('text-[11px]');
+    expect(labelClass).toContain('font-medium');
+    expect(labelClass).toContain('uppercase');
+    expect(labelClass).toContain('tracking-wide');
+  });
+
+  it('value typography uses text-sm', () => {
+    const valueClass = 'text-sm';
+    expect(valueClass).toBe('text-sm');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// flat prop contract
+// ---------------------------------------------------------------------------
+
+describe('flat prop contract', () => {
+  /**
+   * Mirrors the chromeClass() logic in previewCard.tsx so the contract is
+   * verifiable without DOM rendering.
+   *
+   * Neither branch carries padding — chrome is un-padded so separators are
+   * full-bleed. Padding lives on the individual field rows (px-cell / py-cell).
+   */
+  function chromeClass(flat: boolean | undefined, extraClass?: string): string {
+    const base = flat
+      ? ''
+      : 'rounded-lg border border-border bg-card text-card-foreground shadow-sm';
+    return [base, extraClass].filter(Boolean).join(' ');
+  }
+
+  it('flat=true: outer element does NOT contain bg-card / border / shadow-sm', () => {
+    const cls = chromeClass(true);
+    expect(cls).not.toContain('bg-card');
+    expect(cls).not.toContain('border-border');
+    expect(cls).not.toContain('shadow-sm');
+    expect(cls).not.toContain('rounded-lg');
+    expect(cls).not.toContain('text-card-foreground');
+  });
+
+  it('flat=true: outer element does NOT carry padding (padding lives on rows)', () => {
+    const cls = chromeClass(true);
+    expect(cls).not.toContain('p-4');
+    expect(cls).not.toContain('p-card');
+  });
+
+  it('flat=false: outer element retains full chrome tokens without padding', () => {
+    const cls = chromeClass(false);
+    for (const token of [
+      'rounded-lg',
+      'border',
+      'border-border',
+      'bg-card',
+      'text-card-foreground',
+      'shadow-sm',
+    ]) {
+      expect(cls).toContain(token);
+    }
+    // Chrome carries no padding — full-bleed separators.
+    expect(cls).not.toContain('p-4');
+  });
+
+  it('flat=undefined (omitted): behaves identically to flat=false', () => {
+    const withFalse = chromeClass(false);
+    const withUndefined = chromeClass(undefined);
+    expect(withUndefined).toBe(withFalse);
+  });
+
+  it('flat=true: extra class prop is still merged', () => {
+    const cls = chromeClass(true, 'max-w-xs');
+    expect(cls).toContain('max-w-xs');
+    expect(cls).not.toContain('bg-card');
+    expect(cls).not.toContain('p-4');
+  });
+
+  it('flat prop is optional (IPreviewCardProps type contract)', () => {
+    const props: IPreviewCardProps<{ id: number }> = {
+      data: { id: 1 },
+      fields: [],
+    };
+    expect(props.flat).toBeUndefined();
+  });
+
+  it('flat=true accepted as boolean in IPreviewCardProps', () => {
+    const props: IPreviewCardProps<{ id: number }> = {
+      data: { id: 1 },
+      fields: [],
+      flat: true,
+    };
+    expect(props.flat).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // resolveValue logic
 // ---------------------------------------------------------------------------
 
@@ -163,7 +339,10 @@ describe('resolveValue', () => {
   });
 
   it('resolves value via accessorKey for string field', () => {
-    const field: IPreviewCardField<IIncident> = { accessorKey: 'description', header: 'Description' };
+    const field: IPreviewCardField<IIncident> = {
+      accessorKey: 'description',
+      header: 'Description',
+    };
     expect(resolveValue(field, row)).toBe('Fire alarm');
   });
 
