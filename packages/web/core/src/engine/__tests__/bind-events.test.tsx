@@ -29,6 +29,7 @@ import { bindEvents } from '../ui-proxy';
 const mkCtx = (overrides: Partial<any> = {}) => {
   const controller: Record<string, ReturnType<typeof vi.fn>> = {
     onClick: vi.fn(),
+    onDblClick: vi.fn(),
     onInput: vi.fn(),
     onChange: vi.fn(),
     onBlur: vi.fn(),
@@ -64,12 +65,7 @@ let receivedProps: StubProps | null = null;
 
 const StubRow = (props: StubProps) => {
   receivedProps = { ...props };
-  return (
-    <tr
-      data-testid={props['data-testid'] ?? 'row'}
-      onClick={props.onClick as any}
-    />
-  );
+  return <tr data-testid={props['data-testid'] ?? 'row'} onClick={props.onClick as any} />;
 };
 
 // ---------------------------------------------------------------------------
@@ -273,11 +269,7 @@ describe('bindEvents — user props event handler forwarding', () => {
       () => (
         <table>
           <tbody>
-            <Wrapped
-              meta={{ tags: ['incident'] }}
-              payload={{ id: 5 }}
-              onClick={userClickHandler}
-            />
+            <Wrapped meta={{ tags: ['incident'] }} payload={{ id: 5 }} onClick={userClickHandler} />
           </tbody>
         </table>
       ),
@@ -305,10 +297,7 @@ describe('bindEvents — onInput dispatch', () => {
     );
     const Wrapped = bindEvents(ctx, StubInput as any) as any;
 
-    cleanup = render(
-      () => <Wrapped meta={{ tags: ['search'] }} />,
-      container,
-    );
+    cleanup = render(() => <Wrapped meta={{ tags: ['search'] }} />, container);
 
     const inp = container.querySelector('[data-testid="composite-input"]') as HTMLInputElement;
     inp.value = 'hello';
@@ -318,5 +307,121 @@ describe('bindEvents — onInput dispatch', () => {
     const [target] = ctx.controller.onInput.mock.calls[0];
     expect(target.value).toBe('hello');
     expect(target.meta.tags).toContain('search');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 6. onDblClick dispatches with correct target; dedup mirrors onClick
+// ---------------------------------------------------------------------------
+
+describe('bindEvents — onDblClick dispatch', () => {
+  // StubRow only forwards `onClick`; for dblclick tests we use an explicit stub
+  // that also forwards `onDblClick` — mirrors how real composite rows pass through
+  // all bound event props to their underlying DOM element.
+  const StubDblRow = (props: any) => <tr data-testid="dbl-row" onDblClick={props.onDblClick} />;
+
+  it('calls ctx.controller.onDblClick once with correct target (meta.tags + payload)', () => {
+    const ctx = mkCtx() as any;
+    const Wrapped = bindEvents(ctx, StubDblRow as any, 'DataTableRow') as any;
+
+    cleanup = render(
+      () => (
+        <table>
+          <tbody>
+            <Wrapped meta={{ tags: ['incident'] }} payload={{ id: 7 }} />
+          </tbody>
+        </table>
+      ),
+      container,
+    );
+
+    const row = container.querySelector('[data-testid="dbl-row"]') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    expect(ctx.controller.onDblClick).toHaveBeenCalledOnce();
+    const [target, context] = ctx.controller.onDblClick.mock.calls[0];
+    expect(target.meta.tags).toContain('incident');
+    expect((target.payload as any).id).toBe(7);
+    expect(context).toEqual({ foo: 'bar' });
+  });
+
+  it('does NOT call ctx.store.updateComponent on dblclick (updateStore=false)', () => {
+    const ctx = mkCtx() as any;
+    const Wrapped = bindEvents(ctx, StubDblRow as any) as any;
+
+    cleanup = render(
+      () => (
+        <table>
+          <tbody>
+            <Wrapped meta={{ tags: ['incident'] }} payload={{ id: 7 }} />
+          </tbody>
+        </table>
+      ),
+      container,
+    );
+
+    const row = container.querySelector('[data-testid="dbl-row"]') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    expect(ctx.store.updateComponent).not.toHaveBeenCalled();
+  });
+
+  it('dblclick dedup: inner wrapper fires first and marks event; outer bindEvents skips (total = 1 call)', () => {
+    const ctx = mkCtx() as any;
+
+    const InnerComp = (props: any) => (
+      // biome-ignore lint/a11y/useKeyWithClickEvents: test fixture, not real UI
+      <tr data-testid="inner-row" onDblClick={props.onDblClick}>
+        <td>{props.children}</td>
+      </tr>
+    );
+    const WrappedInner = bindEvents(ctx, InnerComp as any, 'DataTableRow') as any;
+
+    const OuterComp = (props: any) => (
+      // biome-ignore lint/a11y/useKeyWithClickEvents: test fixture, not real UI
+      <tbody data-testid="outer-tbody" onDblClick={props.onDblClick}>
+        {props.children}
+      </tbody>
+    );
+    const WrappedOuter = bindEvents(ctx, OuterComp as any, 'DataTableOuter') as any;
+
+    cleanup = render(
+      () => (
+        <table>
+          <WrappedOuter meta={{ tags: ['table'] }}>
+            <WrappedInner meta={{ tags: ['incident'] }} payload={{ id: 99 }} />
+          </WrappedOuter>
+        </table>
+      ),
+      container,
+    );
+
+    const inner = container.querySelector('[data-testid="inner-row"]') as HTMLElement;
+    inner.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    expect(ctx.controller.onDblClick).toHaveBeenCalledOnce();
+    const [target] = ctx.controller.onDblClick.mock.calls[0];
+    expect(target.meta.tags).toContain('incident');
+  });
+
+  it('does NOT call ctx.store.registerComponent (no per-row registration)', () => {
+    const ctx = mkCtx() as any;
+    const Wrapped = bindEvents(ctx, StubDblRow as any, 'DataTableRow') as any;
+
+    cleanup = render(
+      () => (
+        <table>
+          <tbody>
+            <Wrapped meta={{ tags: ['incident'] }} payload={{ id: 7 }} />
+          </tbody>
+        </table>
+      ),
+      container,
+    );
+
+    const row = container.querySelector('[data-testid="dbl-row"]') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    expect(ctx.store.registerComponent).not.toHaveBeenCalled();
   });
 });

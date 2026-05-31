@@ -7,6 +7,16 @@
  * engine-типы (`ICtx`, `IControllerHandle`) живут в `engine/ctx.ts`.
  */
 
+import type {
+  BuildingsPreset,
+  Layer,
+  MapView,
+  Marker,
+  Sky,
+  Source,
+  Terrain,
+  TerrainPreset,
+} from '@capsuletech/web-map';
 import type { ICapsuleRouter } from '@capsuletech/web-router';
 import type { IBaseStateHandlers, IBaseStateSchema, IBridge } from '@capsuletech/web-state';
 import type {
@@ -21,25 +31,26 @@ import type {
   List,
   Table,
 } from '@capsuletech/web-ui';
+import type { DarkModeToggle } from '@capsuletech/web-ui/darkModeToggle';
 import type { Dropdown } from '@capsuletech/web-ui/dropdown';
 import type { DropdownMenu } from '@capsuletech/web-ui/dropdownMenu';
-import type { PreviewCard } from '@capsuletech/web-ui/previewCard';
-import type { Typography } from '@capsuletech/web-ui/typography';
-import type { DarkModeToggle } from '@capsuletech/web-ui/darkModeToggle';
 import type { LayoutModeToggle } from '@capsuletech/web-ui/layoutModeToggle';
+import type { PreviewCard } from '@capsuletech/web-ui/previewCard';
 import type { ThemePicker } from '@capsuletech/web-ui/themePicker';
-import type {
-  MapView,
-  Source,
-  Layer,
-  Terrain,
-  Sky,
-  TerrainPreset,
-  BuildingsPreset,
-  Marker,
-} from '@capsuletech/web-map';
+import type { Typography } from '@capsuletech/web-ui/typography';
 import type { Link } from '@tanstack/solid-router';
-import type { Component, JSX, JSXElement, ParentComponent } from 'solid-js';
+import type {
+  Component,
+  For,
+  Index,
+  JSX,
+  JSXElement,
+  Match,
+  ParentComponent,
+  Show,
+  Switch,
+} from 'solid-js';
+import type { Dynamic } from 'solid-js/web';
 
 // -----------------------------------------------------------------------------
 // UiProxy meta-props: дополнительные props, которые UiProxy перехватывает
@@ -142,6 +153,22 @@ type WithMetaProps<T> = {
 // UI-вкус: что приходит wrapper'ам в первый позиционный аргумент.
 // -----------------------------------------------------------------------------
 
+/**
+ * Solid control-flow primitives exposed as `Ui.Flow.*` inside View/Widget/Page
+ * factories. These are raw Solid components — UiProxy returns the Flow namespace
+ * verbatim (never wrapped). See `RAW_PASSTHROUGH_KEYS` in engine/ui-proxy.tsx.
+ *
+ * Usage: `<Ui.Flow.For each={items()}>{(item) => <.../>}</Ui.Flow.For>`
+ */
+type FlowNamespace = {
+  For: typeof For;
+  Show: typeof Show;
+  Switch: typeof Switch;
+  Match: typeof Match;
+  Index: typeof Index;
+  Dynamic: typeof Dynamic;
+};
+
 /** Layout-subset доступный внутри View — Grid + Flex (без Matrix; Matrix = page-level shell). */
 type ViewLayoutSubset = Pick<typeof Layout, 'Grid' | 'Flex'>;
 
@@ -174,11 +201,17 @@ type ViewUiRaw = {
   Link: typeof Link;
   /** Grid + Flex для internal View layout. Matrix намеренно исключён — это page-level shell. */
   Layout: ViewLayoutSubset;
+  /**
+   * Solid control-flow primitives. Raw — NOT UiProxy-wrapped.
+   * `<Ui.Flow.For each={...}>{(x) => ...}</Ui.Flow.For>`
+   */
+  Flow: FlowNamespace;
 };
 
 type Outlet = () => JSXElement;
 
 type WidgetUiRaw = {
+  Button: typeof Button;
   Card: typeof Card;
   Outlet: Outlet;
   Animate: typeof Animate;
@@ -200,15 +233,35 @@ type WidgetUiRaw = {
     TerrainPreset: typeof TerrainPreset;
     BuildingsPreset: typeof BuildingsPreset;
   };
+  /**
+   * Solid control-flow primitives. Raw — NOT UiProxy-wrapped.
+   * `<Ui.Flow.For each={...}>{(x) => ...}</Ui.Flow.For>`
+   */
+  Flow: FlowNamespace;
 };
-type PageUiRaw = { Layout: typeof Layout; Outlet: Outlet; Animate: typeof Animate };
+type PageUiRaw = {
+  Layout: typeof Layout;
+  Outlet: Outlet;
+  Animate: typeof Animate;
+  /**
+   * Solid control-flow primitives. Raw — NOT UiProxy-wrapped.
+   * `<Ui.Flow.For each={...}>{(x) => ...}</Ui.Flow.For>`
+   */
+  Flow: FlowNamespace;
+};
 
+/**
+ * `WithMetaProps` recurses into every object-valued key. `Flow` must stay raw
+ * (Solid's For/Show/Switch/Match/Index/Dynamic must not have IUiMetaProps added
+ * to their props — it would break their render-prop signatures). We exclude it
+ * from the mapped type and re-add it verbatim via intersection.
+ */
 /** Ui namespace доступный внутри View factory — все компоненты принимают IUiMetaProps. */
-export type ViewUi = WithMetaProps<ViewUiRaw>;
+export type ViewUi = WithMetaProps<Omit<ViewUiRaw, 'Flow'>> & { Flow: FlowNamespace };
 /** Ui namespace доступный внутри Widget factory — все компоненты принимают IUiMetaProps. */
-export type WidgetUi = WithMetaProps<WidgetUiRaw>;
+export type WidgetUi = WithMetaProps<Omit<WidgetUiRaw, 'Flow'>> & { Flow: FlowNamespace };
 /** Ui namespace доступный внутри Page factory — все компоненты принимают IUiMetaProps. */
-export type PageUi = WithMetaProps<PageUiRaw>;
+export type PageUi = WithMetaProps<Omit<PageUiRaw, 'Flow'>> & { Flow: FlowNamespace };
 
 /**
  * Глобальные slot-реестры. Заполняются codegen'ом в
@@ -236,7 +289,6 @@ declare global {
   // (это типизация getApiClient). web-core видит её через interface-merging,
   // потому что зависит от web-query (для value-import getApiClient).
 }
-
 
 /**
  * View: stateless UI. Позиционные аргументы:
@@ -399,6 +451,7 @@ export interface IStateHandlers extends IBaseStateHandlers {
   onInit?: (api: IHandlerApi) => void | Promise<void>;
   onExit?: (api: IHandlerApi) => void | Promise<void>;
   onClick?: (api: IHandlerApi) => any;
+  onDblClick?: (api: IHandlerApi) => any;
   onInput?: (api: IHandlerApi) => any;
   onChange?: (api: IHandlerApi) => any;
   onBlur?: (api: IHandlerApi) => any;
@@ -461,6 +514,7 @@ export interface IDefineStateSchema<TCtx = any> extends IBaseStateSchema<TCtx> {
    */
   onError?: (api: IErrorHandlerApi) => any;
   onClick?: (api: IHandlerApi) => any;
+  onDblClick?: (api: IHandlerApi) => any;
   onInput?: (api: IHandlerApi) => any;
   onChange?: (api: IHandlerApi) => any;
   onBlur?: (api: IHandlerApi) => any;
@@ -502,6 +556,8 @@ export type IControllerWrapper = (
 
 export type IFeatureWrapper = IControllerWrapper;
 
+// Re-export Entity types для удобства потребителей.
+export type { IEntityDefinition, IEntityFactory, IEntityWrapper } from './entity/types';
 // Re-export Shape types для удобства потребителей.
 export type {
   IShapeComponent,
@@ -513,6 +569,3 @@ export type {
   ShapeData,
   ShapeItem,
 } from './shape/types';
-
-// Re-export Entity types для удобства потребителей.
-export type { IEntityDefinition, IEntityFactory, IEntityWrapper } from './entity/types';
