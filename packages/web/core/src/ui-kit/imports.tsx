@@ -1,4 +1,5 @@
-import { lazy } from 'solid-js';
+import { For, Index, lazy, Match, Show, Switch } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 // 1. Хелпер для сокращения записи
 // m[name] вытаскивает конкретный компонент из модуля, так как у вас именованные экспорты
@@ -15,8 +16,8 @@ export const Typography = createLazy(() => import('@capsuletech/web-ui/typograph
 
 // Layout namespace: Grid + Flex + Matrix
 export const Layout = {
-  Grid:   createLazy(() => import('@capsuletech/web-ui/grid'), 'Grid'),
-  Flex:   createLazy(() => import('@capsuletech/web-ui/flex'), 'Flex'),
+  Grid: createLazy(() => import('@capsuletech/web-ui/grid'), 'Grid'),
+  Flex: createLazy(() => import('@capsuletech/web-ui/flex'), 'Flex'),
   Matrix: createLazy(() => import('@capsuletech/web-ui/matrix'), 'Matrix'),
 };
 export const List = createLazy(() => import('@capsuletech/web-ui/list'), 'List');
@@ -74,23 +75,23 @@ export const DropdownMenu = createLazy(
 const TableBase = createLazy(() => import('@capsuletech/web-ui/table'), 'Table');
 export const Table = Object.assign(TableBase, {
   Header: createLazy(() => import('@capsuletech/web-ui/table'), 'TableHeader'),
-  Body:   createLazy(() => import('@capsuletech/web-ui/table'), 'TableBody'),
-  Row:    createLazy(() => import('@capsuletech/web-ui/table'), 'TableRow'),
-  Head:   createLazy(() => import('@capsuletech/web-ui/table'), 'TableHead'),
-  Cell:   createLazy(() => import('@capsuletech/web-ui/table'), 'TableCell'),
+  Body: createLazy(() => import('@capsuletech/web-ui/table'), 'TableBody'),
+  Row: createLazy(() => import('@capsuletech/web-ui/table'), 'TableRow'),
+  Head: createLazy(() => import('@capsuletech/web-ui/table'), 'TableHead'),
+  Cell: createLazy(() => import('@capsuletech/web-ui/table'), 'TableCell'),
 });
 
 // 8. Dropdown — accessible menu primitive (Kobalte). Compound с 9 sub-components:
 // Trigger / Content / Item / Separator / Group / Label / Sub / SubTrigger / SubContent.
 const DropdownBase = createLazy(() => import('@capsuletech/web-ui/dropdown'), 'Dropdown');
 export const Dropdown = Object.assign(DropdownBase, {
-  Trigger:    createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownTrigger'),
-  Content:    createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownContent'),
-  Item:       createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownItem'),
-  Separator:  createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSeparator'),
-  Group:      createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownGroup'),
-  Label:      createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownLabel'),
-  Sub:        createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSub'),
+  Trigger: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownTrigger'),
+  Content: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownContent'),
+  Item: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownItem'),
+  Separator: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSeparator'),
+  Group: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownGroup'),
+  Label: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownLabel'),
+  Sub: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSub'),
   SubTrigger: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSubTrigger'),
   SubContent: createLazy(() => import('@capsuletech/web-ui/dropdown'), 'DropdownSubContent'),
 });
@@ -120,14 +121,33 @@ export const ThemePicker = createLazy(
  */
 const MapViewBase = createLazy(() => import('@capsuletech/web-map'), 'MapView');
 export const MapView = Object.assign(MapViewBase, {
-  Source:          createLazy(() => import('@capsuletech/web-map'), 'Source'),
-  Layer:           createLazy(() => import('@capsuletech/web-map'), 'Layer'),
-  Terrain:         createLazy(() => import('@capsuletech/web-map'), 'Terrain'),
-  Sky:             createLazy(() => import('@capsuletech/web-map'), 'Sky'),
-  Marker:          createLazy(() => import('@capsuletech/web-map'), 'Marker'),
-  TerrainPreset:   createLazy(() => import('@capsuletech/web-map'), 'TerrainPreset'),
+  Source: createLazy(() => import('@capsuletech/web-map'), 'Source'),
+  Layer: createLazy(() => import('@capsuletech/web-map'), 'Layer'),
+  Terrain: createLazy(() => import('@capsuletech/web-map'), 'Terrain'),
+  Sky: createLazy(() => import('@capsuletech/web-map'), 'Sky'),
+  Marker: createLazy(() => import('@capsuletech/web-map'), 'Marker'),
+  TerrainPreset: createLazy(() => import('@capsuletech/web-map'), 'TerrainPreset'),
   BuildingsPreset: createLazy(() => import('@capsuletech/web-map'), 'BuildingsPreset'),
 });
 
 // Реэкспорт сторонних утилит
 export { Link } from '@tanstack/solid-router';
+
+/**
+ * Solid control-flow primitives namespaced under `Flow` so app authors can
+ * write `<Ui.Flow.For each={...}>` / `<Ui.Flow.Show when={...}>` without
+ * importing from solid-js directly in View/Widget factories.
+ *
+ * These are raw Solid components — NOT wrapped by UiProxy. The UiProxy `get`
+ * trap recognises the 'Flow' key and returns this object verbatim (see
+ * engine/ui-proxy.tsx). Wrapping would break render-prop children patterns
+ * (For's function child, Show's fallback, Switch/Match nesting).
+ */
+export const Flow = {
+  For,
+  Show,
+  Switch,
+  Match,
+  Index,
+  Dynamic,
+};

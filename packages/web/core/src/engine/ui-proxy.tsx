@@ -1,5 +1,5 @@
-import { createEffect, createUniqueId, mergeProps, onCleanup, splitProps } from 'solid-js';
 import type { JSX } from 'solid-js';
+import { createEffect, createUniqueId, mergeProps, onCleanup, splitProps } from 'solid-js';
 import type { ICtx } from './ctx';
 import {
   type AnyEvent,
@@ -17,7 +17,14 @@ export { deriveInputType, deriveName, getTargetData, TAG_TO_INPUT_TYPE };
  * свой target (актуально для inputs / selects — value/checked-флаг сохраняется
  * в reactive-снапшот).
  */
-type EventName = 'onClick' | 'onInput' | 'onChange' | 'onBlur' | 'onFocus' | 'onKeyDown';
+type EventName =
+  | 'onClick'
+  | 'onDblClick'
+  | 'onInput'
+  | 'onChange'
+  | 'onBlur'
+  | 'onFocus'
+  | 'onKeyDown';
 
 /**
  * Whitelist primitive'ов UI-кита, для которых UiProxy автоматически инжектит
@@ -37,6 +44,7 @@ const KIND_TAGS: Record<string, string> = {
 
 const EVENT_HANDLERS: Record<EventName, { updateStore: boolean }> = {
   onClick: { updateStore: false },
+  onDblClick: { updateStore: false },
   onInput: { updateStore: true },
   onChange: { updateStore: true },
   onBlur: { updateStore: false },
@@ -220,9 +228,7 @@ export const wrapComponent = (
       const baseMeta = props.meta;
       if (!kindTag) return baseMeta;
       const userTags: readonly string[] = baseMeta?.tags ?? [];
-      const tagsWithKind = userTags.includes(kindTag)
-        ? userTags
-        : [...userTags, kindTag];
+      const tagsWithKind = userTags.includes(kindTag) ? userTags : [...userTags, kindTag];
       return { ...baseMeta, tags: tagsWithKind };
     };
 
@@ -309,11 +315,27 @@ export const wrapComponent = (
  *
  * Caller (`wrappers/entity.tsx`) импортит `Ui as BaseUi` и передаёт сюда.
  */
+/**
+ * Keys on the Ui object that must bypass `wrapComponent` entirely and be
+ * returned raw from the Proxy. Add to this set when a new namespace contains
+ * render-prop–based primitives (control-flow, portals, etc.) that would break
+ * if wrapped in a ComponentWrapper.
+ *
+ * Current entries:
+ *  - 'Flow': Solid control-flow primitives (For/Show/Switch/Match/Index/Dynamic).
+ *    Wrapping them would interfere with their function-child / fallback /
+ *    nesting semantics and add pointless overhead.
+ */
+const RAW_PASSTHROUGH_KEYS = new Set<string>(['Flow']);
+
 export const UiProxy = (Ui: Record<string, any>, ctx: ICtx<any>, wrapperProps: any) =>
   new Proxy(
     { ...Ui },
     {
       get(target, propName: string) {
+        if (RAW_PASSTHROUGH_KEYS.has(propName)) {
+          return (target as any)[propName];
+        }
         return wrapComponent(ctx, wrapperProps, (target as any)[propName], propName);
       },
     },
